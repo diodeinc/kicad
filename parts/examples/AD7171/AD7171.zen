@@ -4,8 +4,8 @@ The AD7171 is a high precision, low power, 16-bit sigma-delta analog-to-digital
 converter that uses a charge balancing ADC architecture. It features a differential 
 input with programmable gain and an on-chip digital filter.
 
-Author: @claude-4-opus
-Reviewer: @davide_asnaghi
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf
 """
 

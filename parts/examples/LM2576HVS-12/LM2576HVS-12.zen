@@ -10,7 +10,7 @@ and includes cycle-by-cycle current limiting and thermal shutdown for full prote
 under fault conditions.
 
 Author: @Anthropic/claude-4-opus-20250514
-Reviewer: <not_reviewed>
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 """
 

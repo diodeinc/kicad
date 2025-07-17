@@ -8,8 +8,8 @@ current limiting, and thermal overload protection. Available in multiple fixed
 output voltages from 1.8V to 12V, it operates from input voltages up to 28V 
 making it suitable for automotive and industrial applications.
 
-Author: @claude-4-opus-20250514
-Reviewer: @davide_asnaghi
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 """
 

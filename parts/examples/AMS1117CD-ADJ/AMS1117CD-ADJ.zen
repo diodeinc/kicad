@@ -7,8 +7,8 @@ voltage is externally adjustable from 1.25V to the input voltage using two
 external resistors. The device includes current limiting, thermal overload 
 protection, and safe operating area protection.
 
-Author: @claude-4-opus
-Reviewer: @davide_asnaghi
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
 

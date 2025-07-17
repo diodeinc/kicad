@@ -10,7 +10,7 @@ enable pin for power management. The REF6050 operates from 4.5V to 15V input
 voltage and is available in a compact VSSOP-8 package.
 
 Author: @Anthropic/claude-4-opus-20250514
-Reviewer: @davide_asnaghi
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.ti.com/lit/ds/symlink/ref6050.pdf
 """
 

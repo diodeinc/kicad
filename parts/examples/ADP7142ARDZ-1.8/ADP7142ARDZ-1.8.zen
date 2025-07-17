@@ -8,7 +8,7 @@ supply rejection (88dB at 10kHz), low noise (11μV rms), and achieves excellent
 line and load transient response with a small 2.2μF ceramic output capacitor.
 
 Author: @Anthropic/claude-4-opus-20250514
-Reviewer: <not_reviewed>
+Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf
 """
 
