@@ -1,0 +1,107 @@
+"""ADP7142ARDZ-1.8 - 40V, 200mA, Low Noise, CMOS LDO Linear Regulator
+
+The ADP7142 is a CMOS, low dropout (LDO) linear regulator that operates from 
+2.7V to 40V and provides up to 200mA of output current. This high input voltage 
+LDO is ideal for the regulation of high performance analog and mixed signal 
+circuits. Using an advanced proprietary architecture, it provides high power 
+supply rejection (88dB at 10kHz), low noise (11μV rms), and achieves excellent 
+line and load transient response with a small 2.2μF ceramic output capacitor.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: <not_reviewed>
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_soft_start = config("add_soft_start", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_sense_resistor = config("add_sense_resistor", bool, default = True)
+
+if add_soft_start:
+    soft_start_time = config("soft_start_time", str, default = "10ms")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+GND = io("GND", Net, default = Net("GND"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+
+# Internal nets
+_SENSE = VOUT if not add_sense_resistor else Net("SENSE")
+_SS = Net("SS")
+
+# 200mA, Low Noise, CMOS Low Dropout Regulator, Positive, 1.8V Fixed Output, SOIC-8
+Component(
+    name = "ADP7142ARDZ-1.8",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "ADP7142ARDZ-1.8"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "EN": EN_CTRL,
+        "GND": GND,
+        "VOUT": VOUT,
+        "SENSE/ADJ": _SENSE,
+        "SS": _SS,
+    },
+)
+
+# Input Capacitor - Datasheet recommends minimum 2.2μF ceramic
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "2.2uF", package = "0805", P1 = VIN, P2 = GND)
+
+    # Additional high-frequency decoupling
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Datasheet specifies minimum 2.2μF with ESR < 0.3Ω
+if add_output_cap:
+    Capacitor(name = "C_OUT", value = "2.2uF", package = "0805", P1 = VOUT, P2 = GND)
+
+    # Additional high-frequency decoupling
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VOUT, P2 = GND)
+
+# Soft Start Capacitor
+if add_soft_start:
+    # Calculate capacitor value based on desired soft start time
+    # SS_TIME = t_STARTUP(0pF) + (0.6 × C_SS) / I_SS
+    # Where t_STARTUP = 380μs, I_SS = 1.15μA
+    ss_cap_values = {
+        "1ms": "1nF",  # ~1ms total
+        "5ms": "8.2nF",  # ~5ms total
+        "10ms": "18nF",  # ~10ms total
+        "50ms": "100nF",  # ~50ms total
+        "100ms": "220nF",  # ~100ms total
+    }
+
+    ss_cap = ss_cap_values.get(soft_start_time, "18nF")
+    Capacitor(name = "C_SS", value = ss_cap, package = "0402", P1 = _SS, P2 = GND)
+else:
+    # Leave SS pin open for default 380μs start-up time
+    # Do not ground this pin
+    pass
+
+# Enable Control
+if enable_control:
+    # Pull-up resistor to ensure regulator is enabled by default
+    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+
+# Sense Resistor for Remote Sensing (optional)
+if add_sense_resistor:
+    # Low value resistor for Kelvin sensing at the load
+    Resistor(name = "R_SENSE", value = "10ohms", package = "0402", P1 = VOUT, P2 = _SENSE)
+
+# pcb:sch ADP7142ARDZ-1.8 x=-50.8000 y=-177.8000 rot=0
+# pcb:sch C_IN.CAPACITOR x=-304.8000 y=-165.1000 rot=0
+# pcb:sch C_IN_HF.CAPACITOR x=-215.9000 y=-165.1000 rot=0
+# pcb:sch C_OUT.CAPACITOR x=292.1000 y=-165.1000 rot=0
+# pcb:sch C_OUT_HF.CAPACITOR x=368.3000 y=-165.1000 rot=0
+# pcb:sch R_EN.R x=-127.0000 y=-139.7000 rot=180
+# pcb:sch C_SS.CAPACITOR x=165.1000 y=-88.9000 rot=0
+# pcb:sch R_SENSE.R x=241.3000 y=-152.4000 rot=0
+# pcb:sch C_SS.CAPACITOR x=165.1000 y=-88.9000 rot=0
+# pcb:sch R_SENSE.R x=241.3000 y=-152.4000 rot=0

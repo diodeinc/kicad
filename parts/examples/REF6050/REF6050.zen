@@ -1,0 +1,134 @@
+"""REF6050 - 5.0V High-Precision Voltage Reference with Integrated ADC Drive Buffer
+
+The REF6050 from Texas Instruments is an extremely low-noise, high-precision 
+voltage reference with an integrated ADC drive buffer. It provides a stable 
+5.0V output with ±0.05% initial accuracy and 3ppm/°C temperature coefficient. 
+The device features an integrated buffer amplifier capable of sourcing up to 
+4mA of output current, making it ideal for driving high-resolution ADCs. It 
+includes programmable current limiting, soft-start functionality, and an 
+enable pin for power management. The REF6050 operates from 4.5V to 15V input 
+voltage and is available in a compact VSSOP-8 package.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: @davide_asnaghi
+Datasheet: https://www.ti.com/lit/ds/symlink/ref6050.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+Esr = enum("None", "5mohm", "10mohm", "20mohm", "50mohm")
+CurrentLimit = enum("5mA", "13mA", "22mA", "Highest")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_filter_cap = config("add_filter_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+esr = config("equivalent_esr", Esr, default = "5mohm")
+current_limit = config("current_limit", CurrentLimit, default = "13mA")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+GND = io("GND", Net, default = Net("GND"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+
+# Internal nets
+_FILT = Net("FILT")
+_SS = VIN if current_limit == CurrentLimit("Highest") else Net("SS")
+
+# 5.0V 0.05% 4mA Extremely Low Noise High Precision Voltage Reference, VSSOP-8
+Component(
+    name = "REF6050",
+    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "REF6050xDGK"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/VSSOP-8_3x3mm_P0.65mm.kicad_mod"),
+    pins = {
+        "EN": EN_CTRL,
+        "FILT": _FILT,
+        "SS": _SS,
+        "GND_S": GND,
+        "VIN": VIN,
+        "GND_F": GND,
+        "OUT_S": VOUT,
+        "OUT_F": VOUT,
+    },
+)
+
+# Input Decoupling - Datasheet recommends minimum 0.1µF
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Datasheet specifies 10µF to 47µF for stability
+if add_output_cap:
+    _ESR = Net("ESR") if esr != Esr("None") else VOUT
+    output_c = "47uF"
+
+    # ESR Capacitor - For applications requiring specific ESR for stability
+    if esr != Esr("None"):
+        # Section 9.3.4: Stability
+        # At a low output-capacitor value of 10 µF, an effective series resistance (ESR)
+        # of 20 mΩ to 100 mΩ is required for stability; whereas, at a higher value of
+        # 47 µF, an ESR of 5 mΩ to 100 mΩ is required.
+
+        esr_cap_table = {
+            Esr("5mohm"): ("5mohms 1%", "47uF"),
+            Esr("10mohm"): ("10mohms 1%", "47uF"),
+            Esr("20mohm"): ("20mohms 1%", "10uF"),
+            Esr("50mohm"): ("50mohms 1%", "10uF"),
+        }
+        output_r, output_c = esr_cap_table.get(esr, ("20mohm", "10uF"))
+
+        # ESR resistor in series with capacitor
+        Resistor(name = "R_ESR", value = output_r, package = "0402", P1 = VOUT, P2 = _ESR)
+
+    # Primary output capacitor (ceramic with low ESR)
+    Capacitor(name = "C_OUT", value = "47uF", package = "1206", P1 = _ESR, P2 = GND)
+
+# Filter Capacitor - Required ≥1µF for stability
+if add_filter_cap:
+    Capacitor(name = "C_FILT", value = "1uF", package = "0603", P1 = _FILT, P2 = GND)
+
+# Short Circuit Current Limit Resistor
+if current_limit != CurrentLimit("Highest"):
+    # Equation 4: I_SS = (80 * 10^-9 * R_SS + 3* 10^-3)
+    r_ss_table = {
+        CurrentLimit("5mA"): "60kohms",
+        CurrentLimit("13mA"): "120kohms",
+        CurrentLimit("22mA"): "240kohms",
+    }
+    r_ss_value = r_ss_table.get(current_limit, "120kohms")
+
+    # Connect resistor from SS pin to ground to set custom current limit
+    # Default 120k provides ~13mA short circuit current limit
+    Resistor(name = "R_SS", value = r_ss_value, package = "0402", P1 = _SS, P2 = GND)
+
+# Enable pull-up resistor (optional)
+if enable_control:
+    # Pull-up to ensure device is enabled by default
+    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+
+add_property("notes", """
+- R_SS resistor can be used to set a custom short circuit current limit
+- ESR capacitor option available for applications requiring specific output impedance characteristics
+""")
+
+# pcb:sch REF6050 x=152.4000 y=368.3000 rot=0
+# pcb:sch C_IN x=-50 y=0 rot=90
+# pcb:sch C_OUT x=50 y=0 rot=90
+# pcb:sch C_OUT_HF x=50 y=-30 rot=90
+# pcb:sch C_FILT x=0 y=-50 rot=0
+# pcb:sch R_SS x=-25 y=-50 rot=0
+# pcb:sch R_EN x=-50 y=30 rot=0
+# pcb:sch R_ESR x=80 y=0 rot=0
+# pcb:sch C_ESR x=110 y=0 rot=90
+# pcb:sch C_FILT.CAPACITOR x=101.6000 y=546.1000 rot=0
+# pcb:sch C_IN.CAPACITOR x=-50.8000 y=393.7000 rot=0
+# pcb:sch C_OUT.CAPACITOR x=457.2000 y=546.1000 rot=0
+# pcb:sch C_OUT_HF.CAPACITOR x=419.1000 y=228.6000 rot=0
+# pcb:sch R_EN.R x=63.5000 y=381.0000 rot=90
+# pcb:sch R_SS.R x=38.1000 y=546.1000 rot=0
+
+# pcb:sch R_ESR.R x=469.9000 y=355.6000 rot=0

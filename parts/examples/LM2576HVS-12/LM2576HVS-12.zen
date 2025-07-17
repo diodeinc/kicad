@@ -1,0 +1,103 @@
+"""LM2576HVS-12 - 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator
+
+The LM2576HVS-12 is a monolithic integrated circuit that provides all the active 
+functions for a step-down (buck) switching regulator, capable of driving 3A load 
+with excellent line and load regulation. This high voltage version accepts input 
+voltages up to 60V and provides a fixed 12V output. It features a 52kHz fixed-
+frequency internal oscillator, requires only four external components, and includes 
+TTL-shutdown capability for low-power standby mode. The device offers high efficiency 
+and includes cycle-by-cycle current limiting and thermal shutdown for full protection 
+under fault conditions.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: <not_reviewed>
+Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Inductor = Module("@stdlib:zen-symbols/generics/Inductor.zen")
+
+# Types
+InductorValue = enum("68uH", "100uH", "150uH", "220uH", "330uH")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_inductor = config("add_inductor", bool, default = True)
+add_catch_diode = config("add_catch_diode", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+inductor_value = config("inductor_value", InductorValue, default = "100uH")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+GND = io("GND", Net, default = Net("GND"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+ON_OFF = io("ON_OFF", Net, default = Net("ON/OFF")) if enable_control else GND
+
+# Internal nets
+_SW = Net("SW")
+_FB = VOUT  # For fixed voltage version, FB connects directly to output
+
+# 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator, High Voltage Input, TO-263
+Component(
+    name = "LM2576HVS-12",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "LM2576HVS-12"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-263-5_TabPin3.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "~{ON}/OFF": ON_OFF,
+        "GND": GND,
+        "FB": _FB,
+        "OUT": _SW,
+    },
+)
+
+# Input Capacitor - Datasheet recommends minimum 100µF
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "100uF", package = "1210", P1 = VIN, P2 = GND)
+
+    # Additional high-frequency decoupling
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0603", P1 = VIN, P2 = GND)
+
+# Output Inductor - Required for buck converter operation
+if add_inductor:
+    Inductor(name = "L_OUT", value = inductor_value.value, package = "1210", P1 = _SW, P2 = VOUT)
+
+# Catch Diode - Required for inductor current return path
+if add_catch_diode:
+    # Schottky diode for best efficiency - 1N5822 (3A, 40V Schottky)
+    Component(
+        name = "D_CATCH",
+        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "1N5822"),
+        footprint = File("@kicad-footprints/Diode_THT.pretty/D_DO-201AD_P15.24mm_Horizontal.kicad_mod"),
+        pins = {
+            "K": _SW,
+            "A": GND,
+        },
+    )
+
+# Output Capacitor - For filtering and stability
+if add_output_cap:
+    # Main output capacitor
+    Capacitor(name = "C_OUT", value = "1000uF", package = "1210", P1 = VOUT, P2 = GND)
+
+    # Additional ceramic for high frequency
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0603", P1 = VOUT, P2 = GND)
+
+# Enable Control
+if enable_control:
+    # Pull-down resistor to ensure regulator is ON by default
+    Resistor(name = "R_EN", value = "10kohms", package = "0603", P1 = ON_OFF, P2 = GND)
+
+# pcb:sch LM2576HVS-12 x=203.2000 y=469.9000 rot=0
+# pcb:sch C_IN.CAPACITOR x=76.2000 y=520.7000 rot=0
+# pcb:sch C_IN_HF.CAPACITOR x=-12.7000 y=520.7000 rot=0
+# pcb:sch L_OUT.INDUCTOR x=200.0000 y=0.0000 rot=0
+# pcb:sch D_CATCH.DIODE x=100.0000 y=-100.0000 rot=90
+# pcb:sch C_OUT.CAPACITOR x=749.3000 y=546.1000 rot=0
+# pcb:sch C_OUT_HF.CAPACITOR x=660.4000 y=546.1000 rot=0
+# pcb:sch R_EN.R x=139.7000 y=596.9000 rot=0
+# pcb:sch D_CATCH x=457.2000 y=609.6000 rot=90
+# pcb:sch L_OUT.L x=558.8000 y=508.0000 rot=270

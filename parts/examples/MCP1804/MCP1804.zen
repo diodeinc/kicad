@@ -1,0 +1,67 @@
+"""MCP1804 - 150mA Low Dropout Linear Voltage Regulator with Shutdown
+
+The MCP1804 is a positive, fixed output low dropout linear voltage regulator 
+capable of supplying 150mA of output current. It features an extremely low 
+dropout voltage of 178mV at maximum load current and excellent line and load 
+regulation. The device includes an active-low shutdown pin for power management, 
+current limiting, and thermal overload protection. Available in multiple fixed 
+output voltages from 1.8V to 12V, it operates from input voltages up to 28V 
+making it suitable for automotive and industrial applications.
+
+Author: @claude-4-opus-20250514
+Reviewer: @davide_asnaghi
+Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+OutputVoltage = enum("1.8", "2.5", "3.0", "3.3", "5.0", "10.0", "12.0")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_shutdown_pullup = config("add_shutdown_pullup", bool, default = True)
+output_voltage = config("output_voltage", OutputVoltage, default = "2.5")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+GND = io("GND", Net, default = Net("GND"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+SHDN = io("SHDN", Net, default = Net("SHDN"))
+
+# Internal nets
+_NC = Net("NC")
+
+# 150mA, 28V LDO Regulator With Shutdown, 2.5V Fixed Output, SOT-89-5
+Component(
+    name = "MCP1804",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MCP1804x-2502xMT"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-5.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "~{SHDN}": SHDN,
+        "GND": GND,
+        "NC": _NC,
+        "VOUT": VOUT,
+    },
+)
+
+# Input Capacitor - Datasheet recommends 0.1µF to 1.0µF ceramic
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "1uF", package = "0603", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Datasheet recommends 0.1µF to 1.0µF ceramic
+if add_output_cap:
+    Capacitor(name = "C_OUT", value = "1uF", package = "0603", P1 = VOUT, P2 = GND)
+
+# Shutdown Pull-up Resistor - SHDN pin must be connected to either VIN or GND
+if add_shutdown_pullup:
+    Resistor(name = "R_SHDN", value = "100kohms", package = "0402", P1 = SHDN, P2 = VIN)
+
+# pcb:sch MCP1804 x=139.7000 y=38.1000 rot=0
+# pcb:sch C_IN.CAPACITOR x=-12.7000 y=88.9000 rot=0
+# pcb:sch C_OUT.CAPACITOR x=381.0000 y=88.9000 rot=0
+# pcb:sch R_SHDN.R x=114.3000 y=101.6000 rot=0

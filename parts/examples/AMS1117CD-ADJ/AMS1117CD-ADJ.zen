@@ -1,0 +1,78 @@
+"""AMS1117CD-ADJ - 1A Low Dropout Adjustable Linear Voltage Regulator
+
+The AMS1117CD-ADJ is a positive, adjustable low dropout linear voltage regulator 
+capable of supplying 1A of output current. It features a low dropout voltage of 
+1.3V at maximum load current and excellent line and load regulation. The output 
+voltage is externally adjustable from 1.25V to the input voltage using two 
+external resistors. The device includes current limiting, thermal overload 
+protection, and safe operating area protection.
+
+Author: @claude-4-opus
+Reviewer: @davide_asnaghi
+Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+RegulatorType = enum("FIX", "ADJ")
+FixedOutput = enum("1.5", "1.8", "2.5", "2.85", "3.3", "5.0")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+regulator_type = config("regulator_type", RegulatorType, default = "ADJ")
+
+if regulator_type == RegulatorType("FIX"):
+    fixed_voltage = config("fixed_voltage", FixedOutput, default = "1.8")
+    symbol_name = "AMS1117CD-" + fixed_voltage.value
+    GND_PIN = "GND"
+else:
+    r_top = config("r_top", str, default = "10kohms")
+    r_bottom = config("r_bottom", str, default = "10kohms")
+    symbol_name = "AMS1117CD"
+    GND_PIN = "ADJ"
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+GND = io("GND", Net, default = Net("GND"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+
+# Internal IO
+_ADJ = Net("ADJ") if regulator_type == RegulatorType("ADJ") else GND
+
+# 1A Low Dropout regulator, positive, 5.0V fixed output, TO-252
+Component(
+    name = "AMS1117CD",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = symbol_name),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-252-3_TabPin2.kicad_mod"),
+    pins = {
+        "VI": VIN,
+        GND_PIN: _ADJ,
+        "VO": VOUT,
+    },
+)
+
+# Input Capacitor
+if add_input_cap:
+    Capacitor(name = "C_IN_BULK", value = "10uF", package = "0805", P1 = VIN, P2 = GND)
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor
+if add_output_cap:
+    Capacitor(name = "C_OUT_BULK", value = "10uF", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VOUT, P2 = GND)
+
+if regulator_type == RegulatorType("ADJ"):
+    Resistor(name = "R_FB", value = r_top, package = "0402", P1 = VOUT, P2 = _ADJ)
+    Resistor(name = "R_ADJ", value = r_bottom, package = "0402", P1 = _ADJ, P2 = GND)
+
+# pcb:sch AMS1117CD x=254.0000 y=444.5000 rot=0
+# pcb:sch C_IN_BULK.CAPACITOR x=190.5000 y=482.6000 rot=0
+# pcb:sch C_IN_HF.CAPACITOR x=101.6000 y=482.6000 rot=0
+# pcb:sch C_OUT_BULK.CAPACITOR x=520.7000 y=546.1000 rot=0
+# pcb:sch C_OUT_HF.CAPACITOR x=596.9000 y=546.1000 rot=0
+# pcb:sch R_ADJ.R x=431.8000 y=609.6000 rot=0
+# pcb:sch R_FB.R x=431.8000 y=482.6000 rot=0
