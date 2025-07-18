@@ -76,6 +76,8 @@ if add_catch_diode:
         variant = "Schottky",
         package = "SMA",
         mpn = "1N5822",
+        v_f = "40V",
+        i_f = "3A",
         K = _SW,
         A = GND,
     )
