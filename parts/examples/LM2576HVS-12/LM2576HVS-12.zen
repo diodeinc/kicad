@@ -75,7 +75,7 @@ if add_catch_diode:
         name = "D_CATCH",
         variant = "Schottky",
         package = "SMA",
-        # footprint = File("@kicad-footprints/Diode_THT.pretty/D_DO-201AD_P15.24mm_Horizontal.kicad_mod"),
+        mpn = "1N5822",
         K = _SW,
         A = GND,
     )
@@ -95,7 +95,7 @@ if enable_control:
 
 # pcb:sch LM2576HVS-12 x=152.4000 y=241.3000 rot=0
 # pcb:sch C_IN.CAPACITOR x=-165.1000 y=279.4000 rot=0
-# pcb:sch C_IN_HF.CAPACITOR x=-63.5000 y=292.1000 rot=0
+# pcb:sch C_IN_HF.CAPACITOR x=-63.5000 y=279.4000 rot=0
 # pcb:sch L_OUT.INDUCTOR x=200.0000 y=0.0000 rot=0
 # pcb:sch D_CATCH.DIODE x=100.0000 y=-100.0000 rot=90
 # pcb:sch C_OUT.CAPACITOR x=736.6000 y=292.1000 rot=0
