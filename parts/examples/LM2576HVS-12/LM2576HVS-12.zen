@@ -74,7 +74,7 @@ if add_catch_diode:
     Diode(
         name = "D_CATCH",
         variant = "Schottky",
-        package = "SMA",
+        package = "SOD-123",
         mpn = "1N5822",
         v_r = "40V",
         i_f = "3A",
