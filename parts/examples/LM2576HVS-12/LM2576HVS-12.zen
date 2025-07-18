@@ -1,3 +1,5 @@
+load("/Users/davide/Library/Caches/pcb/github/diodeinc/stdlib/zen-symbols/generics/Inductor.zen", "package")
+
 """LM2576HVS-12 - 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator
 
 The LM2576HVS-12 is a monolithic integrated circuit that provides all the active 
@@ -18,6 +20,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Inductor = Module("@stdlib:zen-symbols/generics/Inductor.zen")
+Diode = Module("@stdlib:zen-symbols/generics/Diode.zen")
 
 # Types
 InductorValue = enum("68uH", "100uH", "150uH", "220uH", "330uH")
@@ -68,14 +71,13 @@ if add_inductor:
 # Catch Diode - Required for inductor current return path
 if add_catch_diode:
     # Schottky diode for best efficiency - 1N5822 (3A, 40V Schottky)
-    Component(
+    Diode(
         name = "D_CATCH",
-        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "1N5822"),
-        footprint = File("@kicad-footprints/Diode_THT.pretty/D_DO-201AD_P15.24mm_Horizontal.kicad_mod"),
-        pins = {
-            "K": _SW,
-            "A": GND,
-        },
+        variant = "Schottky",
+        package = "SMA",
+        # footprint = File("@kicad-footprints/Diode_THT.pretty/D_DO-201AD_P15.24mm_Horizontal.kicad_mod"),
+        K = _SW,
+        A = GND,
     )
 
 # Output Capacitor - For filtering and stability
@@ -91,13 +93,13 @@ if enable_control:
     # Pull-down resistor to ensure regulator is ON by default
     Resistor(name = "R_EN", value = "10kohms", package = "0603", P1 = ON_OFF, P2 = GND)
 
-# pcb:sch LM2576HVS-12 x=203.2000 y=469.9000 rot=0
-# pcb:sch C_IN.CAPACITOR x=76.2000 y=520.7000 rot=0
-# pcb:sch C_IN_HF.CAPACITOR x=-12.7000 y=520.7000 rot=0
+# pcb:sch LM2576HVS-12 x=152.4000 y=241.3000 rot=0
+# pcb:sch C_IN.CAPACITOR x=-165.1000 y=279.4000 rot=0
+# pcb:sch C_IN_HF.CAPACITOR x=-63.5000 y=292.1000 rot=0
 # pcb:sch L_OUT.INDUCTOR x=200.0000 y=0.0000 rot=0
 # pcb:sch D_CATCH.DIODE x=100.0000 y=-100.0000 rot=90
-# pcb:sch C_OUT.CAPACITOR x=749.3000 y=546.1000 rot=0
-# pcb:sch C_OUT_HF.CAPACITOR x=660.4000 y=546.1000 rot=0
-# pcb:sch R_EN.R x=139.7000 y=596.9000 rot=0
-# pcb:sch D_CATCH x=457.2000 y=609.6000 rot=90
-# pcb:sch L_OUT.L x=558.8000 y=508.0000 rot=270
+# pcb:sch C_OUT.CAPACITOR x=736.6000 y=292.1000 rot=0
+# pcb:sch C_OUT_HF.CAPACITOR x=673.1000 y=292.1000 rot=0
+# pcb:sch R_EN.R x=63.5000 y=317.5000 rot=0
+# pcb:sch D_CATCH.D x=444.5000 y=355.6000 rot=90
+# pcb:sch L_OUT.L x=571.5000 y=279.4000 rot=270
