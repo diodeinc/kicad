@@ -37,8 +37,8 @@ else:
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
-GND = io("GND", Net, default = Net("GND"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal IO
 _ADJ = Net("ADJ") if regulator_type == RegulatorType("ADJ") else GND
@@ -46,7 +46,7 @@ _ADJ = Net("ADJ") if regulator_type == RegulatorType("ADJ") else GND
 # 1A Low Dropout regulator, positive, 5.0V fixed output, TO-252
 Component(
     name = "AMS1117CD",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = symbol_name),
+    symbol = Symbol("@kicad-symbols/Regulator_Linear.kicad_sym:" + symbol_name),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-252-3_TabPin2.kicad_mod"),
     pins = {
         "VI": VIN,
@@ -70,9 +70,10 @@ if regulator_type == RegulatorType("ADJ"):
     Resistor(name = "R_ADJ", value = r_bottom, package = "0402", P1 = _ADJ, P2 = GND)
 
 # pcb:sch AMS1117CD x=254.0000 y=444.5000 rot=0
-# pcb:sch C_IN_BULK.CAPACITOR x=190.5000 y=482.6000 rot=0
-# pcb:sch C_IN_HF.CAPACITOR x=101.6000 y=482.6000 rot=0
-# pcb:sch C_OUT_BULK.CAPACITOR x=520.7000 y=546.1000 rot=0
-# pcb:sch C_OUT_HF.CAPACITOR x=596.9000 y=546.1000 rot=0
+# pcb:sch C_IN_BULK.C x=190.5000 y=482.6000 rot=0
+# pcb:sch C_IN_HF.C x=101.6000 y=482.6000 rot=0
+# pcb:sch C_OUT_BULK.C x=508.0000 y=546.1000 rot=0
+# pcb:sch C_OUT_HF.C x=584.2000 y=546.1000 rot=0
 # pcb:sch R_ADJ.R x=431.8000 y=609.6000 rot=0
 # pcb:sch R_FB.R x=431.8000 y=482.6000 rot=0
+# pcb:sch GND.1 x=368.3000 y=723.9000 rot=0

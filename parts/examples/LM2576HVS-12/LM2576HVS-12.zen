@@ -1,5 +1,3 @@
-load("/Users/davide/Library/Caches/pcb/github/diodeinc/stdlib/zen-symbols/generics/Inductor.zen", "package")
-
 """LM2576HVS-12 - 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator
 
 The LM2576HVS-12 is a monolithic integrated circuit that provides all the active 
@@ -35,9 +33,9 @@ inductor_value = config("inductor_value", InductorValue, default = "100uH")
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
-GND = io("GND", Net, default = Net("GND"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 ON_OFF = io("ON_OFF", Net, default = Net("ON/OFF")) if enable_control else GND
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
 _SW = Net("SW")
@@ -46,7 +44,7 @@ _FB = VOUT  # For fixed voltage version, FB connects directly to output
 # 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator, High Voltage Input, TO-263
 Component(
     name = "LM2576HVS-12",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "LM2576HVS-12"),
+    symbol = Symbol("@kicad-symbols/Regulator_Switching.kicad_sym:LM2576HVS-12"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-263-5_TabPin3.kicad_mod"),
     pins = {
         "VIN": VIN,
@@ -96,12 +94,13 @@ if enable_control:
     Resistor(name = "R_EN", value = "10kohms", package = "0603", P1 = ON_OFF, P2 = GND)
 
 # pcb:sch LM2576HVS-12 x=152.4000 y=241.3000 rot=0
-# pcb:sch C_IN.CAPACITOR x=-165.1000 y=279.4000 rot=0
-# pcb:sch C_IN_HF.CAPACITOR x=-63.5000 y=279.4000 rot=0
+# pcb:sch C_IN.C x=-165.1000 y=279.4000 rot=0
+# pcb:sch C_IN_HF.C x=-63.5000 y=279.4000 rot=0
 # pcb:sch L_OUT.INDUCTOR x=200.0000 y=0.0000 rot=0
 # pcb:sch D_CATCH.DIODE x=100.0000 y=-100.0000 rot=90
-# pcb:sch C_OUT.CAPACITOR x=736.6000 y=292.1000 rot=0
-# pcb:sch C_OUT_HF.CAPACITOR x=673.1000 y=292.1000 rot=0
+# pcb:sch C_OUT.C x=736.6000 y=292.1000 rot=0
+# pcb:sch C_OUT_HF.C x=673.1000 y=292.1000 rot=0
 # pcb:sch R_EN.R x=63.5000 y=317.5000 rot=0
 # pcb:sch D_CATCH.D x=444.5000 y=355.6000 rot=90
 # pcb:sch L_OUT.L x=571.5000 y=279.4000 rot=270
+# pcb:sch GND.1 x=266.7000 y=482.6000 rot=0

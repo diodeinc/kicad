@@ -32,9 +32,9 @@ current_limit = config("current_limit", CurrentLimit, default = "13mA")
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
-GND = io("GND", Net, default = Net("GND"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
 _FILT = Net("FILT")
@@ -43,7 +43,7 @@ _SS = VIN if current_limit == CurrentLimit("Highest") else Net("SS")
 # 5.0V 0.05% 4mA Extremely Low Noise High Precision Voltage Reference, VSSOP-8
 Component(
     name = "REF6050",
-    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "REF6050xDGK"),
+    symbol = Symbol("@kicad-symbols/Reference_Voltage.kicad_sym:REF6050xDGK"),
     footprint = File("@kicad-footprints/Package_SO.pretty/VSSOP-8_3x3mm_P0.65mm.kicad_mod"),
     pins = {
         "EN": EN_CTRL,
@@ -124,11 +124,14 @@ add_property("notes", """
 # pcb:sch R_EN x=-50 y=30 rot=0
 # pcb:sch R_ESR x=80 y=0 rot=0
 # pcb:sch C_ESR x=110 y=0 rot=90
-# pcb:sch C_FILT.CAPACITOR x=101.6000 y=546.1000 rot=0
-# pcb:sch C_IN.CAPACITOR x=-50.8000 y=393.7000 rot=0
-# pcb:sch C_OUT.CAPACITOR x=457.2000 y=546.1000 rot=0
-# pcb:sch C_OUT_HF.CAPACITOR x=419.1000 y=228.6000 rot=0
+# pcb:sch C_FILT.C x=-12.7000 y=482.6000 rot=0
+# pcb:sch C_IN.C x=-114.3000 y=406.4000 rot=0
+# pcb:sch C_OUT.C x=508.0000 y=533.4000 rot=0
+# pcb:sch C_OUT_HF.C x=419.1000 y=228.6000 rot=0
 # pcb:sch R_EN.R x=63.5000 y=381.0000 rot=90
-# pcb:sch R_SS.R x=38.1000 y=546.1000 rot=0
-
-# pcb:sch R_ESR.R x=469.9000 y=355.6000 rot=0
+# pcb:sch R_SS.R x=88.9000 y=533.4000 rot=0
+# pcb:sch R_ESR.R x=508.0000 y=393.7000 rot=0
+# pcb:sch C_FILT.C x=-12.7000 y=482.6000 rot=0
+# pcb:sch C_IN.C x=-114.3000 y=406.4000 rot=0
+# pcb:sch C_OUT.C x=508.0000 y=533.4000 rot=0
+# pcb:sch GND.1 x=292.1000 y=647.7000 rot=0

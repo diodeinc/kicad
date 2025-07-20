@@ -28,9 +28,9 @@ output_voltage = config("output_voltage", OutputVoltage, default = "2.5")
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
-GND = io("GND", Net, default = Net("GND"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 SHDN = io("SHDN", Net, default = Net("SHDN"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
 _NC = Net("NC")
@@ -38,7 +38,7 @@ _NC = Net("NC")
 # 150mA, 28V LDO Regulator With Shutdown, 2.5V Fixed Output, SOT-89-5
 Component(
     name = "MCP1804",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MCP1804x-2502xMT"),
+    symbol = Symbol("@kicad-symbols/Regulator_Linear.kicad_sym:MCP1804x-2502xMT"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-5.kicad_mod"),
     pins = {
         "VIN": VIN,
@@ -62,6 +62,11 @@ if add_shutdown_pullup:
     Resistor(name = "R_SHDN", value = "100kohms", package = "0402", P1 = SHDN, P2 = VIN)
 
 # pcb:sch MCP1804 x=139.7000 y=38.1000 rot=0
-# pcb:sch C_IN.CAPACITOR x=-12.7000 y=88.9000 rot=0
-# pcb:sch C_OUT.CAPACITOR x=381.0000 y=88.9000 rot=0
-# pcb:sch R_SHDN.R x=114.3000 y=101.6000 rot=0
+# pcb:sch C_IN.C x=-12.7000 y=88.9000 rot=0
+# pcb:sch C_OUT.C x=381.0000 y=88.9000 rot=0
+# pcb:sch R_SHDN.R x=25.4000 y=38.1000 rot=180
+
+# pcb:sch C_IN.C x=-63.5000 y=88.9000 rot=0
+# pcb:sch C_OUT.C x=393.7000 y=101.6000 rot=0
+
+# pcb:sch GND.1 x=228.6000 y=241.3000 rot=0

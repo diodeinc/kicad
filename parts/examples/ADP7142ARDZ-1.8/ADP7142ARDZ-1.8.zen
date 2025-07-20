@@ -28,9 +28,9 @@ if add_soft_start:
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
-GND = io("GND", Net, default = Net("GND"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
 _SENSE = VOUT if not add_sense_resistor else Net("SENSE")
@@ -96,12 +96,12 @@ if add_sense_resistor:
     Resistor(name = "R_SENSE", value = "10ohms", package = "0402", P1 = VOUT, P2 = _SENSE)
 
 # pcb:sch ADP7142ARDZ-1.8 x=-50.8000 y=-177.8000 rot=0
-# pcb:sch C_IN.CAPACITOR x=-304.8000 y=-165.1000 rot=0
-# pcb:sch C_IN_HF.CAPACITOR x=-215.9000 y=-165.1000 rot=0
-# pcb:sch C_OUT.CAPACITOR x=292.1000 y=-165.1000 rot=0
-# pcb:sch C_OUT_HF.CAPACITOR x=368.3000 y=-165.1000 rot=0
+# pcb:sch C_IN.C x=-304.8000 y=-165.1000 rot=0
+# pcb:sch C_IN_HF.C x=-215.9000 y=-165.1000 rot=0
+# pcb:sch C_OUT.C x=292.1000 y=-165.1000 rot=0
+# pcb:sch C_OUT_HF.C x=368.3000 y=-165.1000 rot=0
 # pcb:sch R_EN.R x=-127.0000 y=-139.7000 rot=180
-# pcb:sch C_SS.CAPACITOR x=165.1000 y=-88.9000 rot=0
+# pcb:sch C_SS.C x=165.1000 y=-88.9000 rot=0
 # pcb:sch R_SENSE.R x=241.3000 y=-152.4000 rot=0
-# pcb:sch C_SS.CAPACITOR x=165.1000 y=-88.9000 rot=0
+# pcb:sch C_SS.C x=165.1000 y=-88.9000 rot=0
 # pcb:sch R_SENSE.R x=241.3000 y=-152.4000 rot=0
