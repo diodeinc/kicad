@@ -1,0 +1,20 @@
+name: Release on Tag
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed for creating a release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          generate_release_notes: true

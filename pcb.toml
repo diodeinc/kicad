@@ -1,7 +1,44 @@
 [workspace]
-AD7171 = "Analog_ADC/AD7171.zen"
-REF6050 = "Reference_Voltage/REF6050.zen"
-ADP7142ARDZ-1.8 = "Regulator_Linear/ADP7142ARDZ-1.8.zen"
-AMS1117CD = "Regulator_Linear/AMS1117CD.zen"
-MCP1804 = "Regulator_Linear/MCP1804.zen"
-LM2576HVS-12 = "Regulator_Switching/LM2576HVS-12.zen"
+
+[[workspace.AD7171]]
+name = "AD7171"
+path = "Analog_ADC/AD7171.zen"
+category = "Analog_ADC"
+footprint = "DFN-10-1EP_3x3mm_P0.5mm_EP1.55x2.48mm"
+description = "16-bit sigma-delta ADC with SPI interface"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
+
+[[workspace.REF6050]]
+name = "REF6050"
+path = "Reference_Voltage/REF6050.zen"
+category = "Reference_Voltage"
+description = "5.0 V high-precision low-noise voltage reference with buffer"
+datasheet = "https://www.ti.com/lit/ds/symlink/ref6050.pdf"
+
+[[workspace.ADP7142ARDZ_1_8]]
+name = "ADP7142ARDZ-1.8"
+path = "Regulator_Linear/ADP7142ARDZ-1.8.zen"
+category = "Regulator_Linear"
+description = "40 V, 200 mA low-noise CMOS LDO, 1.8 V fixed"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf"
+
+[[workspace.AMS1117CD]]
+name = "AMS1117CD"
+path = "Regulator_Linear/AMS1117CD.zen"
+category = "Regulator_Linear"
+description = "1 A LDO, adjustable or fixed output"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+[[workspace.MCP1804]]
+name = "MCP1804"
+path = "Regulator_Linear/MCP1804.zen"
+category = "Regulator_Linear"
+description = "150 mA LDO with shutdown, up to 28 V input"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf"
+
+[[workspace.LM2576HVS_12]]
+name = "LM2576HVS-12"
+path = "Regulator_Switching/LM2576HVS-12.zen"
+category = "Regulator_Switching"
+description = "3 A SIMPLE SWITCHER buck regulator, 12 V output, high-voltage input"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2576.pdf"
