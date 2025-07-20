@@ -1,0 +1,7 @@
+[workspace]
+AD7171 = "Analog_ADC/AD7171.zen"
+REF6050 = "Reference_Voltage/REF6050.zen"
+ADP7142ARDZ-1.8 = "Regulator_Linear/ADP7142ARDZ-1.8.zen"
+AMS1117CD = "Regulator_Linear/AMS1117CD.zen"
+MCP1804 = "Regulator_Linear/MCP1804.zen"
+LM2576HVS-12 = "Regulator_Switching/LM2576HVS-12.zen"
