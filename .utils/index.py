@@ -124,41 +124,34 @@ def parse_zen(zen_path: Path, root: Path) -> ComponentMetadata | None:
 
 
 def _iter_zen_paths(root: Path) -> list[Path]:
-    """Return all *.zen* file paths **not** ignored by git.
+    """Return all *.zen* files **tracked by git** under *root*.
 
-    The function attempts to use ``git ls-files`` to obtain the list of files
-    tracked by git *or* untracked but **not** ignored according to the repo's
-    .gitignore rules. If *root* is not inside a git repository, or if git is
-    unavailable, it falls back to a recursive glob which will include every
-    *.zen* file (the previous behaviour).
+    The implementation asks ``git`` for the list of version-controlled
+    ``*.zen`` files with::
+
+        git -C <root> ls-files -z -- '*.zen'
+
+    This automatically honours ignore rules while remaining fast and
+    deterministic.  If git is not available (or *root* is not inside a
+    repository) we silently fall back to a plain recursive glob so the script
+    still works outside of git checkouts.
     """
 
     try:
-        # ``--cached`` lists tracked files, ``--others`` adds untracked, and
-        # ``--exclude-standard`` applies .gitignore / .git/info/exclude /
-        # core.excludesFile rules.
         res = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(root),
-                "ls-files",
-                "--cached",
-                "--others",
-                "--exclude-standard",
-                "-z",
-            ],
+            ["git", "-C", str(root), "ls-files", "-z", "--", "*.zen"],
             capture_output=True,
-            text=True,
+            text=False,
             check=True,
         )
 
-        # Split NUL-separated output; filter for *.zen
-        paths = [p for p in res.stdout.split("\0") if p.endswith(".zen")]
-        return [root / Path(p) for p in paths]
+        # git returns NUL-separated path names encoded as UTF-8 with forward
+        # slashes regardless of platform.
+        paths = [p for p in res.stdout.split(b"\0") if p]
+        return [root / Path(p.decode("utf-8", errors="replace")) for p in paths]
 
     except Exception:
-        # Fallback – behave as before
+        # Fallback: use a recursive scan (may include ignored files).
         return list(root.rglob("*.zen"))
 
 
