@@ -2,6 +2,7 @@
 import re
 import sys
 from pathlib import Path
+import subprocess
 
 """Utility script to regenerate `pcb.toml` workspace index from metadata
 embedded in each *.zen file.
@@ -44,12 +45,30 @@ stable diffs.
 
 DOCSTRING_RE = re.compile(r'^"""(.*?)"""', re.DOTALL)
 
+# NEW: helper to create safe TOML keys
+
+
+def _sanitize_key(name: str) -> str:
+    """Return a TOML-safe key for a component name.
+
+    Replaces characters that are not allowed in bare keys (anything other than
+    letters, digits, "_" or "-") with "_" and collapses consecutive
+    underscores so that the resulting key is compact and readable.
+    """
+    import re as _re
+
+    key = name.replace("-", "_")
+    key = _re.sub(r"[^A-Za-z0-9_]", "_", key)
+    key = _re.sub(r"__+", "_", key)
+    return key
+
 
 class ComponentMetadata(dict):
     """Simple mapping subclass with helpers for TOML output."""
 
     def toml(self) -> str:
-        lines = [f"[[workspace.{self['name'].replace('-', '_')}]]"]
+        # UPDATED: use sanitized key when emitting the table header
+        lines = [f"[[workspace.{_sanitize_key(self['name'])}]]"]
         for key in (
             "name",
             "path",
@@ -104,14 +123,68 @@ def parse_zen(zen_path: Path, root: Path) -> ComponentMetadata | None:
     )
 
 
+def _iter_zen_paths(root: Path) -> list[Path]:
+    """Return all *.zen* file paths **not** ignored by git.
+
+    The function attempts to use ``git ls-files`` to obtain the list of files
+    tracked by git *or* untracked but **not** ignored according to the repo's
+    .gitignore rules. If *root* is not inside a git repository, or if git is
+    unavailable, it falls back to a recursive glob which will include every
+    *.zen* file (the previous behaviour).
+    """
+
+    try:
+        # ``--cached`` lists tracked files, ``--others`` adds untracked, and
+        # ``--exclude-standard`` applies .gitignore / .git/info/exclude /
+        # core.excludesFile rules.
+        res = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+                "-z",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Split NUL-separated output; filter for *.zen
+        paths = [p for p in res.stdout.split("\0") if p.endswith(".zen")]
+        return [root / Path(p) for p in paths]
+
+    except Exception:
+        # Fallback – behave as before
+        return list(root.rglob("*.zen"))
+
+
 def collect_components(root: Path) -> list[ComponentMetadata]:
-    comps: list[ComponentMetadata] = []
-    for zen_path in root.rglob("*.zen"):
+    """Return metadata for all components not excluded by *.gitignore* rules.
+
+    Duplicate names (after sanitisation) are resolved by keeping the *first*
+    component encountered. This is sufficient now that ignored directories
+    like *staging/* are filtered out via git.
+    """
+
+    comps_by_key: dict[str, ComponentMetadata] = {}
+
+    for zen_path in _iter_zen_paths(root):
         meta = parse_zen(zen_path, root)
-        if meta:
-            comps.append(meta)
+        if not meta:
+            continue
+
+        key = _sanitize_key(meta["name"])
+        # Keep the first component with this key
+        comps_by_key.setdefault(key, meta)
+
     # Sort for stable output
-    return sorted(comps, key=lambda m: (m["category"], m["name"].upper()))
+    return sorted(
+        comps_by_key.values(), key=lambda m: (m["category"], m["name"].upper())
+    )
 
 
 def build_toml(components: list[ComponentMetadata]) -> str:
