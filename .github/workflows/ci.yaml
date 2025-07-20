@@ -32,12 +32,12 @@ jobs:
         run: |
           pcb help
 
-      - name: Build stdlib (Unix)
+      - name: Build .zen files (Unix)
         if: runner.os != 'Windows'
         run: |
           pcb build $(find . -name "*.zen" -type f)
 
-      - name: Build stdlib (Windows)
+      - name: Build .zen files (Windows)
         if: runner.os == 'Windows'
         run: |
           $files = Get-ChildItem -Path . -Filter "*.zen" -Recurse | Select-Object -ExpandProperty FullName
