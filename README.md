@@ -9,5 +9,5 @@ The modules can be configured with the zener visualizer tool and directly copy p
 To update `pcb.toml` with all available packages:
 
 ```bash
-find . -name "*.zen" -not -path "*/.pcb/*" -not -path "./staging/*" | sort | while read f; do echo "$(basename "$f" .zen) = \"${f#./}\""; done > pcb.toml
+echo "[workspace]" > pcb.toml && find . -name "*.zen" -not -path "*/.pcb/*" -not -path "./staging/*" | sort | while read f; do echo "$(basename "$f" .zen) = \"${f#./}\""; done >> pcb.toml
 ```
