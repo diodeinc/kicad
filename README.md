@@ -8,7 +8,14 @@
 
 A repository of configurable modules that expand on top of the KiCad standard library.
 
-The modules can be configured with the zener visualizer tool and directly copy pasted into KiCad
+This work is made possible by the open-source **Zener compiler** and its accompanying **standard library**:
+
+- 🛠️ [diodeinc/pcb – Zener compiler](https://github.com/diodeinc/pcb)
+- 📚 [diodeinc/srdlib – Zener standard library](https://github.com/diodeinc/srdlib)
+
+If you're new to Zener, start by installing the compiler and browsing the standard library to build and customize these reference designs.
+
+The modules can be configured with the Zener visualizer tool and directly copy-pasted into KiCad.
 
 ## Updating the package index
 
