@@ -138,12 +138,12 @@ if power_on_delay.value != "0ms":
 # pcb:sch C_AINN.C x=67.5800 y=354.6000 rot=0
 # pcb:sch C_AINP.C x=-59.4200 y=214.9000 rot=0
 # pcb:sch C_HF.C x=613.6800 y=-1.0000 rot=0
-# pcb:sch C_PDRST.C x=800.1000 y=381.0000 rot=0
+# pcb:sch C_PDRST.C x=905.7800 y=367.3000 rot=0
 # pcb:sch R_AINN.R x=-125.4600 y=291.1000 rot=270
 # pcb:sch R_AINP.R x=-125.4600 y=176.8000 rot=270
-# pcb:sch R_PDRST.R x=812.8000 y=215.9000 rot=180
+# pcb:sch R_PDRST.R x=915.9400 y=202.2000 rot=180
 # pcb:sch R_PULLUP.R x=827.0400 y=138.7000 rot=180
-# pcb:sch GND.1 x=189.5000 y=481.6000 rot=0
+# pcb:sch GND.1 x=507.0000 y=494.3000 rot=0
 # pcb:sch GND.2 x=545.1000 y=138.7000 rot=0
 # pcb:sch VDD.1 x=550.1800 y=-77.2000 rot=0
 # pcb:sch C_REF.C x=296.1800 y=-13.7000 rot=0
