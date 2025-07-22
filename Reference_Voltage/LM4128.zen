@@ -1,0 +1,85 @@
+"""LM4128 - Precision Micropower Low Dropout Voltage Reference
+
+The LM4128 is a precision voltage reference available in the SOT-23 surface-mount 
+package. The LM4128's advanced design eliminates the need for an external stabilizing 
+capacitor while ensuring stability with capacitive loads up to 10µF. Series references 
+provide lower power consumption than shunt references, and the low quiescent current 
+(60µA) and low dropout voltage (400mV) make the LM4128 ideal for battery-powered 
+solutions. Available in multiple voltage options (1.8V, 2.048V, 2.5V, 3.0V, 3.3V, 
+4.096V) with initial accuracy from 0.1% to 1.0% and temperature coefficient as low 
+as 75ppm/°C.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm4128.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+VoltageOption = enum("1.8V", "2.048V", "2.5V", "3.0V", "3.3V", "4.096V")
+AccuracyGrade = enum("A", "B", "C", "D")
+
+# Configuration
+voltage_option = config("voltage_option", VoltageOption, default = "2.5V")
+accuracy_grade = config("accuracy_grade", AccuracyGrade, default = "A")
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_enable_pullup = config("add_enable_pullup", bool, default = True)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VREF = io("VREF", Net, default = Net("VREF"))
+EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+
+# Internal nets
+_NC = Net("NC")
+
+# 2.5V ±0.2% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
+Component(
+    name = "LM4128",
+    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "LM4128"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "EN": EN_CTRL,
+        "GND": GND,
+        "NC": _NC,
+        "VREF": VREF
+    },
+)
+
+# Input Capacitor - Required per datasheet, minimum 0.1µF
+if add_input_cap:
+    # Primary input capacitor (ceramic X5R or X7R)
+    Capacitor(name = "C_IN", value = "1uF", package = "0603", P1 = VIN, P2 = GND)
+    
+    # Additional high-frequency decoupling
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Optional but improves load transient response
+if add_output_cap:
+    # Output capacitor for improved transient response
+    Capacitor(name = "C_OUT", value = "1uF", package = "0603", P1 = VREF, P2 = GND)
+    
+    # Additional high-frequency decoupling
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VREF, P2 = GND)
+
+# Enable Control
+if enable_control and add_enable_pullup:
+    # Pull-up resistor to ensure reference is enabled by default
+    # EN pin has internal 2µA pull-up, external resistor provides defined state
+    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+
+# pcb:sch LM4128 x=-63.5000 y=-50.8000 rot=0
+# pcb:sch C_IN.C x=-292.1000 y=-12.7000 rot=0
+# pcb:sch C_IN_HF.C x=-228.6000 y=-12.7000 rot=0
+# pcb:sch C_OUT.C x=101.6000 y=0.0000 rot=0
+# pcb:sch C_OUT_HF.C x=177.8000 y=0.0000 rot=0
+# pcb:sch R_EN.R x=-152.4000 y=-38.1000 rot=180
+# pcb:sch GND.1 x=0.0000 y=139.7000 rot=0

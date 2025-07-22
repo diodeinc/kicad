@@ -1,0 +1,67 @@
+"""MIC5317-3.3 - 150mA Low Dropout Linear Voltage Regulator with 3.3V Fixed Output
+
+The MIC5317 is a high performance 150mA low dropout regulator that offers high 
+power supply rejection (PSRR) in an ultra-small package. It operates from an 
+input voltage from 2.5V to 6.0V and provides a fixed 3.3V output with 2% initial 
+accuracy. The device features low dropout voltage (155mV @ 150mA), low quiescent 
+current (29μA typical), and includes an active-high enable pin for power management. 
+It is stable with 1μF ceramic output capacitors and includes thermal shutdown and 
+current limit protection.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/MIC5317-High-Performance-Single-150mA-LDO-DS20006195B.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_enable_pullup = config("add_enable_pullup", bool, default = True)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+EN = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_NC = Net("NC")
+
+# 150mA Low-dropout Voltage Regulator, Vout 3.3V, Vin up to 6V, SOT23-5
+Component(
+    name = "MIC5317-3.3",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MIC5317-3.3xM5"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "EN": EN,
+        "GND": GND,
+        "NC": _NC,
+        "VOUT": VOUT
+    },
+)
+
+# Input Capacitor - Datasheet recommends 1μF ceramic
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "1uF", package = "0603", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Datasheet specifies 1μF ceramic for stability
+if add_output_cap:
+    Capacitor(name = "C_OUT", value = "1uF", package = "0603", P1 = VOUT, P2 = GND)
+
+# Enable Control
+if enable_control:
+    # Optional pull-up resistor to ensure regulator is enabled by default
+    if add_enable_pullup:
+        Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN, P2 = VIN)
+
+# pcb:sch MIC5317-3.3 x=-50.8000 y=-101.6000 rot=0
+# pcb:sch C_IN.C x=-203.2000 y=-63.5000 rot=0
+# pcb:sch C_OUT.C x=165.1000 y=-63.5000 rot=0
+# pcb:sch R_EN.R x=-114.3000 y=-63.5000 rot=180
+# pcb:sch GND.1 x=12.7000 y=76.2000 rot=0

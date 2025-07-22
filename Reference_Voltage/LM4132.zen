@@ -1,0 +1,82 @@
+"""LM4132 - Precision Low Dropout Voltage Reference
+
+The LM4132 family of precision voltage references performs comparable to the best 
+laser-trimmed bipolar references, but in cost-effective CMOS technology. It provides 
+a stable voltage reference with initial accuracy from 0.05% to 0.5% and temperature 
+coefficient as low as 10ppm/°C. The device can deliver up to 20mA output current 
+without requiring an output capacitor or buffer amplifier. It features low 60µA 
+quiescent current, 400mV dropout voltage, and includes an enable pin for 3µA 
+shutdown mode. Available in fixed output voltages of 1.8V, 2.048V, 2.5V, 3V, 
+3.3V, and 4.096V.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm4132.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_enable_pullup = config("add_enable_pullup", bool, default = True)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VREF = io("VREF", Net, default = Net("VREF"))
+EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_NC = Net("NC")
+
+# Precision Low Dropout Voltage Reference, 4.096V, ±0.05% to ±0.5%, SOT-23-5
+Component(
+    name = "LM4132",
+    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "LM4132xMF-4.1"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "EN": EN_CTRL,
+        "GND": GND,
+        "NC": _NC,
+        "VREF": VREF
+    },
+)
+
+# Input Capacitor - Required for stable operation (minimum 0.1µF)
+if add_input_cap:
+    # Primary input capacitor - datasheet recommends ceramic X5R or X7R
+    Capacitor(name = "C_IN", value = "1uF", package = "0603", P1 = VIN, P2 = GND)
+    
+    # Optional additional bypass capacitor for noise reduction
+    Capacitor(name = "C_IN_BYPASS", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Optional, improves load transient response
+if add_output_cap:
+    # Output capacitor up to 10µF supported
+    Capacitor(name = "C_OUT", value = "1uF", package = "0603", P1 = VREF, P2 = GND)
+    
+    # Optional additional bypass capacitor for noise reduction
+    Capacitor(name = "C_OUT_BYPASS", value = "100nF", package = "0402", P1 = VREF, P2 = GND)
+
+# Enable Control
+if enable_control:
+    if add_enable_pullup:
+        # External pull-up resistor (device has internal 2µA pull-up)
+        Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+
+# pcb:sch LM4132 x=114.3000 y=152.4000 rot=0
+# pcb:sch C_IN x=-50.8000 y=0.0000 rot=0
+# pcb:sch C_IN_BYPASS x=-50.8000 y=-25.4000 rot=0
+# pcb:sch C_OUT x=50.8000 y=0.0000 rot=0
+# pcb:sch R_EN x=-25.4000 y=38.1000 rot=90
+# pcb:sch C_IN.C x=-38.1000 y=190.5000 rot=0
+# pcb:sch C_IN_BYPASS.C x=-101.6000 y=190.5000 rot=0
+# pcb:sch GND.1 x=177.8000 y=368.3000 rot=0
+# pcb:sch C_OUT.C x=317.5000 y=165.1000 rot=0
+# pcb:sch R_EN.R x=38.1000 y=165.1000 rot=180
+# pcb:sch C_OUT_BYPASS.C x=393.7000 y=165.1000 rot=0

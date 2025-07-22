@@ -8,6 +8,38 @@ description = "16-Bit Sigma-Delta ADC with SPI Interface"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
 
 
+[[workspace.LM4125IM5_2_5]]
+name = "LM4125IM5-2.5"
+path = "Reference_Voltage/LM4125IM5-2.5.zen"
+category = "Reference_Voltage"
+description = "Precision Micropower Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4125.pdf"
+
+
+[[workspace.LM4128]]
+name = "LM4128"
+path = "Reference_Voltage/LM4128.zen"
+category = "Reference_Voltage"
+description = "Precision Micropower Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4128.pdf"
+
+
+[[workspace.LM4132]]
+name = "LM4132"
+path = "Reference_Voltage/LM4132.zen"
+category = "Reference_Voltage"
+description = "Precision Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4132.pdf"
+
+
+[[workspace.REF3240AMDBVREP]]
+name = "REF3240AMDBVREP"
+path = "Reference_Voltage/REF3240AMDBVREP.zen"
+category = "Reference_Voltage"
+description = "4.096V 100μA Micropower Precision Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/ref3240-ep.pdf"
+
+
 [[workspace.REF6050]]
 name = "REF6050"
 path = "Reference_Voltage/REF6050.zen"
@@ -24,12 +56,36 @@ description = "40V, 200mA, Low Noise, CMOS LDO Linear Regulator"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf"
 
 
+[[workspace.AMS1117CD_5_0]]
+name = "AMS1117CD-5.0"
+path = "Regulator_Linear/AMS1117CD-5.0.zen"
+category = "Regulator_Linear"
+description = "1A Low Dropout Linear Voltage Regulator, 5.0V Fixed Output"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
 [[workspace.AMS1117CD_ADJ]]
 name = "AMS1117CD-ADJ"
-path = "Regulator_Linear/AMS1117CD.zen"
+path = "Regulator_Linear/AMS1117CD-ADJ.zen"
 category = "Regulator_Linear"
 description = "1A Low Dropout Adjustable Linear Voltage Regulator"
 datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
+[[workspace.LM3480_12]]
+name = "LM3480-12"
+path = "Regulator_Linear/LM3480-12.zen"
+category = "Regulator_Linear"
+description = "100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm3480.pdf"
+
+
+[[workspace.LM3480_15]]
+name = "LM3480-15"
+path = "Regulator_Linear/LM3480-15.zen"
+category = "Regulator_Linear"
+description = "100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm3480.pdf"
 
 
 [[workspace.MCP1804]]
@@ -40,9 +96,121 @@ description = "150mA Low Dropout Linear Voltage Regulator with Shutdown"
 datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf"
 
 
+[[workspace.MIC5317_3_3]]
+name = "MIC5317-3.3"
+path = "Regulator_Linear/MIC5317-3.3.zen"
+category = "Regulator_Linear"
+description = "150mA Low Dropout Linear Voltage Regulator with 3.3V Fixed Output"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/MIC5317-High-Performance-Single-150mA-LDO-DS20006195B.pdf"
+
+
+[[workspace.TLV70030_SOT353]]
+name = "TLV70030_SOT353"
+path = "Regulator_Linear/TLV70030_SOT353.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.0V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70032_SOT23_5]]
+name = "TLV70032_SOT23-5"
+path = "Regulator_Linear/TLV70032_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.2V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70033_SOT23_5]]
+name = "TLV70033_SOT23-5"
+path = "Regulator_Linear/TLV70033_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.3V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70212_SOT23_5]]
+name = "TLV70212_SOT23-5"
+path = "Regulator_Linear/TLV70212_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Low-IQ Low-Dropout Regulator with 1.2V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv702.pdf"
+
+
+[[workspace.TLV70228_SOT23_5]]
+name = "TLV70228_SOT23-5"
+path = "Regulator_Linear/TLV70228_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Low-IQ Low-Dropout Regulator with 2.8V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv702.pdf"
+
+
+[[workspace.LM2775DSG]]
+name = "LM2775DSG"
+path = "Regulator_SwitchedCapacitor/LM2775DSG.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Switched Capacitor 5V Boost Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2776.pdf"
+
+
 [[workspace.LM2576HVS_12]]
 name = "LM2576HVS-12"
 path = "Regulator_Switching/LM2576HVS-12.zen"
 category = "Regulator_Switching"
 description = "12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator"
 datasheet = "https://www.ti.com/lit/ds/symlink/lm2576.pdf"
+
+
+[[workspace.LM2674N_12]]
+name = "LM2674N-12"
+path = "Regulator_Switching/LM2674N-12.zen"
+category = "Regulator_Switching"
+description = "12V, 500mA SIMPLE SWITCHER® Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2674.pdf"
+
+
+[[workspace.LM2675N_5]]
+name = "LM2675N-5"
+path = "Regulator_Switching/LM2675N-5.zen"
+category = "Regulator_Switching"
+description = "5V, 1A SIMPLE SWITCHER® Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2576.pdf"
+
+
+[[workspace.MIC2178_3_3]]
+name = "MIC2178-3.3"
+path = "Regulator_Switching/MIC2178-3.3.zen"
+category = "Regulator_Switching"
+description = "2.5A Synchronous Buck Regulator, 3.3V Fixed Output"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/mic2178.pdf"
+
+
+[[workspace.NBM7100A]]
+name = "NBM7100A"
+path = "Regulator_Switching/NBM7100A.zen"
+category = "Regulator_Switching"
+description = "Coin Cell Battery Life Booster with Adaptive Power Optimization"
+datasheet = "https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html"
+
+
+[[workspace.LM73_1]]
+name = "LM73-1"
+path = "Sensor_Temperature/LM73-1.zen"
+category = "Sensor_Temperature"
+description = "2.7V, SOT-23, 11- to 14-Bit Digital Temperature Sensor with 2-Wire Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm73.pdf"
+
+
+[[workspace.MCP9808]]
+name = "MCP9808"
+path = "Sensor_Temperature/MCP9808.zen"
+category = "Sensor_Temperature"
+description = "±0.5°C Maximum Accuracy Digital Temperature Sensor"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf"
+
+
+[[workspace.MCP9844]]
+name = "MCP9844"
+path = "Sensor_Temperature/MCP9844.zen"
+category = "Sensor_Temperature"
+description = "±1°C Accurate, 1.8V Digital Temperature Sensor"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf"

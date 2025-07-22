@@ -1,0 +1,61 @@
+"""LM4125IM5-2.5 - Precision Micropower Low Dropout Voltage Reference
+
+The LM4125IM5-2.5 is a precision micropower low dropout voltage reference that 
+provides a stable 2.5V output with ±0.5% initial accuracy. It features an 
+extremely low dropout voltage of 120mV typical at 1mA load, making it ideal 
+for battery-powered applications. The device can source and sink up to 5mA 
+while maintaining excellent load regulation. With a low quiescent current of 
+160µA typical and a temperature coefficient of 50ppm/°C maximum, it's suitable 
+for precision instrumentation, data acquisition systems, and portable equipment.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm4125.pdf
+"""
+
+# Dependencies
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+output_cap_value = config("output_cap_value", str, default = "22nF")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_NC = Net("NC")
+
+# 2.5V ±0.5% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
+Component(
+    name = "LM4125IM5-2.5",
+    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "LM4125IM5-2.5"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "Vin": VIN,
+        "GND": GND,
+        "NC": _NC,
+        "Vout": VOUT
+    },
+)
+
+# Output Capacitor - Required minimum 22nF ceramic for stability
+if add_output_cap:
+    # Datasheet specifies 22nF to 100nF ceramic capacitors
+    # Larger values up to 1µF can be used but must be tantalum
+    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT, P2 = GND)
+
+# Input Capacitor - Optional for filtering line transients
+if add_input_cap:
+    # 100nF ceramic helps prevent line transients from affecting output
+    Capacitor(name = "C_IN", value = "100nF", package = "0603", P1 = VIN, P2 = GND)
+
+# pcb:sch LM4125IM5-2.5 x=152.4000 y=127.0000 rot=0
+# pcb:sch C_OUT x=50.8000 y=0.0000 rot=0
+# pcb:sch C_IN x=-50.8000 y=0.0000 rot=0
+# pcb:sch C_OUT.C x=368.3000 y=177.8000 rot=0
+# pcb:sch GND.1 x=165.1000 y=317.5000 rot=0
+# pcb:sch C_IN.C x=12.7000 y=165.1000 rot=0

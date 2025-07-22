@@ -1,0 +1,117 @@
+"""REF3240AMDBVREP - 4.096V 100μA Micropower Precision Voltage Reference
+
+The REF3240 is a very low drift, micropower, low-dropout, precision voltage 
+reference providing a stable 4.096V output with ±0.2% initial accuracy. It 
+features an extremely low temperature coefficient of 4ppm/°C (typical) and 
+operates from a supply as low as 5mV above the output voltage. The device 
+includes an enable pin for power management and provides ±10mA output current 
+capability. Available in a compact SOT23-6 package, it's ideal for portable 
+and battery-powered applications requiring precision voltage references.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/ref3240-ep.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+RiseTime = enum("2ms", "5ms", "10ms", "20ms", "50ms", "100ms")  # Rise time for enable filter (REF3240 Table 2)
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_enable_filter = config("add_enable_filter", bool, default = False)
+rise_time = config("rise_time", RiseTime, default = "10ms")  # Supply rise time for enable filter design
+use_force_sense = config("use_force_sense", bool, default = False)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+EN_CTRL = io("ENABLE", Net, default = Net("ENABLE")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_OUT_F = VOUT
+_OUT_S = VOUT if not use_force_sense else Net("OUT_SENSE")
+_GND_F = GND
+_GND_S = GND if not use_force_sense else Net("GND_SENSE")
+
+# Enable filter values based on rise time (from REF3240 datasheet Table 2)
+_R_EN_FILT_VALUE = (
+    "150kohms" if rise_time == RiseTime("2ms") else
+    "150kohms" if rise_time == RiseTime("5ms") else
+    "330kohms" if rise_time == RiseTime("10ms") else
+    "390kohms" if rise_time == RiseTime("20ms") else
+    "680kohms" if rise_time == RiseTime("50ms") else
+    "680kohms"  # 100ms
+)
+
+_C_EN_FILT_VALUE = (
+    "100nF" if rise_time == RiseTime("2ms") else
+    "220nF" if rise_time == RiseTime("5ms") else
+    "220nF" if rise_time == RiseTime("10ms") else
+    "330nF" if rise_time == RiseTime("20ms") else
+    "470nF" if rise_time == RiseTime("50ms") else
+    "1uF"   # 100ms (1000nF)
+)
+
+# 4.096V 100μA Micropower Precision Voltage Reference, SOT-23-6
+Component(
+    name = "REF3240AMDBVREP",
+    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "REF3240AMDBVREP"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins = {
+        "ENABLE": EN_CTRL,
+        "GNDS": _GND_S,
+        "VIN": VIN,
+        "GNDF": _GND_F,
+        "OUT_F": _OUT_F,
+        "OUT_S": _OUT_S
+    },
+)
+
+# Input Capacitor - Datasheet recommends 0.47μF bypass capacitor
+if add_input_cap:
+    Capacitor(name = "C_IN", value = "470nF", package = "0603", P1 = VIN, P2 = GND)
+
+# Output Capacitor - REF32xx is stable with most capacitive loads
+if add_output_cap:
+    # Main output capacitor for noise reduction
+    Capacitor(name = "C_OUT", value = "1uF", package = "0603", P1 = VOUT, P2 = GND)
+    
+    # Additional ceramic for high frequency
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VOUT, P2 = GND)
+
+# Enable Control
+if enable_control:
+    # Pull-up resistor to ensure reference is enabled by default
+    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+
+# Enable Filter for slow rising supplies - Configurable based on rise time
+if add_enable_filter and enable_control:
+    # RC filter to delay enable signal for slow rising supplies
+    # Values from REF3240 datasheet Table 2 based on configured rise time
+    Resistor(name = "R_EN_FILT", value = _R_EN_FILT_VALUE, package = "0402", P1 = VIN, P2 = EN_CTRL)
+    Capacitor(name = "C_EN_FILT", value = _C_EN_FILT_VALUE, package = "0603", P1 = EN_CTRL, P2 = GND)
+
+# Force/Sense connections for remote sensing
+if use_force_sense:
+    # Sense resistors for Kelvin connection at the load
+    # Keep differential voltage between GND_S and GND_F below 200mV
+    Resistor(name = "R_OUT_SENSE", value = "10ohms", package = "0402", P1 = _OUT_F, P2 = _OUT_S)
+    Resistor(name = "R_GND_SENSE", value = "10ohms", package = "0402", P1 = _GND_F, P2 = _GND_S)
+
+# pcb:sch REF3240AMDBVREP x=-50.8000 y=12.7000 rot=0
+# pcb:sch C_IN.C x=-190.5000 y=76.2000 rot=0
+# pcb:sch C_OUT.C x=165.1000 y=114.3000 rot=0
+# pcb:sch C_OUT_HF.C x=241.3000 y=114.3000 rot=0
+# pcb:sch R_EN.R x=-101.6000 y=-12.7000 rot=180
+# pcb:sch GND.1 x=25.4000 y=254.0000 rot=0
+# pcb:sch C_EN_FILT.C x=-88.9000 y=127.0000 rot=0
+# pcb:sch R_EN_FILT.R x=-63.5000 y=-12.7000 rot=0
+# pcb:sch R_GND_SENSE.R x=38.1000 y=660.4000 rot=0
+# pcb:sch R_OUT_SENSE.R x=38.1000 y=927.1000 rot=0

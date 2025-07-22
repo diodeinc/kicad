@@ -1,0 +1,64 @@
+"""LM3480-15 - 100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator
+
+The LM3480-15 is an integrated linear voltage regulator that provides a fixed 15V 
+output. It features operation from an input as high as 30V and an ensured maximum 
+dropout of 1.2V at the full 100mA load. The device is packaged in a tiny 3-lead 
+SOT-23 package, making it an ideal alternative to the LM78L15 and similar devices. 
+The quasi-low dropout characteristic makes it suitable for applications where 
+traditional 78xx series regulators cannot be used due to their higher dropout voltage.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm3480.pdf
+"""
+
+# Dependencies
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_bulk_input_cap = config("add_bulk_input_cap", bool, default = False)
+
+input_cap_value = config("input_cap_value", str, default = "100nF")
+output_cap_value = config("output_cap_value", str, default = "100nF")
+bulk_input_cap_value = config("bulk_input_cap_value", str, default = "10uF")
+
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# 100mA, Quasi Low Dropout Voltage Regulator, 15V positive fixed output, SOT-23 package
+Component(
+    name = "LM3480-15",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LM3480-15"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23.kicad_mod"),
+    pins = {
+        "VI": VIN,
+        "GND": GND,
+        "VO": VOUT
+    },
+)
+
+# Input Capacitor - Datasheet recommends minimum 0.1µF for stability
+if add_input_cap:
+    Capacitor(name = "C_IN", value = input_cap_value, package = "0603", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Datasheet recommends minimum 0.1µF for stability and transient response
+if add_output_cap:
+    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT, P2 = GND)
+
+# Optional bulk input capacitor for improved transient response
+if add_bulk_input_cap:
+    Capacitor(name = "C_IN_BULK", value = bulk_input_cap_value, package = "0805", P1 = VIN, P2 = GND)
+
+# pcb:sch LM3480-15 x=177.8000 y=165.1000 rot=0
+# pcb:sch C_IN x=-50.8000 y=0.0000 rot=90
+# pcb:sch C_OUT x=50.8000 y=0.0000 rot=90
+# pcb:sch C_IN_BULK x=-50.8000 y=-50.8000 rot=90
+# pcb:sch C_IN.C x=25.4000 y=203.2000 rot=0
+# pcb:sch C_OUT.C x=431.8000 y=203.2000 rot=0
+# pcb:sch GND.1 x=241.3000 y=342.9000 rot=0
+# pcb:sch C_IN_BULK.C x=114.3000 y=190.5000 rot=0

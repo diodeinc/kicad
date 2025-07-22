@@ -1,0 +1,77 @@
+"""AMS1117CD-5.0 - 1A Low Dropout Linear Voltage Regulator, 5.0V Fixed Output
+
+The AMS1117CD-5.0 is a positive, fixed 5.0V low dropout linear voltage regulator 
+capable of supplying 1A of output current. It features a low dropout voltage of 
+1.3V at maximum load current and excellent line and load regulation. The device 
+includes current limiting and thermal overload protection. The regulator requires 
+a minimum 22µF tantalum output capacitor for stability and operates with input 
+voltages up to 15V.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_protection_diode = config("add_protection_diode", bool, default = False)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VI"))
+VOUT = io("VOUT", Net, default = Net("VO"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# 1A Low Dropout regulator, positive, 5.0V fixed output, TO-252
+Component(
+    name = "AMS1117CD-5.0",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AMS1117CD-5.0"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-252-3_TabPin2.kicad_mod"),
+    pins = {
+        "VI": VIN,
+        "GND": GND,
+        "VO": VOUT
+    },
+)
+
+# Input Capacitor - Recommended for improved transient response
+if add_input_cap:
+    # Bulk capacitor
+    Capacitor(name = "C_IN_BULK", value = "10uF", package = "0805", P1 = VIN, P2 = GND)
+    
+    # High-frequency decoupling
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Required 22µF minimum for stability
+if add_output_cap:
+    # Main output capacitor - 22µF tantalum required for stability
+    Capacitor(name = "C_OUT", value = "22uF", package = "1206", P1 = VOUT, P2 = GND)
+    
+    # Additional ceramic for improved high-frequency response
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VOUT, P2 = GND)
+
+# Protection Diode - Optional for high-value output capacitors
+if add_protection_diode:
+    # Schottky diode from output to input for reverse current protection
+    # Recommended when using output capacitors > 1000µF
+    Component(
+        name = "D_PROT",
+        symbol = Symbol("@kicad-symbols/Device.kicad_sym:D_Schottky"),
+        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_SOD-123.kicad_mod"),
+        pins = {
+            "K": VIN,
+            "A": VOUT,
+        },
+    )
+
+# pcb:sch AMS1117CD-5.0 x=279.4000 y=342.9000 rot=0
+# pcb:sch C_IN_BULK.C x=88.9000 y=381.0000 rot=0
+# pcb:sch C_IN_HF.C x=177.8000 y=381.0000 rot=0
+# pcb:sch C_OUT.C x=495.3000 y=381.0000 rot=0
+# pcb:sch C_OUT_HF.C x=584.2000 y=381.0000 rot=0
+# pcb:sch GND.1 x=342.9000 y=508.0000 rot=0
+# pcb:sch D_PROT x=317.5000 y=292.1000 rot=0

@@ -1,0 +1,121 @@
+"""LM2674N-12 - 12V, 500mA SIMPLE SWITCHER® Step-Down Voltage Regulator
+
+The LM2674N-12 is a monolithic integrated circuit that provides all the active 
+functions for a step-down (buck) switching regulator, capable of driving 500mA 
+load with excellent line and load regulation. This device provides a fixed 12V 
+output and operates at a switching frequency of 260kHz, allowing smaller-sized 
+filter components. It features high efficiency (up to 96%), TTL shutdown 
+capability, and includes current limiting and thermal shutdown protection.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm2674.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
+
+# Types
+InductorValue = enum("47uH", "68uH", "100uH", "150uH", "220uH")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_inductor = config("add_inductor", bool, default = True)
+add_catch_diode = config("add_catch_diode", bool, default = True)
+add_boost_cap = config("add_boost_cap", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+inductor_value = config("inductor_value", InductorValue, default = "100uH")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+ON_OFF = io("ON_OFF", Net, default = Net("ON/OFF")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_VSW = Net("VSW")
+_CB = Net("CB")
+_FB = VOUT  # For fixed voltage version, FB connects directly to output
+_NC = Net("NC")
+
+# 12V, 500mA Step-Down Voltage Regulator, DIP-8
+Component(
+    name = "LM2674N-12",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "LM2674N-12"),
+    footprint = File("@kicad-footprints/Package_DIP.pretty/DIP-8_W7.62mm.kicad_mod"),
+    pins = {
+        "VIN": VIN,
+        "ON/~{OFF}": ON_OFF,
+        "NC": _NC,
+        "GND": GND,
+        "FB": _FB,
+        "CB": _CB,
+        "VSW": _VSW
+    },
+)
+
+# Boost Capacitor - Required for high-side driver
+if add_boost_cap:
+    Capacitor(name = "C_BOOST", value = "10nF", package = "0603", P1 = _CB, P2 = _VSW)
+
+# Input Capacitor - Datasheet recommends minimum 22µF
+if add_input_cap:
+    # Main input capacitor
+    Capacitor(name = "C_IN", value = "22uF", package = "1210", P1 = VIN, P2 = GND)
+    
+    # Additional ceramic for high frequency
+    Capacitor(name = "C_IN_HF", value = "100nF", package = "0603", P1 = VIN, P2 = GND)
+
+# Output Inductor - Required for buck converter operation
+if add_inductor:
+    Inductor(name = "L_OUT", value = inductor_value.value, package = "1210", P1 = _VSW, P2 = VOUT)
+
+# Catch Diode - Required for inductor current return path
+if add_catch_diode:
+    # Schottky diode for best efficiency - (3.3A, 50V Schottky)
+    Diode(
+        name = "D_CATCH",
+        variant = "Schottky",
+        package = "SMC",
+        mpn = "",
+        v_r = "50V",
+        i_f = "3.3A",
+        K = _VSW,
+        A = GND,
+    )
+
+# Output Capacitor - For filtering and stability
+if add_output_cap:
+    # Main output capacitor
+    Capacitor(name = "C_OUT", value = "47uF", package = "1210", P1 = VOUT, P2 = GND)
+    
+    # Additional ceramic for high frequency
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0603", P1 = VOUT, P2 = GND)
+
+# Enable Control
+if enable_control:
+    # Pull-up resistor to ensure regulator is ON by default
+    Resistor(name = "R_EN", value = "100kohms", package = "0603", P1 = ON_OFF, P2 = VIN)
+
+# pcb:sch LM2674N-12 x=-12.7000 y=571.5000 rot=0
+# pcb:sch C_BOOST x=50 y=50 rot=0
+# pcb:sch C_IN x=-100 y=0 rot=0
+# pcb:sch C_IN_HF x=-100 y=-50 rot=0
+# pcb:sch L_OUT x=100 y=0 rot=0
+# pcb:sch D_CATCH x=50 y=-50 rot=90
+# pcb:sch C_OUT x=200 y=0 rot=0
+# pcb:sch C_OUT_HF x=200 y=-50 rot=0
+# pcb:sch R_EN x=-50 y=50 rot=0
+# pcb:sch C_BOOST.C x=279.4000 y=609.6000 rot=270
+# pcb:sch C_IN.C x=-152.4000 y=660.4000 rot=0
+# pcb:sch C_IN_HF.C x=-228.6000 y=660.4000 rot=0
+# pcb:sch C_OUT.C x=558.8000 y=660.4000 rot=0
+# pcb:sch C_OUT_HF.C x=508.0000 y=660.4000 rot=0
+# pcb:sch D_CATCH.D x=279.4000 y=736.6000 rot=90
+# pcb:sch L_OUT.L x=431.8000 y=660.4000 rot=270
+# pcb:sch R_EN.R x=-101.6000 y=609.6000 rot=180
+# pcb:sch GND.1 x=101.6000 y=825.5000 rot=0

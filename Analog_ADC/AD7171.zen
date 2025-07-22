@@ -35,7 +35,7 @@ VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.
 AIN_P = io("AIN+", Net, default = Net("AIN+"))
 AIN_N = io("AIN-", Net, default = Net("AIN-"))
 PDRST_CTRL = io("PDRST", Net, default = Net("nPDRST"), optional = True)
-VREF_EXT = io("VREF_EXT", Net, default = None) if use_external_ref else None
+VREF_EXT = io("VREF_EXT", Net) if use_external_ref else None
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
@@ -92,7 +92,7 @@ if add_input_filter:
         "159kHz": {"C": "5nF", "R": "200ohms 1%"},
     }
 
-    filter_config = filter_values.get(input_filter_type, filter_values["265kHz"])
+    filter_config = filter_values.get(input_filter_type.value, filter_values["265kHz"])
 
     # AIN+ filtering
     Resistor(name = "R_AINP", value = filter_config["R"], package = "0402", P1 = AIN_P, P2 = _AIN_P_FILT)
@@ -128,17 +128,18 @@ if power_on_delay.value != "0ms":
     Resistor(name = "R_PDRST", value = delay_config["R"], package = "0402", P1 = _PDRST, P2 = VDD)
     Capacitor(name = "C_PDRST", value = delay_config["C"], package = "0402", P1 = _PDRST, P2 = GND)
 
-# pcb:sch AD7171 x=241.3000 y=203.2000 rot=0
-# pcb:sch C_BULK.C x=495.3000 y=0.0000 rot=0
-# pcb:sch C_DEC.C x=444.5000 y=0.0000 rot=0
-# pcb:sch C_AINN.C x=63.5000 y=355.6000 rot=0
-# pcb:sch C_AINP.C x=-63.5000 y=215.9000 rot=0
-# pcb:sch C_HF.C x=546.1000 y=0.0000 rot=0
+# pcb:sch AD7171 x=240.3000 y=202.2000 rot=0
+# pcb:sch C_BULK.C x=537.4800 y=-1.0000 rot=0
+# pcb:sch C_DEC.C x=448.5800 y=-1.0000 rot=0
+# pcb:sch C_AINN.C x=67.5800 y=354.6000 rot=0
+# pcb:sch C_AINP.C x=-59.4200 y=214.9000 rot=0
+# pcb:sch C_HF.C x=613.6800 y=-1.0000 rot=0
 # pcb:sch C_PDRST.C x=800.1000 y=381.0000 rot=0
-# pcb:sch R_AINN.R x=-127.0000 y=292.1000 rot=270
-# pcb:sch R_AINP.R x=-127.0000 y=165.1000 rot=270
+# pcb:sch R_AINN.R x=-125.4600 y=291.1000 rot=270
+# pcb:sch R_AINP.R x=-125.4600 y=176.8000 rot=270
 # pcb:sch R_PDRST.R x=812.8000 y=215.9000 rot=180
-# pcb:sch R_PULLUP.R x=711.2000 y=139.7000 rot=180
-# pcb:sch GND.1 x=190.5000 y=482.6000 rot=0
-# pcb:sch GND.2 x=495.3000 y=139.7000 rot=0
-# pcb:sch VDD.1 x=508.0000 y=-76.2000 rot=0
+# pcb:sch R_PULLUP.R x=712.7400 y=138.7000 rot=180
+# pcb:sch GND.1 x=189.5000 y=481.6000 rot=0
+# pcb:sch GND.2 x=545.1000 y=138.7000 rot=0
+# pcb:sch VDD.1 x=550.1800 y=-77.2000 rot=0
+# pcb:sch C_REF.C x=296.1800 y=-13.7000 rot=0
