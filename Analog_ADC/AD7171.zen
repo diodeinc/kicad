@@ -85,14 +85,14 @@ if add_bulk:
 if add_input_filter:
     # Parse filter configuration
     filter_values = {
-        "354kHz": {"C": "50pF", "R": "9kohms 1%"},
-        "265kHz": {"C": "100pF", "R": "6kohms 1%"},
-        "212kHz": {"C": "500pF", "R": "1.5kohms 1%"},
-        "177kHz": {"C": "1nF", "R": "900ohms 1%"},
-        "159kHz": {"C": "5nF", "R": "200ohms 1%"},
+        FilterType("354kHz"): {"C": "50pF", "R": "9kohms 1%"},
+        FilterType("265kHz"): {"C": "100pF", "R": "6kohms 1%"},
+        FilterType("212kHz"): {"C": "500pF", "R": "1.5kohms 1%"},
+        FilterType("177kHz"): {"C": "1nF", "R": "900ohms 1%"},
+        FilterType("159kHz"): {"C": "5nF", "R": "200ohms 1%"},
     }
 
-    filter_config = filter_values.get(input_filter_type.value, filter_values["265kHz"])
+    filter_config = filter_values.get(input_filter_type, filter_values[FilterType("265kHz")])
 
     # AIN+ filtering
     Resistor(name = "R_AINP", value = filter_config["R"], package = "0402", P1 = AIN_P, P2 = _AIN_P_FILT)
@@ -116,10 +116,10 @@ if power_on_delay.value != "0ms":
     # RC time constant: τ = R × C, delay ≈ 2.2 × τ for 90% charge
     # Using practical resistor values (10k-100k range) to reduce noise susceptibility
     delay_values = {
-        "10ms": {"R": "10kohms", "C": "470nF"},  # τ = 4.7ms, delay ≈ 10.3ms
-        "25ms": {"R": "22kohms", "C": "470nF"},  # τ = 10.3ms, delay ≈ 22.7ms (matches ADC ready time)
-        "50ms": {"R": "47kohms", "C": "470nF"},  # τ = 22.1ms, delay ≈ 48.6ms
-        "100ms": {"R": "47kohms", "C": "1uF"},  # τ = 47ms, delay ≈ 103ms
+        PowerOnDelay("10ms"): {"R": "10kohms", "C": "470nF"},  # τ = 4.7ms, delay ≈ 10.3ms
+        PowerOnDelay("25ms"): {"R": "22kohms", "C": "470nF"},  # τ = 10.3ms, delay ≈ 22.7ms (matches ADC ready time)
+        PowerOnDelay("50ms"): {"R": "47kohms", "C": "470nF"},  # τ = 22.1ms, delay ≈ 48.6ms
+        PowerOnDelay("100ms"): {"R": "47kohms", "C": "1uF"},  # τ = 47ms, delay ≈ 103ms
     }
 
     delay_config = delay_values.get(power_on_delay, delay_values["25ms"])
@@ -138,7 +138,7 @@ if power_on_delay.value != "0ms":
 # pcb:sch R_AINN.R x=-125.4600 y=291.1000 rot=270
 # pcb:sch R_AINP.R x=-125.4600 y=176.8000 rot=270
 # pcb:sch R_PDRST.R x=812.8000 y=215.9000 rot=180
-# pcb:sch R_PULLUP.R x=712.7400 y=138.7000 rot=180
+# pcb:sch R_PULLUP.R x=827.0400 y=138.7000 rot=180
 # pcb:sch GND.1 x=189.5000 y=481.6000 rot=0
 # pcb:sch GND.2 x=545.1000 y=138.7000 rot=0
 # pcb:sch VDD.1 x=550.1800 y=-77.2000 rot=0
