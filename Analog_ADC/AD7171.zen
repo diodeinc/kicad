@@ -25,7 +25,7 @@ add_bulk = config("bulk", bool, default = True)
 add_input_filter = config("input_filter", bool, default = True)
 use_external_ref = config("external_ref", bool, default = False)
 add_pullup = config("dout_pullup", bool, default = True)
-power_on_delay = config("power_on_delay", PowerOnDelay, default = "0ms")
+power_on_delay = config("power_on_delay", PowerOnDelay, default = "10ms")
 if add_input_filter:
     input_filter_type = config("filter_type", FilterType, default = "265kHz")
 
@@ -92,7 +92,9 @@ if add_input_filter:
         FilterType("159kHz"): {"C": "5nF", "R": "200ohms 1%"},
     }
 
-    filter_config = filter_values.get(input_filter_type, filter_values[FilterType("265kHz")])
+    filter_config = filter_values.get(input_filter_type)
+    if not filter_config:
+        error(f"Invalid filter_type value: {input_filter_type}")
 
     # AIN+ filtering
     Resistor(name = "R_AINP", value = filter_config["R"], package = "0402", P1 = AIN_P, P2 = _AIN_P_FILT)
@@ -122,7 +124,9 @@ if power_on_delay.value != "0ms":
         PowerOnDelay("100ms"): {"R": "47kohms", "C": "1uF"},  # τ = 47ms, delay ≈ 103ms
     }
 
-    delay_config = delay_values.get(power_on_delay, delay_values["25ms"])
+    delay_config = delay_values.get(power_on_delay)
+    if not delay_config:
+        error(f"Invalid power_on_delay value: {power_on_delay}")
 
     # Optional: Add a pull-up resistor with RC delay for power-on reset
     Resistor(name = "R_PDRST", value = delay_config["R"], package = "0402", P1 = _PDRST, P2 = VDD)
