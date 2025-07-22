@@ -11,7 +11,7 @@ A repository of configurable modules that expand on top of the KiCad standard li
 This work is made possible by the open-source **Zener compiler** and its accompanying **standard library**:
 
 - 🛠️ [diodeinc/pcb – Zener compiler](https://github.com/diodeinc/pcb)
-- 📚 [diodeinc/srdlib – Zener standard library](https://github.com/diodeinc/srdlib)
+- 📚 [diodeinc/stdlib – Zener standard library](https://github.com/diodeinc/stdlib)
 
 If you're new to Zener, start by installing the compiler and browsing the standard library to build and customize these reference designs.
 
