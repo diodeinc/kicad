@@ -1,0 +1,358 @@
+"""RP2040 - A microcontroller by Raspberry Pi
+
+RP2040 is the debut microcontroller from Raspberry Pi. It brings signature values of 
+high performance, low cost, and ease of use to the microcontroller space.
+
+With a large on-chip memory, symmetric dual-core processor complex, deterministic bus 
+fabric, and rich peripheral set augmented with unique Programmable I/O (PIO) subsystem, 
+it provides professional users with unrivalled power and flexibility. With detailed 
+documentation, a polished MicroPython port, and a UF2 bootloader in ROM, it has the 
+lowest possible barrier to entry for beginner and hobbyist users.
+
+Key features:
+- Dual ARM Cortex-M0+ @ 133MHz
+- 264kB on-chip SRAM in six independent banks
+- Support for up to 16MB of off-chip Flash memory via dedicated QSPI bus
+- DMA controller
+- Fully-connected AHB crossbar
+- Interpolator and integer divider peripherals
+- On-chip programmable LDO to generate core voltage
+- 2 on-chip PLLs to generate USB and core clocks
+- 30 GPIO pins, 4 of which can be used as analogue inputs
+- Peripherals: 2 UARTs, 2 SPI controllers, 2 I2C controllers, 16 PWM channels
+- USB 1.1 controller and PHY, with host and device support
+- 8 PIO state machines
+
+Author: n/a
+Reviewer: Anand Kapadia
+Datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf
+"""
+load("@stdlib/interfaces.zen", "Gpio", "Analog", "Usb2", "Qspi", "OscPair", "Swd")
+
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+passivesSize = enum("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
+
+# Configuration
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+add_bypass_caps = config("add_bypass_caps", bool, default = True)
+add_qspi_flash = config("add_qspi_flash", bool, default = True)
+add_usb_series_resistors = config("add_usb_series_resistors", bool, default = True)
+add_bootsel_button = config("add_bootsel_button", bool, default = True)
+specify_vdd_configuration = config("specify_vdd_configuration", bool, default = False, optional = True)
+add_crystal = config("add_crystal", bool, default = True)
+if add_crystal:
+    crystal_package = config("crystal_package", str, default = "3225_4Pin", optional = True)
+    crystal_frequency = config("crystal_frequency", str, default = "12MHz", optional = True)
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "15pF", optional = True)
+add_swd_test_points = config("add_swd_test_points", bool, default = True)
+if add_swd_test_points:
+    swd_test_point_variant = config("swd_test_point_variant", TestPoint.Variant, default = TestPoint.Variant("THTPad_D2.0mm_Drill1.0mm"), optional = True)
+
+use_us_symbols = config("use_us_symbols", bool, default = True, optional = True)
+passives_size = config("passives_size", passivesSize, default = "0402", optional = True)
+
+if specify_vdd_configuration:
+    IOVDD = io("IOVDD", Net)
+    DVDD = io("DVDD", Net)
+    USB_VDD = io("USB_VDD", Net)
+    ADC_AVDD = io("ADC_AVDD", Net)
+
+VDD_1V1 = io("VDD_1V1", Net)
+VDD_3V3 = io("VDD_3V3", Net, default = Net("VDD_3V3", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+qspi = Qspi("qspi") if add_qspi_flash else io("qspi", Qspi)
+usb = io("usb", Usb2) 
+swd = io("swd", Swd)
+oscpair = OscPair("oscpair") if add_crystal else io("oscpair", OscPair)
+RUN = io("RUN", Net)
+TESTEN = io("TESTEN", Net)
+
+if add_usb_series_resistors:
+    _usb = Usb2("usb")
+
+# GPIO pins
+gpio0 = io("gpio0", Gpio)
+gpio1 = io("gpio1", Gpio)
+gpio2 = io("gpio2", Gpio)
+gpio3 = io("gpio3", Gpio)
+gpio4 = io("gpio4", Gpio)
+gpio5 = io("gpio5", Gpio)
+gpio6 = io("gpio6", Gpio)
+gpio7 = io("gpio7", Gpio)
+gpio8 = io("gpio8", Gpio)
+gpio9 = io("gpio9", Gpio)
+gpio10 = io("gpio10", Gpio)
+gpio11 = io("gpio11", Gpio)
+gpio12 = io("gpio12", Gpio)
+gpio13 = io("gpio13", Gpio)
+gpio14 = io("gpio14", Gpio)
+gpio15 = io("gpio15", Gpio)
+gpio16 = io("gpio16", Gpio)
+gpio17 = io("gpio17", Gpio)
+gpio18 = io("gpio18", Gpio)
+gpio19 = io("gpio19", Gpio)
+gpio20 = io("gpio20", Gpio)
+gpio21 = io("gpio21", Gpio)
+gpio22 = io("gpio22", Gpio)
+gpio23 = io("gpio23", Gpio)
+gpio24 = io("gpio24", Gpio)
+gpio25 = io("gpio25", Gpio)
+
+# ADC pins
+gpio26_adc0 = io("gpio26_adc0", Analog)
+gpio27_adc1 = io("gpio27_adc1", Analog)
+gpio28_adc2 = io("gpio28_adc2", Analog)
+gpio29_adc3 = io("gpio29_adc3", Analog)
+
+Component(
+    name = "RP2040",
+    symbol = Symbol(library = "@kicad-symbols/MCU_RaspberryPi.kicad_sym", name = "RP2040"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm.kicad_mod"),
+    pins = {
+        "RUN": RUN,
+        "USB_DP": _usb.DP if add_usb_series_resistors else usb.DP,
+        "USB_DM": _usb.DM if add_usb_series_resistors else usb.DM,
+        "QSPI_SS": qspi.CS,
+        "QSPI_SD0": qspi.IO0,
+        "QSPI_SD1": qspi.IO1,
+        "QSPI_SD2": qspi.IO2,
+        "QSPI_SD3": qspi.IO3,
+        "QSPI_SCLK": qspi.CLK,
+        "XIN": oscpair.XIN,
+        "XOUT": oscpair.XOUT,
+        "SWCLK": swd.SWCLK,
+        "SWD": swd.SWDIO,
+        "TESTEN": GND,
+        "VREG_IN":VDD_3V3,
+        "VREG_VOUT":VDD_1V1,
+        "GND": GND,
+        "IOVDD": IOVDD if specify_vdd_configuration else VDD_3V3,
+        "USB_VDD": USB_VDD if specify_vdd_configuration else VDD_3V3,
+        "ADC_AVDD": ADC_AVDD if specify_vdd_configuration else VDD_3V3,
+        "DVDD": VDD_1V1,
+        "GPIO0": gpio0.NET,
+        "GPIO1": gpio1.NET,
+        "GPIO2": gpio2.NET,
+        "GPIO3": gpio3.NET,
+        "GPIO4": gpio4.NET,
+        "GPIO5": gpio5.NET,
+        "GPIO6": gpio6.NET,
+        "GPIO7": gpio7.NET,
+        "GPIO8": gpio8.NET,
+        "GPIO9": gpio9.NET,
+        "GPIO10": gpio10.NET,
+        "GPIO11": gpio11.NET,
+        "GPIO12": gpio12.NET,
+        "GPIO13": gpio13.NET,
+        "GPIO14": gpio14.NET,
+        "GPIO15": gpio15.NET,
+        "GPIO16": gpio16.NET,
+        "GPIO17": gpio17.NET,
+        "GPIO18": gpio18.NET,
+        "GPIO19": gpio19.NET,
+        "GPIO20": gpio20.NET,
+        "GPIO21": gpio21.NET,
+        "GPIO22": gpio22.NET,
+        "GPIO23": gpio23.NET,
+        "GPIO24": gpio24.NET,
+        "GPIO25": gpio25.NET,
+        "GPIO26_ADC0": gpio26_adc0.NET,
+        "GPIO27_ADC1": gpio27_adc1.NET,
+        "GPIO28_ADC2": gpio28_adc2.NET,
+        "GPIO29_ADC3": gpio29_adc3.NET,
+    },
+)
+
+Resistor(
+    name = "r_run_pullup",
+    value = "10kohm 5%",
+    package = passives_size.value,
+    P1 = RUN,
+    P2 = VDD_3V3,
+)
+
+Resistor(
+    name = "r_qss_pullup",
+    value = "10kohm 5%",
+    package = passives_size.value,
+    P1 = qspi.CS,
+    P2 = VDD_3V3,
+)
+
+if add_bulk_caps:
+    Capacitor(
+        name = f"c_bulk_3v3",
+        value = "1uF",
+        voltage = "6.3V",
+        package = passives_size.value,
+        P1 = VDD_3V3,
+        P2 = GND,
+    )
+    Capacitor(
+        name = f"c_bulk_1v1",
+        value = "1uF",
+        voltage = "6.3V",
+        package = passives_size.value,
+        P1 = VDD_1V1,
+        P2 = GND,
+    )
+
+if add_bypass_caps:
+    for i in range(1, 5):
+        Capacitor(
+            name = f"c_bypass_3v3_{i}",
+            value = "100nF",
+            voltage = "6.3V",
+            package = passives_size.value,
+            P1 = VDD_3V3,
+            P2 = GND,
+        )
+    for i in range(1, 3):
+        Capacitor(
+            name = f"c_bypass_1v1_{i}",
+            value = "100nF",
+            voltage = "6.3V",
+            package = passives_size.value,
+            P1 = VDD_1V1,
+            P2 = GND,
+        )
+
+if add_crystal:
+    _R_OSC = Net("_R_OSC")
+    Crystal(
+        name = "crystal",
+        frequency = crystal_frequency,
+        package = crystal_package,
+        XIN = oscpair.XIN,
+        XOUT =_R_OSC,
+        GND = GND,
+    )
+
+    Capacitor(
+        name = "c_xin",
+        value = crystal_capacitor_value,
+        package = passives_size.value,
+        P1 = oscpair.XIN,
+        P2 = GND,
+    )
+
+    Capacitor(
+        name = "c_xout",
+        value = crystal_capacitor_value,
+        package = passives_size.value,
+        P1 = _R_OSC,
+        P2 = GND,
+    )
+
+    Resistor(
+        name = "r_xout",
+        value = "1kohm 5%",
+        package = passives_size.value,
+        P1 = _R_OSC,
+        P2 = oscpair.XOUT,
+    )
+
+if add_usb_series_resistors:
+    Resistor(
+        name = "r_usb_dp",
+        value = "27ohm 5%",
+        package = passives_size.value,
+        P1 = _usb.DP,
+        P2 = usb.DP,
+    )
+    Resistor(
+        name = "r_usb_dm",
+        value = "27ohm 5%",
+        package = passives_size.value,
+        P1 = _usb.DM,
+        P2 = usb.DM,
+    )
+
+if add_qspi_flash:
+    Component(
+        name="W25Q128JV",
+        symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25Q128JVS"),
+        footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+        pins = {
+            "~{CS}": qspi.CS,
+            "CLK": qspi.CLK,
+            "DI/IO_{0}": qspi.IO0,
+            "DO/IO_{1}": qspi.IO1,
+            "~{WP}/IO_{2}": qspi.IO2,
+            "~{HOLD}/~{RESET}/IO_{3}": qspi.IO3,
+            "VCC": VDD_3V3,
+            "GND": GND,
+        }
+    )
+    if add_bulk_caps:
+        Capacitor(
+            name = "c_qspi_cap",
+            value = "1uF",
+            package = passives_size.value,
+            P1 = VDD_3V3,
+            P2 = GND,
+        )
+
+if add_swd_test_points:
+    TestPoint(
+        name = "tp_swd_io",
+        variant = swd_test_point_variant.value,
+        P1 = swd.SWDIO,
+    )
+    TestPoint(
+        name = "tp_swd_clk",
+        variant = swd_test_point_variant.value,
+        P1 = swd.SWCLK,
+    )
+
+if add_bootsel_button:
+    Component(
+        name = "BOOTSEL",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_THT.pretty/SW_PUSH_6mm.kicad_mod"),
+        pins = {
+            "1": qspi.CS,
+            "2": GND,
+        }
+    )
+
+# pcb:sch BOOTSEL x=49.8000 y=3321.3200 rot=0
+# pcb:sch RP2040 x=697.5000 y=2793.0000 rot=0
+# pcb:sch W25Q128JV x=-1.0000 y=2970.8000 rot=0
+# pcb:sch c_bulk_1v1.C x=766.0800 y=2627.9000 rot=0
+# pcb:sch c_bulk_3v3.C x=1070.8800 y=2640.6000 rot=0
+# pcb:sch c_bypass_1v1_1.C x=626.3800 y=2627.9000 rot=0
+# pcb:sch c_bypass_1v1_2.C x=499.3800 y=2627.9000 rot=0
+# pcb:sch c_bypass_3v3_1.C x=1185.1800 y=2640.6000 rot=0
+# pcb:sch c_bypass_3v3_2.C x=1312.1800 y=2640.6000 rot=0
+# pcb:sch c_bypass_3v3_3.C x=1439.1800 y=2640.6000 rot=0
+# pcb:sch c_bypass_3v3_4.C x=1566.1800 y=2640.6000 rot=0
+# pcb:sch c_qspi_cap.C x=245.3800 y=3059.7000 rot=0
+# pcb:sch c_xin.C x=562.8800 y=3339.1000 rot=0
+# pcb:sch c_xout.C x=385.0800 y=3491.5000 rot=0
+# pcb:sch crystal.Y x=405.4000 y=3326.4000 rot=90
+# pcb:sch r_qss_pullup.R x=522.2400 y=3008.9000 rot=90
+# pcb:sch r_run_pullup.R x=522.2400 y=2831.1000 rot=90
+# pcb:sch r_usb_dm.R x=522.2400 y=2932.7000 rot=90
+# pcb:sch r_usb_dp.R x=522.2400 y=2907.3000 rot=90
+# pcb:sch r_xout.R x=547.6400 y=3453.4000 rot=270
+# pcb:sch tp_swd_clk.TP x=575.5800 y=3661.6800 rot=180
+# pcb:sch tp_swd_io.TP x=613.6800 y=3661.6800 rot=180
+# pcb:sch GND.1 x=938.8000 y=3758.2000 rot=0
+# pcb:sch VDD_3V3.1 x=1007.3800 y=2729.5000 rot=0
+# pcb:sch GND.2 x=646.7000 y=2767.6000 rot=0
+# pcb:sch GND.3 x=87.9000 y=3250.2000 rot=0
+# pcb:sch VDD_3V3.2 x=92.9800 y=2907.3000 rot=0
+# pcb:sch VDD_3V3.3 x=397.7800 y=2780.3000 rot=0
+# pcb:sch GND.4 x=392.7000 y=3593.1000 rot=0
+# pcb:sch GND.5 x=176.8000 y=3364.5000 rot=0
+# pcb:sch GND.6 x=570.5000 y=3428.0000 rot=0
+# pcb:sch GND.7 x=672.1000 y=3758.2000 rot=0
+# pcb:sch GND.8 x=354.6000 y=3440.7000 rot=0
+# pcb:sch VDD_3V3.4 x=1083.5800 y=2602.5000 rot=0
+# pcb:sch GND.9 x=1078.5000 y=2754.9000 rot=0

@@ -1,0 +1,111 @@
+"""W25Q128JVS - 128Mbit Serial Flash Memory with Dual/Quad SPI
+
+The W25Q128JV is a 128Mbit (16MB) Serial Flash memory providing storage for systems 
+with limited space, pins and power. It supports standard SPI, Dual SPI, and Quad SPI 
+with clock frequencies up to 133MHz. The device operates on a single 2.7V to 3.6V 
+power supply with current consumption as low as 1μA for power-down. It features 4KB 
+sectors, 32KB/64KB blocks, and includes security registers and individual block locks.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: http://www.winbond.com/resource-files/w25q128jv_dtr%20revc%2003272018%20plus.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+SpiMode = enum("Standard", "Dual", "Quad")
+WriteProtectMode = enum("Software", "Hardware", "None")
+
+# Configuration
+add_decoupling = config("add_decoupling", bool, default = True)
+add_cs_pullup = config("add_cs_pullup", bool, default = True)
+spi_mode = config("spi_mode", SpiMode, default = "Standard")
+if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
+    write_protect_mode = config("write_protect_mode", WriteProtectMode, default = "Software")
+    enable_hold = config("enable_hold", bool, default = True)
+
+# External IO
+spi = io("SPI", Spi, default = Spi("SPI"))
+VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Additional IO based on SPI mode and configuration
+if spi_mode == SpiMode("Quad"):
+    IO2 = io("IO2", Net, default = Net("IO2"))
+    IO3 = io("IO3", Net, default = Net("IO3"))
+    _WP = IO2
+    _HOLD = IO3
+else:
+    # In non-Quad modes, WP and HOLD can be control pins
+    if write_protect_mode == WriteProtectMode("Hardware"):
+        WP_CTRL = io("WP", Net, default = Net("nWP"))
+        _WP = WP_CTRL
+    elif write_protect_mode == WriteProtectMode("None"):
+        _WP = VCC
+    else:  # Software mode
+        _WP = Net("WP/IO2")
+    
+    if enable_hold:
+        HOLD_CTRL = io("HOLD", Net, default = Net("nHOLD"))
+        _HOLD = HOLD_CTRL
+    else:
+        _HOLD = Net("HOLD")
+
+# Internal nets
+_CS = spi.CS
+_CLK = spi.CLK
+_DI_IO0 = spi.MOSI
+_DO_IO1 = spi.MISO
+
+# 128Mbit / 16MiB Serial Flash Memory, Standard/Dual/Quad SPI, 2.7-3.6V, SOIC-8
+Component(
+    name = "W25Q128JVS",
+    symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25Q128JVS"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+    pins = {
+        "~{CS}": _CS,
+        "CLK": _CLK,
+        "DI/IO_{0}": _DI_IO0,
+        "DO/IO_{1}": _DO_IO1,
+        "~{WP}/IO_{2}": _WP,
+        "~{HOLD}/~{RESET}/IO_{3}": _HOLD,
+        "VCC": VCC,
+        "GND": GND
+    },
+)
+
+# Power Supply Decoupling - Datasheet recommends ceramic capacitors close to VCC pin
+if add_decoupling:
+    # Primary decoupling capacitor
+    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    
+    # Bulk capacitor for power supply filtering
+    Capacitor(name = "C_BULK", value = "4.7uF", package = "0603", P1 = VCC, P2 = GND)
+
+# CS Pull-up Resistor
+if add_cs_pullup:
+    # CS pull-up - Required to track VCC at power-up/down
+    Resistor(name = "R_CS", value = "10kohms", package = "0402", P1 = _CS, P2 = VCC)
+
+# WP pull-up for software write protection (when not using hardware WP)
+# Only add when NOT in Quad mode (where IO2 is a data line)
+if write_protect_mode == WriteProtectMode("Software") and spi_mode != SpiMode("Quad"):
+    Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
+
+# HOLD pull-up when HOLD function is enabled
+if enable_hold and spi_mode != SpiMode("Quad"):
+    Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
+
+# pcb:sch W25Q128JVS x=253.0000 y=189.5000 rot=0
+# pcb:sch C_DEC.C x=600.9800 y=253.0000 rot=0
+# pcb:sch C_BULK.C x=486.6800 y=253.0000 rot=0
+# pcb:sch R_CS.R x=65.0400 y=151.4000 rot=180
+# pcb:sch R_WP.R x=14.2400 y=214.9000 rot=180
+# pcb:sch R_HOLD.R x=-49.2600 y=240.3000 rot=180
+# pcb:sch GND.1 x=341.9000 y=468.9000 rot=0
+# pcb:sch VCC.1 x=346.9800 y=100.6000 rot=0
