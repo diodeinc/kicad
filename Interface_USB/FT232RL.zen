@@ -1,0 +1,172 @@
+"""FT232RL - USB to Serial UART Interface IC
+
+The FT232RL is a USB to serial UART interface with advanced features including:
+- Single chip USB to asynchronous serial data transfer interface
+- Entire USB protocol handled on the chip - no USB specific firmware programming required
+- Fully integrated 1024 bit EEPROM storing device descriptors and CBUS I/O configuration
+- Fully integrated USB termination resistors and clock generation with no external crystal required
+- Data transfer rates from 300 baud to 3 Mbaud at TTL levels
+- Configurable CBUS I/O pins for LED indicators, handshake signals, and clock outputs
+- FTDI's royalty-free Virtual Com Port (VCP) and Direct (D2XX) drivers
+- True 5V/3.3V/2.8V/1.8V CMOS drive output and TTL input
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Anand Kapadia
+Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+
+# Types
+PowerConfig = enum("BusPowered", "SelfPowered")
+VccioLevel = enum("VCC", "VOUT_3V3", "External")
+CommunicationMode = enum("RS232", "USART", "UART")
+
+# Configuration
+power_config = config("power_config", PowerConfig, default = "BusPowered")
+vccio_level = config("vccio_level", VccioLevel, default = VccioLevel("VCC"))
+add_decoupling = config("add_decoupling", bool, default = True)
+add_pullups = config("add_pullups", bool, default = True)
+communication_mode = config("communication_mode", CommunicationMode, default = "UART")
+
+usb = io("USB", Usb2)
+
+_TXD = Net("_TXD")
+_RXD = Net("_RXD")
+_RTS = Net("_RTS")
+_CTS = Net("_CTS")
+_DTR = Net("_DTR")
+_DSR = Net("_DSR")
+_DCD = Net("_DCD")
+_RI = Net("_RI")
+
+if communication_mode == CommunicationMode("RS232"):
+    rs232 = io("rs232", Rs232)
+    _TXD = rs232.TX
+    _RXD = rs232.RX
+    _RTS = rs232.RTS
+    _CTS = rs232.CTS
+    _DTR = rs232.DTR
+    _DSR = rs232.DSR
+    _DCD = rs232.DCD
+    _RI = rs232.RI
+
+elif communication_mode == CommunicationMode("USART"):
+    usart = io("usart", Usart)
+    _TXD = usart.TX
+    _RXD = usart.RX
+    _RTS = usart.RTS
+    _CTS = usart.CTS
+
+elif communication_mode == CommunicationMode("UART"):
+    uart = io("uart", Uart)
+    _TXD = uart.TX
+    _RXD = uart.RX
+
+NRESET = io("NRESET", Net) if power_config == PowerConfig("BusPowered") else Net("RESET")
+
+VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+VOUT_3V3 = Net("VOUT_3V3")
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# VCC configuration
+if power_config == PowerConfig("BusPowered"):
+    VCC = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC"))
+    FerriteBead(name = "FB1", mpn = "MI0805K400R-10", package = "0805", P1 = VUSB, P2 = VCC)
+else:
+    VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+
+# VCCIO configuration
+_VCCIO_SUPPLY = Net("_VCCIO_SUPPLY")
+if vccio_level == VccioLevel("VCC"):
+    _VCCIO_SUPPLY = VCC
+elif vccio_level == VccioLevel("VOUT_3V3"):
+    _VCCIO_SUPPLY = VOUT_3V3
+else:
+    _VCCIO_SUPPLY = io("VCCIO", Net)
+
+_CBUS0 = Net("_CBUS0")
+_CBUS1 = Net("_CBUS1")
+_CBUS2 = Net("_CBUS2")
+_CBUS3 = Net("_CBUS3")
+_CBUS4 = Net("_CBUS4")
+
+# USB to Serial Interface, SSOP-28
+Component(
+    name = "FT232RL",
+    symbol = Symbol(library = "@kicad-symbols/Interface_USB.kicad_sym", name = "FT232RL"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/SSOP-28_5.3x10.2mm_P0.65mm.kicad_mod"),
+    pins = {
+        "3V3OUT": VOUT_3V3,
+        "USBD+": usb.DP,
+        "USBD-": usb.DM,
+        "~{RESET}": NRESET,
+        "OSCI": Net("NC_OSCI"),  # Using internal oscillator
+        "OSCO": Net("NC_OSCO"),  # Not connected when using internal oscillator
+        "TEST": GND,  # Must be tied to GND for normal operation
+        "AGND": GND,
+        "VCCIO": _VCCIO_SUPPLY,
+        "GND": GND,
+        "VCC": VCC,
+        "TXD": _TXD,
+        "RXD": _RXD,
+        "RTS": _RTS,
+        "CTS": _CTS,
+        "DTR": _DTR,
+        "DCR": _DSR,  # DCR pin connected to DSR net
+        "DCD": _DCD,
+        "RI": _RI,
+        "CBUS0": _CBUS0,  # Default: TXLED#
+        "CBUS1": _CBUS1,  # Default: RXLED#
+        "CBUS2": _CBUS2,  # Default: TXDEN
+        "CBUS3": _CBUS3,  # Default: PWREN#
+        "CBUS4": _CBUS4   # Default: SLEEP#
+    },
+)
+
+if add_decoupling:
+    Capacitor(name = "C_VOUT_3V3", value = "100nF", package = "0402", P1 = VOUT_3V3, P2 = GND)
+    Capacitor(name = "C_VCC_BYPASS", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    Capacitor(name = "C_VCC_BULK", value = "4.7nF", package = "0603", P1 = VCC, P2 = GND)
+    Capacitor(name = "C_VCCIO", value = "100nF", package = "0402", P1 = _VCCIO_SUPPLY, P2 = GND)
+    if power_config == PowerConfig("BusPowered"):
+        Capacitor(name = "C_VUSB", value = "10nF", package = "0402", P1 = VUSB, P2 = GND)
+
+# Reset Configuration
+if add_pullups:
+    if power_config == PowerConfig("SelfPowered"):
+        # Bus-powered configuration - optional pull-up on RESET#
+        Resistor(name = "R_RESET1", value = "4.7kohms", package = "0402", P1 = VUSB, P2 = NRESET)
+        Resistor(name = "R_RESET2", value = "10kohms", package = "0402", P1 = NRESET, P2 = GND)
+    else: 
+        Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = NRESET, P2 = VCC)
+    
+    Resistor(name = "R_PWREN", value = "10kohms", package = "0402", P1 = _CBUS3, P2 = VCC)
+    
+# pcb:sch C_VUSB.C x=931.1800 y=-39.1000 rot=0
+# pcb:sch C_VCCIO.C x=321.5800 y=-51.8000 rot=0
+# pcb:sch C_VCC_BULK.C x=664.4800 y=-39.1000 rot=0
+# pcb:sch C_VCC_BYPASS.C x=550.1800 y=-26.4000 rot=0
+# pcb:sch C_VOUT_3V3.C x=80.2800 y=176.8000 rot=0
+# pcb:sch FB1.FB x=796.8140 y=-89.9000 rot=90
+# pcb:sch FT232RL x=253.0000 y=87.9000 rot=0
+# pcb:sch R_PWREN.R x=839.7400 y=430.8000 rot=180
+# pcb:sch R_RESET.R x=-11.1600 y=265.7000 rot=180
+# pcb:sch GND.1 x=938.8000 y=75.2000 rot=0
+# pcb:sch GND.2 x=227.6000 y=621.3000 rot=0
+# pcb:sch GND.3 x=468.9000 y=621.3000 rot=0
+# pcb:sch GND.4 x=329.2000 y=37.1000 rot=0
+# pcb:sch GND.5 x=87.9000 y=278.4000 rot=0
+# pcb:sch VUSB.1 x=943.8800 y=-166.1000 rot=0
+# pcb:sch VCC.1 x=473.9800 y=-89.9000 rot=0
+# pcb:sch VCC.2 x=-8.6200 y=202.2000 rot=0
+# pcb:sch VCC.4 x=842.2800 y=380.0000 rot=0
+# pcb:sch GND.6 x=608.6000 y=75.2000 rot=0
+# pcb:sch R_RESET1.R x=-36.5600 y=291.1000 rot=0
+# pcb:sch R_RESET2.R x=-36.5600 y=418.1000 rot=0
+# pcb:sch GND.7 x=-39.1000 y=519.7000 rot=0
