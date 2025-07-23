@@ -16,6 +16,14 @@ description = "Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Re
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf"
 
 
+[[workspace.FT232RL]]
+name = "FT232RL"
+path = "Interface_USB/FT232RL.zen"
+category = "Interface_USB"
+description = "USB to Serial UART Interface IC"
+datasheet = "https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf"
+
+
 [[workspace.ATmega328_A]]
 name = "ATmega328-A"
 path = "MCU_Microchip_ATmega/ATmega328-A.zen"
@@ -30,6 +38,14 @@ path = "MCU_RaspberryPi/RP2040.zen"
 category = "MCU_RaspberryPi"
 description = "A microcontroller by Raspberry Pi"
 datasheet = "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf"
+
+
+[[workspace.STM32F405RGT]]
+name = "STM32F405RGT"
+path = "MCU_ST_STM32F4/STM32F405RGT.zen"
+category = "MCU_ST_STM32F4"
+description = "ARM Cortex-M4 MCU with FPU, 1024KB Flash, 192KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f405rg.pdf"
 
 
 [[workspace.W25Q128JVS]]
