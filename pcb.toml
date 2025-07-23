@@ -8,6 +8,62 @@ description = "16-Bit Sigma-Delta ADC with SPI Interface"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
 
 
+[[workspace.LTC3553]]
+name = "LTC3553"
+path = "Battery_Management/LTC3553.zen"
+category = "Battery_Management"
+description = "Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf"
+
+
+[[workspace.ATmega328_A]]
+name = "ATmega328-A"
+path = "MCU_Microchip_ATmega/ATmega328-A.zen"
+category = "MCU_Microchip_ATmega"
+description = "8-bit AVR Microcontroller with 32K Bytes In-System Programmable Flash"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf"
+
+
+[[workspace.RP2040]]
+name = "RP2040"
+path = "MCU_RaspberryPi/RP2040.zen"
+category = "MCU_RaspberryPi"
+description = "A microcontroller by Raspberry Pi"
+datasheet = "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf"
+
+
+[[workspace.W25Q128JVS]]
+name = "W25Q128JVS"
+path = "Memory_Flash/W25Q128JVS.zen"
+category = "Memory_Flash"
+description = "128Mbit Serial Flash Memory with Dual/Quad SPI"
+datasheet = "http://www.winbond.com/resource-files/w25q128jv_dtr%20revc%2003272018%20plus.pdf"
+
+
+[[workspace.W25Q32JVSS]]
+name = "W25Q32JVSS"
+path = "Memory_Flash/W25Q32JVSS.zen"
+category = "Memory_Flash"
+description = "32Mbit / 4MiB Serial Flash Memory with Dual, Quad SPI"
+datasheet = "https://www.winbond.com/resource-files/w25q32jv%20revg%2003272018%20plus.pdf"
+
+
+[[workspace.W25X20CLSN]]
+name = "W25X20CLSN"
+path = "Memory_Flash/W25X20CLSN.zen"
+category = "Memory_Flash"
+description = "2Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
+datasheet = "http://www.winbond.com/resource-files/w25x20cl_f%2020140325.pdf"
+
+
+[[workspace.W25X40CLSN]]
+name = "W25X40CLSN"
+path = "Memory_Flash/W25X40CLSN.zen"
+category = "Memory_Flash"
+description = "4Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
 [[workspace.LM4125IM5_2_5]]
 name = "LM4125IM5-2.5"
 path = "Reference_Voltage/LM4125IM5-2.5.zen"
