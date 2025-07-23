@@ -117,14 +117,14 @@ if enable_start_pulldown:
 # ADR = 1 (VDP) → I2C address 0x2F (010 1111 R/Wn)
 Resistor(name = "R_ADR", value = "0ohms", package = "0402", P1 = ADR, P2 = _ADR_CONFIG)
 
-# pcb:sch C_STORAGE.C x=473.9800 y=748.3000 rot=0
-# pcb:sch C_VBT.C x=29.4800 y=646.7000 rot=0
-# pcb:sch C_VDP.C x=588.2800 y=710.2000 rot=0
-# pcb:sch L1.L x=529.2381 y=634.0000 rot=180
-# pcb:sch NBM7100A x=278.4000 y=545.1000 rot=0
-# pcb:sch R_ADR.R x=217.4400 y=761.0000 rot=0
-# pcb:sch R_SCL.R x=115.8400 y=456.2000 rot=180
-# pcb:sch R_SDA.R x=179.3400 y=456.2000 rot=180
-# pcb:sch R_START.R x=166.6400 y=761.0000 rot=0
-# pcb:sch GND.1 x=367.3000 y=888.0000 rot=0
-# pcb:sch C_VDH.C x=702.5800 y=595.9000 rot=0
+# pcb:sch C_STORAGE.C x=469.9000 y=749.3000 rot=0
+# pcb:sch C_VBT.C x=25.4000 y=660.4000 rot=0
+# pcb:sch C_VDP.C x=584.2000 y=711.2000 rot=0
+# pcb:sch L1.L x=533.4000 y=635.0000 rot=180
+# pcb:sch NBM7100A x=279.4000 y=546.1000 rot=0
+# pcb:sch R_ADR.R x=203.2000 y=774.7000 rot=0
+# pcb:sch R_SCL.R x=-38.1000 y=660.4000 rot=180
+# pcb:sch R_SDA.R x=-88.9000 y=647.7000 rot=180
+# pcb:sch R_START.R x=177.8000 y=660.4000 rot=90
+# pcb:sch GND.1 x=368.3000 y=889.0000 rot=0
+# pcb:sch C_VDH.C x=673.1000 y=609.6000 rot=0

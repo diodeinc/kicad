@@ -78,11 +78,11 @@ if add_pullups:
 if enable_event and event_polarity == EventPolarity("ActiveLow"):
     Resistor(name = "R_EVENT", value = "10kohms", package = "0402", P1 = EVENT, P2 = VDD)
 
-# pcb:sch C_BULK.C x=156.4800 y=240.3000 rot=0
-# pcb:sch C_DEC.C x=232.6800 y=240.3000 rot=0
-# pcb:sch MCP9844 x=468.9000 y=176.8000 rot=0
-# pcb:sch R_EVENT.R x=712.7400 y=176.8000 rot=180
-# pcb:sch R_SCL.R x=369.8400 y=138.7000 rot=180
-# pcb:sch R_SDA.R x=306.3400 y=138.7000 rot=180
-# pcb:sch GND.1 x=570.5000 y=456.2000 rot=0
-# pcb:sch VDD.1 x=562.8800 y=87.9000 rot=0
+# pcb:sch C_BULK.C x=190.5000 y=241.3000 rot=0
+# pcb:sch C_DEC.C x=254.0000 y=241.3000 rot=0
+# pcb:sch MCP9844 x=469.9000 y=177.8000 rot=0
+# pcb:sch R_EVENT.R x=698.5000 y=190.5000 rot=180
+# pcb:sch R_SCL.R x=381.0000 y=254.0000 rot=180
+# pcb:sch R_SDA.R x=317.5000 y=190.5000 rot=180
+# pcb:sch GND.1 x=571.5000 y=469.9000 rot=0
+# pcb:sch VDD.1 x=558.8000 y=88.9000 rot=0

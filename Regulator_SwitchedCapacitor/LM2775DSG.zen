@@ -86,17 +86,17 @@ if output_discharge:
     # Add test point for OUTDIS control if needed
     pass
 
-# pcb:sch LM2775DSG x=189.5000 y=303.8000 rot=0
+# pcb:sch LM2775DSG x=190.5000 y=304.8000 rot=0
 # pcb:sch C_IN x=-50 y=0 rot=270
 # pcb:sch C_IN_HF x=-50 y=-25 rot=270
 # pcb:sch C_OUT x=50 y=0 rot=270
 # pcb:sch C_OUT_HF x=50 y=-25 rot=270
 # pcb:sch C_FLY x=0 y=40 rot=0
 # pcb:sch R_EN x=-25 y=-40 rot=0
-# pcb:sch C_FLY.C x=448.5800 y=392.7000 rot=0
-# pcb:sch C_IN.C x=-21.3200 y=367.3000 rot=0
-# pcb:sch C_IN_HF.C x=-122.9200 y=367.3000 rot=0
-# pcb:sch C_OUT.C x=651.7800 y=367.3000 rot=0
-# pcb:sch C_OUT_HF.C x=550.1800 y=367.3000 rot=0
-# pcb:sch R_EN.R x=103.1400 y=303.8000 rot=180
-# pcb:sch GND.1 x=278.4000 y=570.5000 rot=0
+# pcb:sch C_FLY.C x=444.5000 y=393.7000 rot=0
+# pcb:sch C_IN.C x=-25.4000 y=368.3000 rot=0
+# pcb:sch C_IN_HF.C x=-101.6000 y=368.3000 rot=0
+# pcb:sch C_OUT.C x=622.3000 y=304.8000 rot=0
+# pcb:sch C_OUT_HF.C x=520.7000 y=304.8000 rot=0
+# pcb:sch R_EN.R x=50.8000 y=317.5000 rot=180
+# pcb:sch GND.1 x=279.4000 y=571.5000 rot=0

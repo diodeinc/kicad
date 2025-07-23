@@ -27,6 +27,8 @@ Thermistor = Module("@stdlib/generics/Thermistor.zen")
 ChargeCurrentMode = enum("100mA", "200mA", "300mA", "400mA", "500mA")
 PowerMode = enum("100mA", "500mA")
 SequenceMode = enum("BuckFirst", "LDOFirst")
+BuckVoltage = enum("1.2V", "1.8V", "2.5V", "3.3V")
+LdoVoltage = enum("1.2V", "1.8V", "2.5V", "3.3V")
 
 # Configuration
 add_input_cap = config("add_input_cap", bool, default = True)
@@ -37,9 +39,8 @@ power_mode = config("power_mode", PowerMode, default = "500mA")
 sequence_mode = config("sequence_mode", SequenceMode, default = "BuckFirst")
 enable_buck = config("enable_buck", bool, default = True)
 enable_ldo = config("enable_ldo", bool, default = True)
-buck_voltage = config("buck_voltage", str, default = "1.2V")
-ldo_voltage = config("ldo_voltage", str, default = "3.3V")
-use_us_symbols = config("use_us_symbols", bool, default = True, optional = True)
+buck_voltage = config("buck_voltage", BuckVoltage, default = BuckVoltage("1.2V"))
+ldo_voltage = config("ldo_voltage", LdoVoltage, default = LdoVoltage("3.3V"))
 
 # External IO
 VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
@@ -113,12 +114,12 @@ charge_current_table = {
     ChargeCurrentMode("500mA"): "1.5kohms",
 }
 r_prog_value = charge_current_table.get(charge_current, "1.87kohms")
-Resistor(name = "R_PROG", value = r_prog_value, package = "0402", use_us_symbol = use_us_symbols, P1 = _PROG, P2 = GND)
+Resistor(name = "R_PROG", value = r_prog_value, package = "0402", P1 = _PROG, P2 = GND)
 
 # NTC Thermistor Circuit (if enabled)
 if enable_ntc:
     # Bias resistor from VBUS to NTC
-    Resistor(name = "R_NTC_BIAS", value = "100kohms", package = "0402", use_us_symbol = use_us_symbols, P1 = VBUS, P2 = _NTC)
+    Resistor(name = "R_NTC_BIAS", value = "100kohms", package = "0402", P1 = VBUS, P2 = _NTC)
     # NTC thermistor placeholder (100k at 25°C)
     Thermistor(
         name = "R_NTC", 
@@ -139,19 +140,19 @@ if enable_buck:
     
     # Buck feedback resistors
     # VOUT = 0.8V * (1 + R1/R2)
-    if buck_voltage == "1.2V":
+    if buck_voltage == BuckVoltage("1.2V"):
         l_buck = "10uH"
         r1_buck = "332kohms"
         r2_buck = "649kohms"
-    elif buck_voltage == "1.8V":
+    elif buck_voltage == BuckVoltage("1.8V"):
         l_buck = "10uH"
         r1_buck = "649kohms"
         r2_buck = "499kohms"
-    elif buck_voltage == "2.5V":
+    elif buck_voltage == BuckVoltage("2.5V"):
         l_buck = "6.8uH"
         r1_buck = "649kohms"
         r2_buck = "301kohms"
-    elif buck_voltage == "3.3V":
+    elif buck_voltage == BuckVoltage("3.3V"):
         l_buck = "4.7uH"
         r1_buck = "649kohms"
         r2_buck = "200kohms"
@@ -163,8 +164,8 @@ if enable_buck:
     # Buck inductor
     Inductor(name = "L_BUCK", value = l_buck, package = "1210", P1 = _SW, P2 = BUCK_OUT)
 
-    Resistor(name = "R_BUCK_FB1", value = r1_buck, package = "0402", use_us_symbol = use_us_symbols, P1 = BUCK_OUT, P2 = _BUCK_FB)
-    Resistor(name = "R_BUCK_FB2", value = r2_buck, package = "0402", use_us_symbol = use_us_symbols, P1 = _BUCK_FB, P2 = GND)
+    Resistor(name = "R_BUCK_FB1", value = r1_buck, package = "0402", P1 = BUCK_OUT, P2 = _BUCK_FB)
+    Resistor(name = "R_BUCK_FB2", value = r2_buck, package = "0402", P1 = _BUCK_FB, P2 = GND)
 
 # LDO Components
 if enable_ldo:
@@ -176,34 +177,34 @@ if enable_ldo:
     
     # LDO feedback resistors
     # VOUT = 0.8V * (1 + R1/R2)
-    if ldo_voltage == "1.2V":
+    if ldo_voltage == LdoVoltage("1.2V"):
         r1_ldo = "2.05Mohms"
         r2_ldo = "4.02Mohms"
-    elif ldo_voltage == "1.8V":
+    elif ldo_voltage == LdoVoltage("1.8V"):
         r1_ldo = "2.05Mohms"
         r2_ldo = "1.58Mohms"
-    elif ldo_voltage == "2.5V":
+    elif ldo_voltage == LdoVoltage("2.5V"):
         r1_ldo = "2.05Mohms"
         r2_ldo = "953kohms"
-    elif ldo_voltage == "3.3V":
+    elif ldo_voltage == LdoVoltage("3.3V"):
         r1_ldo = "2.05Mohms"
         r2_ldo = "649kohms"
     else:  # Default 3.3V
         r1_ldo = "2.05Mohms"
         r2_ldo = "649kohms"
     
-    Resistor(name = "R_LDO_FB1", value = r1_ldo, package = "0402", use_us_symbol = use_us_symbols, P1 = LDO_OUT, P2 = _LDO_FB)
-    Resistor(name = "R_LDO_FB2", value = r2_ldo, package = "0402", use_us_symbol = use_us_symbols, P1 = _LDO_FB, P2 = GND)
+    Resistor(name = "R_LDO_FB1", value = r1_ldo, package = "0402", P1 = LDO_OUT, P2 = _LDO_FB)
+    Resistor(name = "R_LDO_FB2", value = r2_ldo, package = "0402", P1 = _LDO_FB, P2 = GND)
 
 # Standby Mode Control - Pull low for normal operation, high for standby
-Resistor(name = "R_STBY", value = "100kohms", package = "0402", use_us_symbol = use_us_symbols, P1 = _STBY, P2 = GND)
+Resistor(name = "R_STBY", value = "100kohms", package = "0402", P1 = _STBY, P2 = GND)
 
 # Pushbutton Status Pull-up
-Resistor(name = "R_PBSTAT", value = "100kohms", package = "0402", use_us_symbol = use_us_symbols, P1 = PBSTAT, P2 = VOUT)
+Resistor(name = "R_PBSTAT", value = "100kohms", package = "0402", P1 = PBSTAT, P2 = VOUT)
 
 # Charge Status LED Resistor
 _CHRG_LED = Net("_CHRG_LED")
-Resistor(name = "R_CHRG", value = "10kohms", package = "0402", use_us_symbol = use_us_symbols, P1 = CHRG_STAT, P2 = _CHRG_LED)
+Resistor(name = "R_CHRG", value = "10kohms", package = "0402", P1 = CHRG_STAT, P2 = _CHRG_LED)
 
 # Charge Status LED
 Led(name = "LED_CHRG", package = "0603", A = _CHRG_LED, K = VOUT, color = "green")
@@ -223,7 +224,7 @@ Led(name = "LED_CHRG", package = "0603", A = _CHRG_LED, K = VOUT, color = "green
 # pcb:sch R_LDO_FB1.R x=1119.1400 y=849.9000 rot=0
 # pcb:sch R_LDO_FB2.R x=1208.0400 y=900.7000 rot=270
 # pcb:sch R_PBSTAT.R x=369.8400 y=824.5000 rot=90
-# pcb:sch R_PROG.R x=509.5400 y=989.6000 rot=0
+# pcb:sch R_PROG.R x=522.2400 y=989.6000 rot=0
 # pcb:sch R_STBY.R x=484.1400 y=722.9000 rot=90
 # pcb:sch GND.1 x=722.9000 y=1078.5000 rot=0
 # pcb:sch C_BUCK_COMP.C x=1070.8800 y=1040.4000 rot=0
@@ -243,3 +244,5 @@ Led(name = "LED_CHRG", package = "0603", A = _CHRG_LED, K = VOUT, color = "green
 # pcb:sch GND.10 x=1015.0000 y=684.8000 rot=0
 # pcb:sch GND.11 x=989.6000 y=849.9000 rot=0
 # pcb:sch GND.4 x=532.4000 y=672.1000 rot=0
+
+# pcb:sch VBUS.3 x=499.3800 y=583.2000 rot=0

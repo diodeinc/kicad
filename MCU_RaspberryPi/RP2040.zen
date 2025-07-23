@@ -33,8 +33,7 @@ Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-
-passivesSize = enum("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
+PinSocket = Module("@stdlib/kicad/PinSocket.zen")
 
 # Configuration
 add_bulk_caps = config("add_bulk_caps", bool, default = True)
@@ -44,16 +43,12 @@ add_usb_series_resistors = config("add_usb_series_resistors", bool, default = Tr
 add_bootsel_button = config("add_bootsel_button", bool, default = True)
 specify_vdd_configuration = config("specify_vdd_configuration", bool, default = False, optional = True)
 add_crystal = config("add_crystal", bool, default = True)
+add_gpio_headers = config("add_gpio_headers", bool, default = True, optional = True)
+
 if add_crystal:
-    crystal_package = config("crystal_package", str, default = "3225_4Pin", optional = True)
-    crystal_frequency = config("crystal_frequency", str, default = "12MHz", optional = True)
+    crystal_package = config("crystal_package", Crystal.Package, default = Crystal.Package("3225_4Pin"), optional = True)
     crystal_capacitor_value = config("crystal_capacitor_value", str, default = "15pF", optional = True)
 add_swd_test_points = config("add_swd_test_points", bool, default = True)
-if add_swd_test_points:
-    swd_test_point_variant = config("swd_test_point_variant", TestPoint.Variant, default = TestPoint.Variant("THTPad_D2.0mm_Drill1.0mm"), optional = True)
-
-use_us_symbols = config("use_us_symbols", bool, default = True, optional = True)
-passives_size = config("passives_size", passivesSize, default = "0402", optional = True)
 
 if specify_vdd_configuration:
     IOVDD = io("IOVDD", Net)
@@ -171,7 +166,7 @@ Component(
 Resistor(
     name = "r_run_pullup",
     value = "10kohm 5%",
-    package = passives_size.value,
+    package = "0402",
     P1 = RUN,
     P2 = VDD_3V3,
 )
@@ -179,7 +174,7 @@ Resistor(
 Resistor(
     name = "r_qss_pullup",
     value = "10kohm 5%",
-    package = passives_size.value,
+    package = "0402",
     P1 = qspi.CS,
     P2 = VDD_3V3,
 )
@@ -189,7 +184,7 @@ if add_bulk_caps:
         name = f"c_bulk_3v3",
         value = "1uF",
         voltage = "6.3V",
-        package = passives_size.value,
+        package = "0402",
         P1 = VDD_3V3,
         P2 = GND,
     )
@@ -197,7 +192,7 @@ if add_bulk_caps:
         name = f"c_bulk_1v1",
         value = "1uF",
         voltage = "6.3V",
-        package = passives_size.value,
+        package = "0402",
         P1 = VDD_1V1,
         P2 = GND,
     )
@@ -208,7 +203,7 @@ if add_bypass_caps:
             name = f"c_bypass_3v3_{i}",
             value = "100nF",
             voltage = "6.3V",
-            package = passives_size.value,
+            package = "0402",
             P1 = VDD_3V3,
             P2 = GND,
         )
@@ -217,7 +212,7 @@ if add_bypass_caps:
             name = f"c_bypass_1v1_{i}",
             value = "100nF",
             voltage = "6.3V",
-            package = passives_size.value,
+            package = "0402",
             P1 = VDD_1V1,
             P2 = GND,
         )
@@ -226,8 +221,8 @@ if add_crystal:
     _R_OSC = Net("_R_OSC")
     Crystal(
         name = "crystal",
-        frequency = crystal_frequency,
-        package = crystal_package,
+        frequency = "12MHz",
+        package = crystal_package.value,
         XIN = oscpair.XIN,
         XOUT =_R_OSC,
         GND = GND,
@@ -236,7 +231,7 @@ if add_crystal:
     Capacitor(
         name = "c_xin",
         value = crystal_capacitor_value,
-        package = passives_size.value,
+        package = "0402",
         P1 = oscpair.XIN,
         P2 = GND,
     )
@@ -244,7 +239,7 @@ if add_crystal:
     Capacitor(
         name = "c_xout",
         value = crystal_capacitor_value,
-        package = passives_size.value,
+        package = "0402",
         P1 = _R_OSC,
         P2 = GND,
     )
@@ -252,7 +247,7 @@ if add_crystal:
     Resistor(
         name = "r_xout",
         value = "1kohm 5%",
-        package = passives_size.value,
+        package = "0402",  
         P1 = _R_OSC,
         P2 = oscpair.XOUT,
     )
@@ -261,14 +256,14 @@ if add_usb_series_resistors:
     Resistor(
         name = "r_usb_dp",
         value = "27ohm 5%",
-        package = passives_size.value,
+        package = "0402",
         P1 = _usb.DP,
         P2 = usb.DP,
     )
     Resistor(
         name = "r_usb_dm",
         value = "27ohm 5%",
-        package = passives_size.value,
+        package = "0402",  
         P1 = _usb.DM,
         P2 = usb.DM,
     )
@@ -293,7 +288,7 @@ if add_qspi_flash:
         Capacitor(
             name = "c_qspi_cap",
             value = "1uF",
-            package = passives_size.value,
+            package = "0402",
             P1 = VDD_3V3,
             P2 = GND,
         )
@@ -301,12 +296,12 @@ if add_qspi_flash:
 if add_swd_test_points:
     TestPoint(
         name = "tp_swd_io",
-        variant = swd_test_point_variant.value,
+        variant = "THTPad_D2.0mm_Drill1.0mm",
         P1 = swd.SWDIO,
     )
     TestPoint(
         name = "tp_swd_clk",
-        variant = swd_test_point_variant.value,
+        variant = "THTPad_D2.0mm_Drill1.0mm",
         P1 = swd.SWCLK,
     )
 
@@ -319,6 +314,51 @@ if add_bootsel_button:
             "1": qspi.CS,
             "2": GND,
         }
+    )
+
+if add_gpio_headers:
+    PinSocket(
+        name = "pin_socket_gpio",
+        pins = 18,
+        rows = 2,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        P1 = gpio0.NET,
+        P2 = gpio1.NET, 
+        P3 = gpio2.NET,
+        P4 = gpio3.NET,
+        P5 = gpio4.NET,
+        P6 = gpio5.NET,
+        P7 = gpio6.NET,
+        P8 = gpio7.NET,
+        P9 = gpio8.NET, 
+        P10 = gpio9.NET,
+        P11 = gpio10.NET,
+        P12 = gpio11.NET,
+        P13 = gpio12.NET,
+        P14 = gpio13.NET,
+        P15 = gpio14.NET,
+        P16 = gpio15.NET,
+        P17 = gpio16.NET,
+        P18 = gpio17.NET,
+        P19 = gpio18.NET,
+        P20 = gpio19.NET,
+        P21 = gpio20.NET,
+        P22 = gpio21.NET,
+        P23 = gpio22.NET,
+        P24 = gpio23.NET,
+        P25 = gpio24.NET,
+        P26 = gpio25.NET,
+        P27 = gpio26_adc0.NET,
+        P28 = gpio27_adc1.NET,
+        P29 = gpio28_adc2.NET,
+        P30 = gpio29_adc3.NET,
+        P31 = VDD_3V3,
+        P32 = GND,
+        P33 = VDD_3V3,
+        P34 = GND,
+        P35 = VDD_1V1,
+        P36 = GND,
     )
 
 # pcb:sch BOOTSEL x=49.8000 y=3321.3200 rot=0
@@ -356,3 +396,7 @@ if add_bootsel_button:
 # pcb:sch GND.8 x=354.6000 y=3440.7000 rot=0
 # pcb:sch VDD_3V3.4 x=1083.5800 y=2602.5000 rot=0
 # pcb:sch GND.9 x=1078.5000 y=2754.9000 rot=0
+
+# pcb:sch pin_socket_gpio.PS x=1611.9000 y=3034.3000 rot=0
+# pcb:sch GND.10 x=1789.7000 y=3504.2000 rot=0
+# pcb:sch VDD_3V3.5 x=1464.5800 y=3415.3000 rot=0
