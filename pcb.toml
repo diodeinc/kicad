@@ -224,6 +224,30 @@ description = "Switched Capacitor 5V Boost Converter"
 datasheet = "https://www.ti.com/lit/ds/symlink/lm2776.pdf"
 
 
+[[workspace.LTC1502_3_3]]
+name = "LTC1502-3.3"
+path = "Regulator_SwitchedCapacitor/LTC1502.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Single Cell to 3.3V Regulated Charge Pump DC/DC Converter"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1502f.pdf"
+
+
+[[workspace.TPS60400DBV]]
+name = "TPS60400DBV"
+path = "Regulator_SwitchedCapacitor/TPS60400DBV.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Unregulated 60-mA Charge Pump Voltage Inverter"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps60400.pdf"
+
+
+[[workspace.TPS60403DBV]]
+name = "TPS60403DBV"
+path = "Regulator_SwitchedCapacitor/TPS60403DBV.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Unregulated 60-mA Charge Pump Voltage Inverter with Fixed 250kHz Switching Frequency"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps60403.pdf"
+
+
 [[workspace.LM2576HVS_12]]
 name = "LM2576HVS-12"
 path = "Regulator_Switching/LM2576HVS-12.zen"
@@ -262,6 +286,14 @@ path = "Regulator_Switching/NBM7100A.zen"
 category = "Regulator_Switching"
 description = "Coin Cell Battery Life Booster with Adaptive Power Optimization"
 datasheet = "https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html"
+
+
+[[workspace.BNO055]]
+name = "BNO055"
+path = "Sensor_Motion/BNO055.zen"
+category = "Sensor_Motion"
+description = "Intelligent 9-axis absolute orientation sensor"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf"
 
 
 [[workspace.LM73_1]]
