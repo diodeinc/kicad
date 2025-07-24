@@ -19,6 +19,7 @@ Crystal = Module("@stdlib/generics/Crystal.zen")
 Led = Module("@stdlib/generics/Led.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
 PinHeader = Module("@stdlib/kicad/PinHeader.zen")
 
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
@@ -26,19 +27,36 @@ TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
 CrystalFreq = enum("4MHz", "8MHz", "12MHz", "16MHz")
+BootConfiguration = enum("None", "Resistors", "Header")
+BootPull = enum("Pullup", "Pulldown")
+ResetConfiguration = enum("None", "Pullup", "TestPoint", "Button")
 
 # Configuration
 add_bulk_cap = config("add_bulk_cap", bool, default = True)
 add_power_decoupling = config("add_power_decoupling", bool, default = True)
 add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
 add_vbatt_ferrite_bead = config("add_vbatt_ferrite_bead", bool, default = True)
-add_reset_button = config("add_reset_button", bool, default = True, optional = True)
-if not add_reset_button:
-    add_reset_circuit = config("add_reset_circuit", bool, default = True)
 
-add_boot0_button = config("add_boot0_button", bool, default = True, optional = True)
+# Reset configuration
+# None: NRST pin exposed to user, no reset components
+# Pullup: 10kΩ pull-up resistor only
+# TestPoint: Pull-up resistor + capacitor + through-hole test point
+# Button: Pull-up resistor + capacitor + reset button (default)
+reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+
 add_status_led = config("add_status_led", bool, default = True, optional = True)
 add_power_led = config("add_power_led", bool, default = True, optional = True)
+
+# Boot configuration
+# STM32F103 Boot Modes:
+# BOOT1=0, BOOT0=0: Boot from main Flash memory (default)
+# BOOT1=0, BOOT0=1: Boot from system memory (bootloader)
+# BOOT1=1, BOOT0=0: Boot from embedded SRAM
+# BOOT1=1, BOOT0=1: Boot from embedded SRAM
+boot_configuration = config("boot_configuration", BootConfiguration, default = "Header")
+if boot_configuration == BootConfiguration("Resistors"):
+    boot0_pull = config("boot0_pull", BootPull, default = "Pulldown")
+    boot1_pull = config("boot1_pull", BootPull, default = "Pulldown")
 
 # Clock configuration
 clock_source = config("clock_source", ClockSource, default = "Crystal")
@@ -75,7 +93,13 @@ PA15 = io("PA15", Net)
 # Port B pins
 PB0 = io("PB0", Net)
 PB1 = io("PB1", Net)
-PB2 = io("PB2", Net)
+
+# PB2 - conditionally exposed based on boot configuration
+if boot_configuration == BootConfiguration("None"):
+    PB2 = io("PB2", Net)  # Exposed to user
+    _PB2 = PB2
+else:
+    _PB2 = Net("BOOT1")  # Internal net for BOOT1
 PB3 = io("PB3", Net)
 PB4 = io("PB4", Net)
 PB5 = io("PB5", Net)
@@ -137,12 +161,12 @@ else:
     _PC14 = PC14
     _PC15 = PC15
 
-# NRST - conditionally exposed based on reset button configuration
-if add_reset_button:
-    _NRST = Net("NRST")  # Internal net for reset button
-else:
+# NRST - conditionally exposed based on reset configuration
+if reset_configuration == ResetConfiguration("None") or reset_configuration == ResetConfiguration("Pullup"):
     NRST = io("NRST", Net)  # Exposed to user
     _NRST = NRST
+else:
+    _NRST = Net("NRST")  # Internal net for reset circuit
 
 # Internal nets
 _VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA"))
@@ -165,7 +189,7 @@ Component(
         "PC15": _PC15,
         "PB0": PB0,
         "PB1": PB1,
-        "PB2": PB2,
+        "PB2": _PB2,
         "PB3": PB3,
         "PB4": PB4,
         "PB5": PB5,
@@ -238,8 +262,21 @@ else:
     _VBAT = VDD
 
 
-# Reset Button
-if add_reset_button:
+# Reset Configuration
+if reset_configuration == ResetConfiguration("Pullup"):
+    # Pull-up resistor only
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+
+elif reset_configuration == ResetConfiguration("TestPoint"):
+    # Pull-up resistor, capacitor, and test point
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
+    TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _NRST)
+
+elif reset_configuration == ResetConfiguration("Button"):
+    # Pull-up resistor, capacitor, and reset button
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
     Component(
         name = "SW_RESET",
         symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
@@ -250,26 +287,44 @@ if add_reset_button:
         }
     )
 
-# Reset Circuit
-if add_reset_button or add_reset_circuit:
-    # Pull-up resistor on RESET pin
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
-    # Reset capacitor for noise filtering
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
+# Boot Configuration
+if boot_configuration == BootConfiguration("Resistors"):
+    # BOOT0 configuration
+    if boot0_pull == BootPull("Pullup"):
+        Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = VDD)
+    else:  # Pulldown
+        Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = GND)
+    
+    # BOOT1 configuration
+    if boot1_pull == BootPull("Pullup"):
+        Resistor(name = "R_BOOT1", value = "10kohms", package = "0402", P1 = _PB2, P2 = VDD)
+    else:  # Pulldown
+        Resistor(name = "R_BOOT1", value = "10kohms", package = "0402", P1 = _PB2, P2 = GND)
 
-# Boot Configuration - Pull-down for normal Flash boot
-Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = GND)
-
-# BOOT0 Button for entering bootloader mode
-if add_boot0_button:
-    Component(
-        name = "SW_BOOT0",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
-            "1": _BOOT0,
-            "2": VDD,
-        }
+elif boot_configuration == BootConfiguration("Header"):
+    # 3x2 header for boot configuration with series resistors
+    # Series resistors for current limiting and protection
+    _BOOT0_HEADER = Net("BOOT0_HEADER")
+    _BOOT1_HEADER = Net("BOOT1_HEADER")
+    
+    Resistor(name = "R_BOOT0_SERIES", value = "100kohms", package = "0402", P1 = _BOOT0, P2 = _BOOT0_HEADER)
+    Resistor(name = "R_BOOT1_SERIES", value = "100kohms", package = "0402", P1 = _PB2, P2 = _BOOT1_HEADER)
+    
+    # Pin layout (2 rows, 3 pins per row):
+    # Row 1 (odd pins):  1=VDD, 3=BOOT0, 5=VDD
+    # Row 2 (even pins): 2=GND, 4=BOOT1, 6=GND
+    PinHeader(
+        name = "J_BOOT",
+        pins = 3,
+        rows = 2,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = VDD,            
+        Pin_2 = VDD,          
+        Pin_3 = _BOOT0_HEADER, 
+        Pin_4 = _BOOT1_HEADER, 
+        Pin_5 = GND,            
+        Pin_6 = GND,          
     )
 
 # Crystal Oscillator Circuit
@@ -402,10 +457,10 @@ if add_swd_header:
 # pcb:sch C_VDDA.C x=943.8800 y=646.7000 rot=0
 # pcb:sch C_VDDA2.C x=1032.7800 y=646.7000 rot=0
 # pcb:sch J_SWD.PH x=1199.1500 y=1065.8000 rot=0
-# pcb:sch LED_STATUS.LED x=33.2900 y=1365.5200 rot=0
+# pcb:sch LED_STATUS.LED x=37.1000 y=1369.3300 rot=0
 # pcb:sch R_BOOT0.R x=-138.1600 y=824.5000 rot=0
 # pcb:sch R_LED.R x=14.2400 y=1446.8000 rot=0
-# pcb:sch R_RESET.R x=14.2400 y=1065.8000 rot=180
+# pcb:sch R_RESET.R x=14.2400 y=1040.4000 rot=180
 # pcb:sch R_VBAT.R x=674.6400 y=595.9000 rot=0
 # pcb:sch R_VDDA.R x=776.2400 y=595.9000 rot=0
 # pcb:sch R_VSSA.R x=1411.2400 y=1396.0000 rot=0
@@ -418,7 +473,7 @@ if add_swd_header:
 # pcb:sch VDD.2 x=16.7800 y=1002.3000 rot=0
 # pcb:sch VSS.2 x=240.3000 y=24.4000 rot=0
 # pcb:sch VSS.3 x=672.1000 y=1523.0000 rot=0
-# pcb:sch VDD.3 x=16.7800 y=735.6000 rot=0
+# pcb:sch VDD.3 x=-199.1200 y=811.8000 rot=0
 # pcb:sch VSS.4 x=291.1000 y=875.3000 rot=0
 # pcb:sch GND.1 x=722.9000 y=1535.7000 rot=0
 # pcb:sch VDD.4 x=664.4800 y=367.3000 rot=0
@@ -427,7 +482,7 @@ if add_swd_header:
 # pcb:sch FB_VBAT.FB x=428.5140 y=595.9000 rot=270
 
 # pcb:sch GND.3 x=11.7000 y=1548.4000 rot=0
-# pcb:sch GND.4 x=-140.7000 y=951.5000 rot=0
+# pcb:sch GND.4 x=-204.2000 y=976.9000 rot=0
 # pcb:sch GND.5 x=-140.7000 y=1269.0000 rot=0
 # pcb:sch VDD.6 x=1172.4800 y=595.9000 rot=0
 # pcb:sch NT_VSSA.NT x=1205.5000 y=1408.7000 rot=0
@@ -466,5 +521,10 @@ if add_swd_header:
 # pcb:sch Y2.Y x=278.4000 y=1040.4000 rot=90
 
 # pcb:sch GND.2 x=113.3000 y=1129.3000 rot=0
-# pcb:sch LED_POWER.LED x=515.8900 y=387.6200 rot=0
+# pcb:sch LED_POWER.LED x=519.7000 y=391.4300 rot=0
 # pcb:sch R_POWER_LED.R x=471.4400 y=418.1000 rot=0
+# pcb:sch R_BOOT1.R x=-87.3600 y=824.5000 rot=0
+# pcb:sch J_BOOT.PH x=-178.8000 y=862.6000 rot=0
+# pcb:sch R_BOOT0_SERIES.R x=-290.5600 y=811.8000 rot=0
+# pcb:sch R_BOOT1_SERIES.R x=14.2400 y=811.8000 rot=0
+# pcb:sch TP_RESET.TP x=-122.9200 y=1108.9800 rot=0
