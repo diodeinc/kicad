@@ -40,6 +40,14 @@ description = "A microcontroller by Raspberry Pi"
 datasheet = "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf"
 
 
+[[workspace.STM32F103C8T]]
+name = "STM32F103C8T"
+path = "MCU_ST_STM32F1/STM32F103C8T.zen"
+category = "MCU_ST_STM32F1"
+description = "Medium-density performance line ARM Cortex-M3 MCU"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f103c8.pdf"
+
+
 [[workspace.STM32F405RGT]]
 name = "STM32F405RGT"
 path = "MCU_ST_STM32F4/STM32F405RGT.zen"
