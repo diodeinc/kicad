@@ -69,7 +69,8 @@ add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = Tr
 # Interface configuration
 add_swd_header = config("add_swd_header", bool, default = True)
 add_usb = config("add_usb", bool, default = True, optional = True)
-power_from_usb = config("power_from_usb", bool, default = True, optional = True)
+if add_usb:
+    power_from_usb = config("power_from_usb", bool, default = True, optional = True)
 
 # External IO
 VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
