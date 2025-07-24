@@ -1,0 +1,293 @@
+
+"""AP33771 - USB Type-C PD Sink Controller
+
+The AP33771 is a USB Power Delivery (PD) sink controller that supports USB PD 3.0
+specification. It provides automatic voltage negotiation up to 100W power delivery,
+with configurable voltage selection through VSEL pins and power capacity through
+PSEL resistor. The device includes integrated LDOs for 5V and 3.3V outputs.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.diodes.com/assets/Datasheets/AP33771.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Led = Module("@stdlib/generics/Led.zen")
+Mosfet = Module("@stdlib/generics/Mosfet.zen")
+
+# Types
+VoltageSelection = enum("5V", "9V", "15V", "20V", "4.3V", "8.6V", "12.9V", "17.2V")
+PowerCapacity = enum("12W", "15W", "18W", "20W", "27W", "36W", "45W", "60W", "90W", "100W")
+VbusInCapValue = enum("10uF", "22uF", "47uF", "100uF")
+V5vCapValue = enum("1uF", "2.2uF", "4.7uF", "10uF")
+V3vdCapValue = enum("100nF", "220nF", "470nF", "1uF")
+VbusOutCapValue = enum("1uF", "2.2uF", "4.7uF", "10uF", "22uF")
+
+# Configuration
+voltage_selection = config("voltage_selection", VoltageSelection, default = "5V")
+power_capacity = config("power_capacity", PowerCapacity, default = "15W")
+
+# Individual decoupling capacitor controls
+add_vbus_in_cap = config("add_vbus_in_cap", bool, default = True)
+if add_vbus_in_cap:
+    vbus_in_cap_value = config("vbus_in_cap_value", VbusInCapValue, default = "10uF")
+
+add_v5v_cap = config("add_v5v_cap", bool, default = True)
+if add_v5v_cap:
+    v5v_cap_value = config("v5v_cap_value", V5vCapValue, default = "1uF")
+
+add_v3vd_cap = config("add_v3vd_cap", bool, default = True)
+if add_v3vd_cap:
+    v3vd_cap_value = config("v3vd_cap_value", V3vdCapValue, default = "100nF")
+
+add_vbus_out_cap = config("add_vbus_out_cap", bool, default = True)
+if add_vbus_out_cap:
+    vbus_out_cap_value = config("vbus_out_cap_value", VbusOutCapValue, default = "1uF")
+
+add_cc_protection = config("add_cc_protection", bool, default = True)
+
+add_fault_led = config("add_fault_led", bool, default = True)
+add_power_led = config("add_power_led", bool, default = True)
+
+
+# External IO
+CC1 = io("CC1", Net, default = Net("CC1"))
+CC2 = io("CC2", Net, default = Net("CC2"))
+VBUS_IN = io("VBUS_IN", Net, default = Net("VBUS_IN"))
+VBUS_OUT = io("VBUS_OUT", Net, default = Net("VBUS_OUT"))
+PWR_EN = io("PWR_EN", Net, default = Net("PWR_EN"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_VCC = Net("VCC")
+_V5V = Net("V5V")
+_V3VD = Net("V3VD")
+_VSEL0 = Net("VSEL0")
+_VSEL1 = Net("VSEL1")
+_VSEL2 = Net("VSEL2")
+_PSEL = Net("PSEL")
+_VFB = Net("VFB")
+_IFB = Net("IFB")
+_ISENP = VBUS_IN
+_GPIO1 = Net("GPIO1")
+_GPIO4 = Net("GPIO4")   
+_NC = Net("NC")
+_VBUS = Net("VBUS")  # Internal VBUS net for chip
+
+
+# Voltage selection configuration (VSEL2, VSEL1, VSEL0)
+# 0 = GND, 1 = V3VD (pulled high)
+voltage_config = {
+    "5V": (0, 0, 0),
+    "9V": (0, 0, 1),
+    "15V": (0, 1, 0),
+    "20V": (0, 1, 1),
+    "4.3V": (1, 0, 0),
+    "8.6V": (1, 0, 1),
+    "12.9V": (1, 1, 0),
+    "17.2V": (1, 1, 1),
+}
+
+vsel_config = voltage_config.get(voltage_selection.value, (0, 0, 0))
+
+# USB Type-C PD Sink Controller, QFN-24
+Component(
+    name = "AP33771",
+    symbol = Symbol(library = "@kicad-symbols/Interface_USB.kicad_sym", name = "AP33771"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.kicad_mod"),
+    pins = {
+        "ISENP": _ISENP,  # Direct connection for current sensing
+        "CC1": CC1,
+        "CC2": CC2,
+        "VSEL0": _VSEL0,
+        "VSEL1": _VSEL1,
+        "VSEL2": _VSEL2,
+        "PSEL": _PSEL,
+        "NC": _NC,
+        "VCC": _VCC,
+        "GND": GND,
+        "PWR_EN": PWR_EN,
+        "VBUS": _VBUS,
+        "V3VD": _V3VD,
+        "V5V": _V5V,
+        "VFB": _VFB,
+        "IFB": _IFB,
+        "GPIO1": _GPIO1,
+        "GPIO4": _GPIO4
+    },
+)
+
+# Power supply decoupling
+if add_vbus_in_cap:
+    # VBUS_IN decoupling
+    Capacitor(name = "C_VBUS_IN", value = vbus_in_cap_value.value, package = "0805", P1 = VBUS_IN, P2 = GND)
+    
+if add_v5v_cap:
+    # V5V LDO output decoupling (datasheet specifies 1µF)
+    Capacitor(name = "C_V5V", value = v5v_cap_value.value, package = "0603", P1 = _V5V, P2 = GND)
+    
+if add_v3vd_cap:
+    # V3VD LDO output decoupling (datasheet specifies 0.1µF)
+    Capacitor(name = "C_V3VD", value = v3vd_cap_value.value, package = "0402", P1 = _V3VD, P2 = GND)
+        
+if add_vbus_out_cap:
+    # VBUS_OUT decoupling
+    Capacitor(name = "C_VBUS_OUT", value = vbus_out_cap_value.value, package = "0603", P1 = VBUS_OUT, P2 = GND)
+
+# CC line protection resistors
+if add_cc_protection:
+    Resistor(name = "R_CC1", value = "5.1kohms", package = "0402", P1 = CC1, P2 = GND)
+    Resistor(name = "R_CC2", value = "5.1kohms", package = "0402", P1 = CC2, P2 = GND)
+
+# Power selection resistor
+power_resistor_values = {
+    "12W": "6.8kohms",
+    "15W": "16kohms",
+    "18W": "27kohms",
+    "20W": "36kohms",
+    "27W": "45.3kohms",
+    "36W": "56kohms",
+    "45W": "64.9kohms",
+    "60W": "75kohms",
+    "90W": "82kohms",
+    "100W": "91kohms",
+}
+psel_value = power_resistor_values.get(power_capacity.value, "16kohms")
+Resistor(name = "R_PSEL", value = psel_value + " 1%", package = "0402", P1 = _PSEL, P2 = GND)
+
+# Current feedback capacitor (datasheet specifies 100nF to ground)
+Capacitor(name = "C_IFB", value = "100nF", package = "0402", P1 = _IFB, P2 = GND)
+
+# Fault LED on GPIO4
+if add_fault_led:
+    # LED on GPIO4 with current limiting resistor for fault indication
+    _LED_A = Net("LED_A")
+    Resistor(name = "R_LED", value = "10kohms", package = "0402", P1 = _GPIO4, P2 = _LED_A)
+    
+    # Fault LED (typically red for fault indication)
+    Led(
+        name = "LED_FAULT",
+        color = "red",
+        package = "0603",
+        A = _LED_A,
+        K = GND,
+    )
+
+# VBUS_IN Power Indicator LED (optional)
+if add_power_led:
+    # Power indicator LED to show when VBUS_IN is present
+    _PWR_LED_A = Net("PWR_LED_A")
+    
+    # Current limiting resistor for power LED (green LED ~2V forward voltage)
+    # For 5V: (5V - 2V) / 1mA = 3kΩ
+    # For higher voltages up to 20V: (20V - 2V) / 1mA = 18kΩ
+    # Using 10kΩ for safe operation across all voltages
+    Resistor(name = "R_PWR_LED", value = "10kohms", package = "0402", P1 = VBUS_IN, P2 = _PWR_LED_A)
+    
+    # Power LED (typically green for power indication)
+    Led(
+        name = "LED_PWR",
+        color = "green",
+        package = "0603",
+        A = _PWR_LED_A,
+        K = GND,
+    )
+
+
+# Current sense connection 
+# 10mΩ shunt resistor between VBUS_IN and VCC
+Resistor(name = "R_SENSE", value = "10mohms", package = "1206", P1 = VBUS_IN, P2 = _VCC)
+
+# Power switch MOSFET circuit
+# NMOS VBUS Switch
+# PWR_EN drives external NMOS gate
+_NMOS_GATE = Net("NMOS_GATE")
+Resistor(name = "R_GATE", value = "100ohms", package = "0402", P1 = PWR_EN, P2 = _NMOS_GATE)
+
+# # Pull-down for PWR_EN when disabled
+# Resistor(name = "R_PWR_PD", value = "100kohms", package = "0402", P1 = PWR_EN, P2 = GND)
+
+# Power Enable MOSFETs
+# Dual N-channel MOSFETs for bidirectional blocking
+# Back-to-back configuration with common source
+_MOSFET_SOURCE = Net("MOSFET_SOURCE")
+
+# Q1: Drain to VCC (chip power), Source to common point
+Mosfet(
+    name = "Q1",
+    channel = "N",
+    package = "SOT-23-3",
+    G = _NMOS_GATE,
+    D = _VCC,
+    S = _MOSFET_SOURCE,
+)
+
+# Q2: Drain to VBUS_OUT, Source to common point
+Mosfet(
+    name = "Q2",
+    channel = "N", 
+    package = "SOT-23-3",
+    G = _NMOS_GATE,
+    D = VBUS_OUT,
+    S = _MOSFET_SOURCE,
+)
+
+# Connect VBUS_OUT to chip's VBUS pin through 0 ohm resistor
+Resistor(name = "R_VBUS", value = "0ohms", package = "0402", P1 = VBUS_OUT, P2 = _VBUS)
+
+# Configure VSEL pins with pull-up or pull-down resistors based on voltage selection
+# VSEL0
+if vsel_config[2]:  # Pull high to V3VD
+    Resistor(name = "R_VSEL0_PU", value = "100kohms", package = "0402", P1 = _VSEL0, P2 = _V3VD)
+else:  # Pull low to GND
+    Resistor(name = "R_VSEL0_PD", value = "100kohms", package = "0402", P1 = _VSEL0, P2 = GND)
+
+# VSEL1
+if vsel_config[1]:  # Pull high to V3VD
+    Resistor(name = "R_VSEL1_PU", value = "100kohms", package = "0402", P1 = _VSEL1, P2 = _V3VD)
+else:  # Pull low to GND
+    Resistor(name = "R_VSEL1_PD", value = "100kohms", package = "0402", P1 = _VSEL1, P2 = GND)
+
+# VSEL2
+if vsel_config[0]:  # Pull high to V3VD
+    Resistor(name = "R_VSEL2_PU", value = "100kohms", package = "0402", P1 = _VSEL2, P2 = _V3VD)
+else:  # Pull low to GND
+    Resistor(name = "R_VSEL2_PD", value = "100kohms", package = "0402", P1 = _VSEL2, P2 = GND)
+
+# pcb:sch AP33771 x=240.3000 y=672.1000 rot=0
+# pcb:sch C_IFB.C x=626.3800 y=964.2000 rot=0
+# pcb:sch C_V3VD.C x=766.0800 y=888.0000 rot=0
+# pcb:sch C_V5V.C x=689.8800 y=888.0000 rot=0
+# pcb:sch C_VCC.C x=-224.5200 y=697.5000 rot=0
+# pcb:sch R_CC1.R x=-36.5600 y=913.4000 rot=0
+# pcb:sch R_CC2.R x=14.2400 y=913.4000 rot=0
+# pcb:sch R_PSEL.R x=217.4400 y=1065.8000 rot=0
+# pcb:sch R_VCC.R x=-150.8600 y=595.9000 rot=0
+# pcb:sch R_VSEL0.R x=-125.4600 y=888.0000 rot=180
+# pcb:sch R_VSEL1.R x=-214.3600 y=888.0000 rot=0
+# pcb:sch R_VSEL2.R x=-290.5600 y=888.0000 rot=180
+# pcb:sch R_VSEL0_PU.R x=65.0400 y=913.4000 rot=0
+# pcb:sch R_VSEL1_PU.R x=115.8400 y=913.4000 rot=0
+# pcb:sch R_VSEL2_PD.R x=166.6400 y=913.4000 rot=0
+# pcb:sch GND.1 x=354.6000 y=1180.1000 rot=0
+# pcb:sch R_VSEL0_PD.R x=65.0400 y=913.4000 rot=0
+# pcb:sch R_VSEL1_PD.R x=115.8400 y=913.4000 rot=0
+# pcb:sch R_VSEL2_PU.R x=166.6400 y=913.4000 rot=0
+# pcb:sch LED_FAULT.LED x=439.6900 y=1124.2200 rot=0
+# pcb:sch R_LED.R x=522.2400 y=1040.4000 rot=0
+# pcb:sch Q1.M x=472.0750 y=507.0000 rot=270
+# pcb:sch Q2.M x=624.4750 y=456.2000 rot=90
+# pcb:sch R_GATE.R x=585.7400 y=634.0000 rot=180
+# pcb:sch R_PWR_PD.R x=661.9400 y=684.8000 rot=0
+# pcb:sch R_VOUT.R x=750.8400 y=684.8000 rot=0
+# pcb:sch R_VBUS.R x=776.2400 y=634.0000 rot=0
+# pcb:sch R_SENSE.R x=192.0400 y=494.3000 rot=270
+# pcb:sch C_VBUS_IN.C x=-110.2200 y=545.1000 rot=0
+# pcb:sch C_VBUS_OUT.C x=867.6800 y=545.1000 rot=0
+# pcb:sch R_VFB.R x=585.7400 y=1192.8000 rot=0
+# pcb:sch R_VFB_BOT.R x=446.0400 y=49.8000 rot=0
+# pcb:sch R_VFB_TOP.R x=255.5400 y=24.4000 rot=0
+# pcb:sch LED_PWR.LED x=7.8900 y=667.0200 rot=270
+# pcb:sch R_PWR_LED.R x=26.9400 y=545.1000 rot=0

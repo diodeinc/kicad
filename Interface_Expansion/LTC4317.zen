@@ -1,0 +1,296 @@
+"""LTC4317 - Dual I²C/SMBus Address Translator
+
+The LTC4317 enables the hardwired address of one or more I²C or SMBus slave 
+devices to be translated to a different address. This allows slaves with the 
+same hardwired address to coexist on the same bus. Only discrete resistors 
+are needed to select the new address and no software programming is required. 
+Up to 127 different address translations are available. The device features 
+two output channels for two different sets of slaves, pass-through mode for 
+general call addressing, automatic recovery from abnormal bus conditions, 
+level translation for 2.5V/3.3V/5V buses, and hot-swap capability.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+TranslationMode = enum("Translate", "PassThrough")
+ChannelConfig = enum("Both", "Channel1Only", "Channel2Only")
+XORLConfig = enum("0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111")
+XORHConfig = enum("000", "001", "010", "011", "100", "101", "110", "111")
+
+# Configuration
+add_decoupling = config("add_decoupling", bool, default = True)
+add_input_pullups = config("add_input_pullups", bool, default = True)
+channel_config = config("channel_config", ChannelConfig, default = "Both")
+enable_control = config("enable_control", bool, default = True)
+add_ready_pullups = config("add_ready_pullups", bool, default = True)
+
+# Channel-specific pull-up configurations
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+    add_ch1_pullups = config("add_ch1_pullups", bool, default = True)
+
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+    add_ch2_pullups = config("add_ch2_pullups", bool, default = True)
+
+# Translation byte configuration using lookup tables
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+    ch1_mode = config("ch1_mode", TranslationMode, default = "Translate")
+    if ch1_mode == TranslationMode("Translate"):
+        xorl1_config = config("xorl1_config", XORLConfig, default = "1000")
+        xorh1_config = config("xorh1_config", XORHConfig, default = "001")
+
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+    ch2_mode = config("ch2_mode", TranslationMode, default = "Translate")
+    if ch2_mode == TranslationMode("Translate"):
+        xorl2_config = config("xorl2_config", XORLConfig, default = "1000")
+        xorh2_config = config("xorh2_config", XORHConfig, default = "001")
+
+# XORL lookup table (Table 2)
+def get_xorl_resistors(config_value):
+    xorl_table = {
+        "0000": ("Open", "Short"),      # ≤ 0.03125
+        "0001": ("976kohms", "102kohms"),   # 0.09375 ±0.015
+        "0010": ("976kohms", "182kohms"),   # 0.15625 ±0.015
+        "0011": ("1000kohms", "280kohms"),  # 0.21875 ±0.015
+        "0100": ("1000kohms", "392kohms"),  # 0.28125 ±0.015
+        "0101": ("1000kohms", "523kohms"),  # 0.34375 ±0.015
+        "0110": ("1000kohms", "681kohms"),  # 0.40625 ±0.015
+        "0111": ("1000kohms", "887kohms"),  # 0.46875 ±0.015
+        "1000": ("887kohms", "1000kohms"),  # 0.53125 ±0.015
+        "1001": ("681kohms", "1000kohms"),  # 0.59375 ±0.015
+        "1010": ("523kohms", "1000kohms"),  # 0.65625 ±0.015
+        "1011": ("392kohms", "1000kohms"),  # 0.71875 ±0.015
+        "1100": ("280kohms", "1000kohms"),  # 0.78125 ±0.015
+        "1101": ("182kohms", "976kohms"),   # 0.84375 ±0.015
+        "1110": ("102kohms", "976kohms"),   # 0.90625 ±0.015
+        "1111": ("Short", "Open")       # ≥ 0.96875
+    }
+    return xorl_table[config_value]
+
+# XORH lookup table (Table 3)
+def get_xorh_resistors(config_value):
+    xorh_table = {
+        "000": ("Open", "Short"),       # ≤ 0.03125
+        "001": ("976kohms", "102kohms"),    # 0.09375 ±0.015
+        "010": ("976kohms", "182kohms"),    # 0.15625 ±0.015
+        "011": ("1000kohms", "280kohms"),   # 0.21875 ±0.015
+        "100": ("1000kohms", "392kohms"),   # 0.28125 ±0.015
+        "101": ("1000kohms", "523kohms"),   # 0.34375 ±0.015
+        "110": ("1000kohms", "681kohms"),   # 0.40625 ±0.015
+        "111": ("1000kohms", "887kohms")    # 0.46875 ±0.015
+    }
+    return xorh_table[config_value]
+
+# Get resistor values for channel 1 (if used)
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+    if ch1_mode == TranslationMode("Translate"):
+        xorl1_r_top, xorl1_r_bottom = get_xorl_resistors(xorl1_config.value)
+        xorh1_r_top, xorh1_r_bottom = get_xorh_resistors(xorh1_config.value)
+
+# Get resistor values for channel 2 (if used)
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+    if ch2_mode == TranslationMode("Translate"):
+        xorl2_r_top, xorl2_r_bottom = get_xorl_resistors(xorl2_config.value)
+        xorh2_r_top, xorh2_r_bottom = get_xorh_resistors(xorh2_config.value)
+
+# External IO
+i2c_in = io("I2C_IN", I2c, default = I2c("I2C_IN"))
+i2c_out1 = io("I2C_OUT1", I2c, default = I2c("I2C_OUT1")) if channel_config != ChannelConfig("Channel2Only") else None
+i2c_out2 = io("I2C_OUT2", I2c, default = I2c("I2C_OUT2")) if channel_config != ChannelConfig("Channel1Only") else None
+
+VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# ENABLE pins - Fixed logic to avoid conflicts
+if channel_config == ChannelConfig("Channel2Only"):
+    ENABLE1 = VCC  # Channel 1 not used, always enabled
+    ENABLE2 = io("ENABLE2", Net, default = Net("ENABLE2")) if enable_control else VCC
+elif channel_config == ChannelConfig("Channel1Only"):
+    ENABLE1 = io("ENABLE1", Net, default = Net("ENABLE1")) if enable_control else VCC
+    ENABLE2 = VCC  # Channel 2 not used, always enabled
+else:  # Both channels
+    ENABLE1 = io("ENABLE1", Net, default = Net("ENABLE1")) if enable_control else VCC
+    ENABLE2 = io("ENABLE2", Net, default = Net("ENABLE2")) if enable_control else VCC
+
+# READY pins
+READY1 = io("READY1", Net, default = Net("READY1")) if channel_config != ChannelConfig("Channel2Only") else Net("NC_READY1")
+READY2 = io("READY2", Net, default = Net("READY2")) if channel_config != ChannelConfig("Channel1Only") else Net("NC_READY2")
+
+# Internal nets for XOR configuration - handle Open/Short cases
+# Channel 1 nets
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+    if ch1_mode == TranslationMode("PassThrough"):
+        # Pass-through mode: Connect XORH1 to VCC, leave XORL1 floating
+        _XORH1 = VCC
+        _XORL1 = Net("NC_XORL1")  # XORL1 not used in pass-through mode
+    else:
+        # Translation mode: Configure based on resistor values
+        # XORL1 net assignment
+        if xorl1_r_top == "Short" and xorl1_r_bottom == "Open":
+            _XORL1 = VCC
+        elif xorl1_r_top == "Open" and xorl1_r_bottom == "Short":
+            _XORL1 = GND
+        else:
+            _XORL1 = Net("XORL1")
+
+        # XORH1 net assignment
+        if xorh1_r_top == "Short" and xorh1_r_bottom == "Open":
+            _XORH1 = VCC
+        elif xorh1_r_top == "Open" and xorh1_r_bottom == "Short":
+            _XORH1 = GND
+        else:
+            _XORH1 = Net("XORH1")
+else:
+    # Leave XORL1 and XORH1 floating when channel 1 is not used
+    _XORL1 = Net("NC_XORL1")
+    _XORH1 = Net("NC_XORH1")
+
+# Channel 2 nets
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+    if ch2_mode == TranslationMode("PassThrough"):
+        # Pass-through mode: Connect XORH2 to VCC, leave XORL2 floating
+        _XORH2 = VCC
+        _XORL2 = Net("NC_XORL2")  # XORL2 not used in pass-through mode
+    else:
+        # Translation mode: Configure based on resistor values
+        # XORL2 net assignment
+        if xorl2_r_top == "Short" and xorl2_r_bottom == "Open":
+            _XORL2 = VCC
+        elif xorl2_r_top == "Open" and xorl2_r_bottom == "Short":
+            _XORL2 = GND
+        else:
+            _XORL2 = Net("XORL2")
+        
+        # XORH2 net assignment
+        if xorh2_r_top == "Short" and xorh2_r_bottom == "Open":
+            _XORH2 = VCC
+        elif xorh2_r_top == "Open" and xorh2_r_bottom == "Short":
+            _XORH2 = GND
+        else:
+            _XORH2 = Net("XORH2")
+else:
+    # Leave XORL2 and XORH2 floating when channel 2 is not used
+    _XORL2 = Net("NC_XORL2")
+    _XORH2 = Net("NC_XORH2")
+
+# Dual I2C/SMBus Address-Translator, DFN-16
+Component(
+    name = "LTC4317",
+    symbol = Symbol(library = "@kicad-symbols/Interface_Expansion.kicad_sym", name = "LTC4317"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-16-1EP_3x5mm_P0.5mm_EP1.66x4.4mm.kicad_mod"),
+    pins = {
+        "ENABLE1": ENABLE1,
+        "ENABLE2": ENABLE2,
+        "SCLIN": i2c_in.SCL,
+        "SDAIN": i2c_in.SDA,
+        "XORH1": _XORH1,
+        "XORH2": _XORH2,
+        "XORL1": _XORL1,
+        "XORL2": _XORL2,
+        "VCC": VCC,
+        "GND": GND,
+        "EP": GND,
+        "READY1": READY1,
+        "READY2": READY2,
+        "SCLOUT1": i2c_out1.SCL if i2c_out1 else Net("NC_SCLOUT1"),
+        "SDAOUT1": i2c_out1.SDA if i2c_out1 else Net("NC_SDAOUT1"),
+        "SCLOUT2": i2c_out2.SCL if i2c_out2 else Net("NC_SCLOUT2"),
+        "SDAOUT2": i2c_out2.SDA if i2c_out2 else Net("NC_SDAOUT2")
+    },
+)
+
+# Power Supply Decoupling
+if add_decoupling:
+    Capacitor(name = "C_VCC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+
+# I2C Pull-up Resistors
+# Input bus pull-ups
+if add_input_pullups:
+    Resistor(name = "R_SCLIN_PU", value = "4.7kohms", package = "0402", P1 = i2c_in.SCL, P2 = VCC)
+    Resistor(name = "R_SDAIN_PU", value = "4.7kohms", package = "0402", P1 = i2c_in.SDA, P2 = VCC)
+
+# Output bus 1 pull-ups
+if i2c_out1 and add_ch1_pullups:
+    Resistor(name = "R_SCLOUT1_PU", value = "4.7kohms", package = "0402", P1 = i2c_out1.SCL, P2 = VCC)
+    Resistor(name = "R_SDAOUT1_PU", value = "4.7kohms", package = "0402", P1 = i2c_out1.SDA, P2 = VCC)
+
+# Output bus 2 pull-ups
+if i2c_out2 and add_ch2_pullups:
+    Resistor(name = "R_SCLOUT2_PU", value = "4.7kohms", package = "0402", P1 = i2c_out2.SCL, P2 = VCC)
+    Resistor(name = "R_SDAOUT2_PU", value = "4.7kohms", package = "0402", P1 = i2c_out2.SDA, P2 = VCC)
+
+# Translation Byte Configuration Resistors - Channel 1
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+    if ch1_mode == TranslationMode("Translate"):
+        # Only place resistors for normal resistor divider cases (not Open/Short)
+        if xorl1_r_top != "Open" and xorl1_r_top != "Short":
+            Resistor(name = "R_XORL1_TOP", value = xorl1_r_top, package = "0402", P1 = VCC, P2 = _XORL1)
+        if xorl1_r_bottom != "Open" and xorl1_r_bottom != "Short":
+            Resistor(name = "R_XORL1_BOT", value = xorl1_r_bottom, package = "0402", P1 = _XORL1, P2 = GND)
+
+        if xorh1_r_top != "Open" and xorh1_r_top != "Short":
+            Resistor(name = "R_XORH1_TOP", value = xorh1_r_top, package = "0402", P1 = VCC, P2 = _XORH1)
+        if xorh1_r_bottom != "Open" and xorh1_r_bottom != "Short":
+            Resistor(name = "R_XORH1_BOT", value = xorh1_r_bottom, package = "0402", P1 = _XORH1, P2 = GND)
+    # No resistors needed in pass-through mode (XORH1 directly connected to VCC)
+
+# Translation Byte Configuration Resistors - Channel 2
+if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+    if ch2_mode == TranslationMode("Translate"):
+        # Only place resistors for normal resistor divider cases (not Open/Short)
+        if xorl2_r_top != "Open" and xorl2_r_top != "Short":
+            Resistor(name = "R_XORL2_TOP", value = xorl2_r_top, package = "0402", P1 = VCC, P2 = _XORL2)
+        if xorl2_r_bottom != "Open" and xorl2_r_bottom != "Short":
+            Resistor(name = "R_XORL2_BOT", value = xorl2_r_bottom, package = "0402", P1 = _XORL2, P2 = GND)
+
+        if xorh2_r_top != "Open" and xorh2_r_top != "Short":
+            Resistor(name = "R_XORH2_TOP", value = xorh2_r_top, package = "0402", P1 = VCC, P2 = _XORH2)
+        if xorh2_r_bottom != "Open" and xorh2_r_bottom != "Short":
+            Resistor(name = "R_XORH2_BOT", value = xorh2_r_bottom, package = "0402", P1 = _XORH2, P2 = GND)
+    # No resistors needed in pass-through mode (XORH2 directly connected to VCC)
+
+# READY Pull-up Resistors - Fixed to only pull up active READY pins
+if add_ready_pullups:
+    if channel_config != ChannelConfig("Channel2Only"):
+        Resistor(name = "R_READY1_PU", value = "10kohms", package = "0402", P1 = READY1, P2 = VCC)
+    if channel_config != ChannelConfig("Channel1Only"):
+        Resistor(name = "R_READY2_PU", value = "10kohms", package = "0402", P1 = READY2, P2 = VCC)
+
+# Enable Control Pull-ups - Fixed to only add when ENABLE is actually a control pin
+if enable_control:
+    # Only add pull-ups when ENABLE pins are actual io pins (not hardwired to VCC)
+    if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel1Only"):
+        Resistor(name = "R_EN1_PU", value = "100kohms", package = "0402", P1 = ENABLE1, P2 = VCC)
+    if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
+        Resistor(name = "R_EN2_PU", value = "100kohms", package = "0402", P1 = ENABLE2, P2 = VCC)
+
+# pcb:sch C_VCC.C x=1070.8800 y=1192.8000 rot=0
+# pcb:sch LTC4317 x=481.6000 y=1103.9000 rot=0
+# pcb:sch R_EN1_PU.R x=458.7400 y=1065.8000 rot=180
+# pcb:sch R_EN2_PU.R x=407.9400 y=1065.8000 rot=180
+# pcb:sch R_READY1_PU.R x=738.1400 y=1065.8000 rot=180
+# pcb:sch R_READY2_PU.R x=788.9400 y=1065.8000 rot=180
+# pcb:sch R_SCLIN_PU.R x=357.1400 y=1065.8000 rot=180
+# pcb:sch R_SCLOUT1_PU.R x=852.4400 y=1129.3000 rot=180
+# pcb:sch R_SCLOUT2_PU.R x=954.0400 y=1192.8000 rot=180
+# pcb:sch R_SDAIN_PU.R x=306.3400 y=1065.8000 rot=180
+# pcb:sch R_SDAOUT1_PU.R x=903.2400 y=1129.3000 rot=180
+# pcb:sch R_SDAOUT2_PU.R x=1004.8400 y=1192.8000 rot=180
+# pcb:sch R_XORH1_BOT.R x=192.0400 y=1294.4000 rot=0
+# pcb:sch R_XORH1_TOP.R x=192.0400 y=1142.0000 rot=0
+# pcb:sch R_XORH2_BOT.R x=255.5400 y=1294.4000 rot=0
+# pcb:sch R_XORH2_TOP.R x=255.5400 y=1142.0000 rot=0
+# pcb:sch R_XORL1_BOT.R x=331.7400 y=1421.4000 rot=0
+# pcb:sch R_XORL1_TOP.R x=331.7400 y=1294.4000 rot=0
+# pcb:sch R_XORL2_BOT.R x=382.5400 y=1421.4000 rot=0
+# pcb:sch R_XORL2_TOP.R x=382.5400 y=1294.4000 rot=0
+# pcb:sch GND.1 x=608.6000 y=1523.0000 rot=0
+# pcb:sch VCC.1 x=600.9800 y=1027.7000 rot=0
