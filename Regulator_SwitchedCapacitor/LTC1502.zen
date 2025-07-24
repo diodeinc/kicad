@@ -89,7 +89,7 @@ Capacitor(name = "C2_CAP", value = "10uF", package = "0805", P1 = _C2, P2 = GND)
 if shutdown_control == ShutdownControl("External"):
     # Direct connection for external shutdown control
     # External circuit must provide proper pull-down (<0.2V) and Hi-Z states
-    Net("SHDN_CTRL", _C1_MINUS_SHDN, SHDN)
+   _C1_MINUS_SHDN = SHDN
 
 elif shutdown_control == ShutdownControl("Mosfet"):
     # N-channel MOSFET shutdown control with 100Ω series resistor

@@ -46,7 +46,7 @@ clock_source = config("clock_source", ClockSource, default = "Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
     crystal_load_cap = config("crystal_load_cap", CrystalLoadCap, default = "10pF")
-    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = False, optional = True)
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
     if add_crystal_series_resistor:
         crystal_series_resistor = config("crystal_series_resistor", CrystalSeriesResistor, default = "1kohm")
 
@@ -477,3 +477,4 @@ Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = G
 # pcb:sch J_SWD x=1256.3000 y=4786.9000 rot=0
 # pcb:sch J_SWD.PH x=1910.3500 y=646.7000 rot=0
 # pcb:sch GND.17 x=1865.9000 y=811.8000 rot=0
+# pcb:sch R_OSC.R x=509.5400 y=926.1000 rot=180

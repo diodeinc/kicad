@@ -94,11 +94,11 @@ if add_cs_pullup:
 
 # WP pull-up for software write protection (when not using hardware WP)
 # Only add when NOT in Quad mode (where IO2 is a data line)
-if write_protect_mode == WriteProtectMode("Software") and spi_mode != SpiMode("Quad"):
+if spi_mode != SpiMode("Quad") and write_protect_mode == WriteProtectMode("Software"):
     Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
 
 # HOLD pull-up when HOLD function is enabled
-if enable_hold and spi_mode != SpiMode("Quad"):
+if spi_mode != SpiMode("Quad") and enable_hold:
     Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
 
 # pcb:sch W25Q128JVS x=253.0000 y=189.5000 rot=0
