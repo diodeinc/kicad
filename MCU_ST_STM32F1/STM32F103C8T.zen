@@ -42,6 +42,8 @@ clock_source = config("clock_source", ClockSource, default = "Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
     crystal_capacitor_value = config("crystal_capacitor_value", str, default = "20pF")
+
+add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
     
 # Interface configuration
 add_swd_header = config("add_swd_header", bool, default = True)
@@ -85,9 +87,6 @@ PB13 = io("PB13", Net)
 PB14 = io("PB14", Net)
 PB15 = io("PB15", Net)
 
-# Port C pins (PC13-PC15 available on LQFP48)
-PC14 = io("PC14", Net)
-PC15 = io("PC15", Net)
 
 # PC13 - conditionally exposed based on status LED configuration
 if add_status_led:
@@ -125,6 +124,16 @@ else:
     _PD0 = PD0
     _PD1 = PD1
 
+# Low Speed Oscillator pins - PD0 and PD1 (conditionally exposed)
+if add_low_speed_oscillator:
+    _PC14 = Net("PC14_OSC_IN")
+    _PC15 = Net("PC15_OSC_OUT")
+else:
+    PC14 = io("PC14", Net)
+    PC15 = io("PC15", Net)
+    _PC14 = PC14
+    _PC15 = PC15
+
 # NRST - conditionally exposed based on reset button configuration
 if add_reset_button:
     _NRST = Net("NRST")  # Internal net for reset button
@@ -149,8 +158,8 @@ Component(
         "PD0": _PD0,
         "PD1": _PD1,
         "PC13": _PC13,
-        "PC14": PC14,
-        "PC15": PC15,
+        "PC14": _PC14,
+        "PC15": _PC15,
         "PB0": PB0,
         "PB1": PB1,
         "PB2": PB2,
@@ -279,6 +288,18 @@ if clock_source == ClockSource("Crystal"):
     Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = "0402", P1 = _PD1, P2 = _C_XTAL)
     Resistor(name = "R_XTAL", value = "1Mohms", package = "0402", P1 = _PD1, P2 = _PD0)
 
+if add_low_speed_oscillator:
+    Crystal(
+        name = "Y2",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _PC14,
+        XOUT = _PC15,
+        GND = GND,
+    )
+    Capacitor(name = "C_OSC3", value = "20pF", voltage = "6.3V", package = "0402", P1 = _PC14, P2 = GND)
+    Capacitor(name = "C_OSC4", value = "20pF", voltage = "6.3V", package = "0402", P1 = _PC15, P2 = GND)
+
 # Status LED on PC13
 if add_status_led:
     _LED_K = Net("LED_K")
@@ -366,9 +387,9 @@ if add_swd_header:
 # pcb:sch C_VDDA.C x=943.8800 y=646.7000 rot=0
 # pcb:sch C_VDDA2.C x=1032.7800 y=646.7000 rot=0
 # pcb:sch J_SWD.PH x=1199.1500 y=1065.8000 rot=0
-# pcb:sch LED_STATUS.LED x=325.3900 y=946.4200 rot=0
+# pcb:sch LED_STATUS.LED x=33.2900 y=1365.5200 rot=0
 # pcb:sch R_BOOT0.R x=-138.1600 y=824.5000 rot=0
-# pcb:sch R_LED.R x=306.3400 y=1015.0000 rot=0
+# pcb:sch R_LED.R x=14.2400 y=1446.8000 rot=0
 # pcb:sch R_RESET.R x=14.2400 y=1065.8000 rot=180
 # pcb:sch R_VBAT.R x=674.6400 y=595.9000 rot=0
 # pcb:sch R_VDDA.R x=776.2400 y=595.9000 rot=0
@@ -376,7 +397,7 @@ if add_swd_header:
 # pcb:sch STM32F103C8T x=583.2000 y=697.5000 rot=0
 # pcb:sch SW_BOOT0 x=-102.6000 y=768.6200 rot=0
 # pcb:sch SW_RESET x=-115.3000 y=1124.2200 rot=0
-# pcb:sch Y1.Y x=253.0000 y=849.9000 rot=90
+# pcb:sch Y1.Y x=278.4000 y=849.9000 rot=90
 # pcb:sch VDD.1 x=385.0800 y=583.2000 rot=0
 # pcb:sch VSS.1 x=291.1000 y=1103.9000 rot=0
 # pcb:sch VDD.2 x=16.7800 y=1002.3000 rot=0
@@ -390,7 +411,7 @@ if add_swd_header:
 # pcb:sch FB_VDDA.FB x=1101.6140 y=595.9000 rot=90
 # pcb:sch FB_VBAT.FB x=428.5140 y=595.9000 rot=270
 
-# pcb:sch GND.3 x=303.8000 y=1129.3000 rot=0
+# pcb:sch GND.3 x=11.7000 y=1548.4000 rot=0
 # pcb:sch GND.4 x=-140.7000 y=951.5000 rot=0
 # pcb:sch GND.5 x=-140.7000 y=1269.0000 rot=0
 # pcb:sch VDD.6 x=1172.4800 y=595.9000 rot=0
@@ -424,3 +445,8 @@ if add_swd_header:
 # pcb:sch GND.13 x=1789.7000 y=786.4000 rot=0
 # pcb:sch VDD.9 x=1934.4800 y=634.0000 rot=0
 # pcb:sch GND.14 x=11.7000 y=1269.0000 rot=0
+
+# pcb:sch C_OSC3.C x=181.8800 y=964.2000 rot=90
+# pcb:sch C_OSC4.C x=181.8800 y=1078.5000 rot=90
+# pcb:sch Y2.Y x=278.4000 y=1040.4000 rot=90
+# pcb:sch GND.2 x=113.3000 y=1129.3000 rot=0
