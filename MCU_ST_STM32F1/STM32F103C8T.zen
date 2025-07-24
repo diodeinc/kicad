@@ -38,6 +38,7 @@ if not add_reset_button:
 
 add_boot0_button = config("add_boot0_button", bool, default = True, optional = True)
 add_status_led = config("add_status_led", bool, default = True, optional = True)
+add_power_led = config("add_power_led", bool, default = True, optional = True)
 
 # Clock configuration
 clock_source = config("clock_source", ClockSource, default = "Crystal")
@@ -307,12 +308,24 @@ if add_status_led:
     _LED_K = Net("LED_K")
     Led(
         name = "LED_STATUS",
-        color = "green",
+        color = "yellow",
         package = "0402",
         A = _PC13,
         K = _LED_K,
     )
     Resistor(name = "R_LED", value = "510ohms", package = "0402", P1 = _LED_K, P2 = GND)
+
+# Power LED on VDD
+if add_power_led:
+    _POWER_LED_K = Net("POWER_LED_K")
+    Led(
+        name = "LED_POWER",
+        color = "green",
+        package = "0402",
+        A = VDD,
+        K = _POWER_LED_K,
+    )
+    Resistor(name = "R_POWER_LED", value = "510ohms", package = "0402", P1 = _POWER_LED_K, P2 = GND)
 
 # USB Connector and Circuitry
 if add_usb:
@@ -453,3 +466,5 @@ if add_swd_header:
 # pcb:sch Y2.Y x=278.4000 y=1040.4000 rot=90
 
 # pcb:sch GND.2 x=113.3000 y=1129.3000 rot=0
+# pcb:sch LED_POWER.LED x=515.8900 y=387.6200 rot=0
+# pcb:sch R_POWER_LED.R x=471.4400 y=418.1000 rot=0
