@@ -64,6 +64,22 @@ description = "ARM Cortex-M4 MCU with FPU, 1024KB Flash, 192KB RAM"
 datasheet = "https://www.st.com/resource/en/datasheet/stm32f405rg.pdf"
 
 
+[[workspace.STM32F411CEU]]
+name = "STM32F411CEU"
+path = "MCU_ST_STM32F4/STM32F411CEU.zen"
+category = "MCU_ST_STM32F4"
+description = "ARM Cortex-M4 32b MCU+FPU, 125 DMIPS, 512KB Flash, 128KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f411ce.pdf"
+
+
+[[workspace.STM32G030F6P]]
+name = "STM32G030F6P"
+path = "MCU_ST_STM32G0/STM32G030F6P.zen"
+category = "MCU_ST_STM32G0"
+description = "Arm® Cortex®-M0+ 32-bit MCU, 32KB Flash, 8KB RAM, 2x USART, timers, ADC"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+
+
 [[workspace.W25Q128JVS]]
 name = "W25Q128JVS"
 path = "Memory_Flash/W25Q128JVS.zen"
