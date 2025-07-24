@@ -21,7 +21,7 @@ FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
 PinHeader = Module("@stdlib/kicad/PinHeader.zen")
 
-TLV70033_SOT23_5 = Module("../../Regulator_Linear/TLV70033_SOT23-5.zen")
+TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
@@ -275,7 +275,6 @@ if add_boot0_button:
 if clock_source == ClockSource("Crystal"):
     # Crystal frequency selection
     freq_value = crystal_freq.value
-    _C_XTAL = Net("C_XTAL")
     # Crystal with appropriate package
     Crystal(
         name = "Y1",
@@ -287,8 +286,8 @@ if clock_source == ClockSource("Crystal"):
     )
     
     # Load capacitors with configurable values
-    Capacitor(name = "C_OSC1", value = crystal_capacitor_value, package = "0402", P1 = _PD0, P2 = _C_XTAL)
-    Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = "0402", P1 = _PD1, P2 = _C_XTAL)
+    Capacitor(name = "C_OSC1", value = crystal_capacitor_value, package = "0402", P1 = _PD0, P2 = GND)
+    Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = "0402", P1 = _PD1, P2 = GND)
     Resistor(name = "R_XTAL", value = "1Mohms", package = "0402", P1 = _PD1, P2 = _PD0)
 
 if add_low_speed_oscillator:
@@ -452,4 +451,5 @@ if add_swd_header:
 # pcb:sch C_OSC3.C x=181.8800 y=964.2000 rot=90
 # pcb:sch C_OSC4.C x=181.8800 y=1078.5000 rot=90
 # pcb:sch Y2.Y x=278.4000 y=1040.4000 rot=90
+
 # pcb:sch GND.2 x=113.3000 y=1129.3000 rot=0
