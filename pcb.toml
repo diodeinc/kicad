@@ -16,6 +16,14 @@ description = "Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Re
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf"
 
 
+[[workspace.LTC4317]]
+name = "LTC4317"
+path = "Interface_Expansion/LTC4317.zen"
+category = "Interface_Expansion"
+description = "Dual I²C/SMBus Address Translator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf"
+
+
 [[workspace.FT232RL]]
 name = "FT232RL"
 path = "Interface_USB/FT232RL.zen"
