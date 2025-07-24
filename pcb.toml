@@ -24,6 +24,14 @@ description = "Dual I²C/SMBus Address Translator"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf"
 
 
+[[workspace.AP33771]]
+name = "AP33771"
+path = "Interface_USB/AP33771.zen"
+category = "Interface_USB"
+description = "USB Type-C PD Sink Controller"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP33771.pdf"
+
+
 [[workspace.FT232RL]]
 name = "FT232RL"
 path = "Interface_USB/FT232RL.zen"
