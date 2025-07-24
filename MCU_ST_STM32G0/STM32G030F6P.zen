@@ -1,0 +1,302 @@
+"""STM32G030F6P - Arm® Cortex®-M0+ 32-bit MCU, 32KB Flash, 8KB RAM, 2x USART, timers, ADC
+
+The STM32G030F6P is a mainstream microcontroller based on the high-performance Arm® 
+Cortex®-M0+ 32-bit RISC core operating at up to 64 MHz frequency. It features 32KB 
+of Flash memory, 8KB of SRAM with hardware parity check, and operates from 2.0V to 
+3.6V. The device includes a 12-bit ADC with up to 14 external channels, multiple 
+timers including advanced motor control, two USARTs, two SPIs/one I²S, two I²Cs, 
+and comprehensive power management with multiple low-power modes.
+
+Author: @Anthropic/claude-3-5-sonnet-20241022
+Reviewer: Anand Kapadia
+Datasheet: https://www.st.com/resource/en/datasheet/stm32g030c6.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Swd", "Usb2")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+Led = Module("@stdlib/generics/Led.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
+
+
+# Types
+ClockSource = enum("Internal", "Crystal", "External")
+CrystalFreq = enum("4MHz", "8MHz", "16MHz", "24MHz", "32MHz", "48MHz")
+PassivesSize = enum("0402", "0603", "0805")
+
+# Power Configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_power_decoupling = config("add_power_decoupling", bool, default = True)
+add_power_led = config("add_power_led", bool, default = False, optional = True)
+
+# Clock configuration
+clock_source = config("clock_source", ClockSource, default = "Crystal")
+if clock_source == ClockSource("Crystal"):
+    crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
+    add_crystal_caps = config("add_crystal_caps", bool, default = True)
+
+# Debug/Programming configuration
+add_swd_header = config("add_swd_header", bool, default = True)
+add_reset_button = config("add_reset_button", bool, default = True)
+add_boot0_control = config("add_boot0_control", bool, default = True)
+
+# User interface configuration
+add_status_led = config("add_status_led", bool, default = True, optional = True)
+add_gpio_headers = config("add_gpio_headers", bool, default = True, optional = True)
+
+# External IO
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
+
+# SWD IO (if enabled)
+if add_swd_header:
+    swd = io("SWD", Swd, default = Swd("SWD"))
+
+# Reset and Boot pins
+NRST = io("NRST", Net, default = Net("NRST"))
+BOOT0 = io("BOOT0", Net, default = Net("BOOT0"))
+
+# Port A pins
+PA0 = io("PA0", Net, default = Net("PA0"))
+PA1 = io("PA1", Net, default = Net("PA1"))
+PA2 = io("PA2", Net, default = Net("PA2"))
+PA3 = io("PA3", Net, default = Net("PA3"))
+PA4 = io("PA4", Net, default = Net("PA4"))
+PA5 = io("PA5", Net, default = Net("PA5"))
+PA6 = io("PA6", Net, default = Net("PA6"))
+PA7 = io("PA7", Net, default = Net("PA7"))
+PA8_PB0_PB1_PB2 = io("PA8_PB0_PB1_PB2", Net, default = Net("PA8/PB0/PB1/PB2"))
+PA9_PA11 = io("PA9_PA11", Net, default = Net("PA9/PA11"))
+PA10_PA12 = io("PA10_PA12", Net, default = Net("PA10/PA12"))
+PA13 = io("PA13", Net, default = Net("PA13"))
+PA14_PA15 = io("PA14_PA15", Net, default = Net("PA14/PA15"))
+
+# Port B pins
+PB3_PB4_PB5_PB6 = io("PB3_PB4_PB5_PB6", Net, default = Net("PB3/PB4/PB5/PB6"))
+PB7_PB8 = io("PB7_PB8", Net, default = Net("PB7/PB8"))
+PB9_PC14 = io("PB9_PC14", Net, default = Net("PB9/PC14"))
+
+# Port C pin
+PC15 = io("PC15", Net, default = Net("PC15"))
+
+# SWD interface routing
+if add_swd_header:
+    PA13_net = swd.SWDIO
+    PA14_net = swd.SWCLK
+else:
+    PA13_net = PA13
+    PA14_net = PA14_PA15
+
+# STMicroelectronics Arm Cortex-M0+ MCU, 32KB flash, 8KB RAM, 64 MHz, 2.0-3.6V, 17 GPIO, TSSOP20
+Component(
+    name = "STM32G030F6P",
+    symbol = Symbol(library = "@kicad-symbols/MCU_ST_STM32G0.kicad_sym", name = "STM32G030F6Px"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-20_4.4x6.5mm_P0.65mm.kicad_mod"),
+    pins = {
+        "NRST": NRST,
+        "PC15": PC15,
+        "PB3/PB4/PB5/PB6": PB3_PB4_PB5_PB6,
+        "PB7/PB8": PB7_PB8,
+        "PB9/PC14": PB9_PC14,
+        "VDD": VDD,
+        "VSS": GND,
+        "PA0": PA0,
+        "PA1": PA1,
+        "PA2": PA2,
+        "PA3": PA3,
+        "PA4": PA4,
+        "PA5": PA5,
+        "PA6": PA6,
+        "PA7": PA7,
+        "PA8/PB0/PB1/PB2": PA8_PB0_PB1_PB2,
+        "PA9/PA11": PA9_PA11,
+        "PA10/PA12": PA10_PA12,
+        "PA13": PA13_net,
+        "PA14/PA15": PA14_net
+    },
+)
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0603", P1 = VDD, P2 = GND)
+
+# Power Supply Decoupling
+if add_power_decoupling:
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+# Crystal Oscillator (if external crystal is used)
+if clock_source == ClockSource("Crystal"):
+    # PC14/PC15 are OSC_IN/OSC_OUT
+    _OSC_IN = PB9_PC14
+    _OSC_OUT = PC15
+    
+    # Crystal
+    Crystal(
+        name = "Y1",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _OSC_IN,
+        XOUT = _OSC_OUT,
+    )
+    
+    # Load capacitors
+    if add_crystal_caps:
+        # Typical values for STM32
+        Capacitor(name = "C_OSC1", value = "12pF", package = "0402", P1 = _OSC_IN, P2 = GND)
+        Capacitor(name = "C_OSC2", value = "12pF", package = "0402", P1 = _OSC_OUT, P2 = GND)
+
+# Reset Button
+if add_reset_button:
+    Component(
+        name = "SW_RESET",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": NRST,
+            "2": GND,
+        }
+    ) 
+    # Pull-up resistor on RESET pin
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = NRST, P2 = VDD)
+    
+    # Reset capacitor for noise filtering
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = NRST, P2 = GND)
+
+if add_boot0_control:
+    # BOOT0 is internally bonded to PB8 on TSSOP20 package
+    # Add pull-down resistor for normal Flash boot
+    Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = PA14_net, P2 = GND)
+    
+    # Add a button and a 330 ohm resistor to VDD
+    _3V3_BTN_NET = Net("BTN_VDD_NET")
+    Resistor(name = "R_BTN_VDD", value = "330ohms", package = "0402", P1 = VDD, P2 = _3V3_BTN_NET)
+    Component(
+        name = "SW_VDD",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _3V3_BTN_NET,
+            "2": GND,
+        }
+    )
+
+# SWD Header (4-pin)
+if add_swd_header:
+    PinHeader(
+        name = "J_SWD",
+        pins = 4,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = VDD,       # VDD
+        Pin_2 = swd.SWDIO, # SWDIO
+        Pin_3 = swd.SWCLK, # SWCLK
+        Pin_4 = GND,       # GND
+    )
+
+# Status LED (if enabled)
+if add_status_led:
+    _LED_A = Net("LED_STATUS_A")
+    # Use PC14 for LED (matches reference design)
+    Resistor(name = "R_LED", value = "330ohms", package = "0402", P1 = PA4, P2 = _LED_A)
+    Led(
+        name = "LED_STATUS",
+        color = "yellow",
+        package = "0603",
+        A = _LED_A,
+        K = GND,
+    )
+
+# Power LED (if enabled)
+if add_power_led:
+    _LED_PWR_A = Net("LED_PWR_A")
+    Resistor(name = "R_LED_PWR", value = "330ohms", package = "0402", P1 = VDD, P2 = _LED_PWR_A)
+    Led(
+        name = "LED_PWR",
+        color = "green",
+        package = "0603",
+        A = _LED_PWR_A,
+        K = GND,
+    )
+
+# GPIO Headers (if enabled)
+if add_gpio_headers:
+    # Port A header (PA0-PA7)
+    PinHeader(
+        name = "J_PA",
+        pins = 10,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = PA0,
+        Pin_2 = PA1,
+        Pin_3 = PA2,
+        Pin_4 = PA3,
+        Pin_5 = PA4,
+        Pin_6 = PA5,
+        Pin_7 = PA6,
+        Pin_8 = PA7,
+        Pin_9 = VDD,
+        Pin_10 = GND,
+    )
+    
+    # Port B header (PB pins and others)
+    PinHeader(
+        name = "J_PB",
+        pins = 10,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = PB7_PB8,
+        Pin_2 = PB3_PB4_PB5_PB6,
+        Pin_3 = PB9_PC14,
+        Pin_4 = PC15,
+        Pin_5 = PA8_PB0_PB1_PB2,
+        Pin_6 = PA9_PA11,
+        Pin_7 = PA10_PA12,
+        Pin_8 = NRST,  # Note: BOOT0 is internally bonded to PB8 on TSSOP20 package
+        Pin_9 = VDD,
+        Pin_10 = GND,
+    )
+
+# pcb:sch C_BULK.C x=1235.9800 y=1294.4000 rot=0
+# pcb:sch C_OSC1.C x=664.4800 y=1662.7000 rot=90
+# pcb:sch C_OSC2.C x=664.4800 y=1561.1000 rot=90
+# pcb:sch C_RESET.C x=727.9800 y=1967.5000 rot=0
+# pcb:sch C_VDD.C x=1324.8800 y=1294.4000 rot=0
+# pcb:sch J_PA.PH x=1884.9500 y=1396.0000 rot=0
+# pcb:sch J_PB.PH x=1884.9500 y=1700.8000 rot=0
+# pcb:sch J_SWD.PH x=1884.9500 y=2043.7000 rot=0
+# pcb:sch LED_STATUS.LED x=532.4000 y=1978.9300 rot=270
+# pcb:sch R_BOOT0.R x=1474.7400 y=2005.6000 rot=0
+# pcb:sch R_LED.R x=547.6400 y=1840.5000 rot=0
+# pcb:sch R_RESET.R x=738.1400 y=1840.5000 rot=180
+# pcb:sch R_USB_DM.R x=268.2400 y=1624.6000 rot=270
+# pcb:sch R_USB_DP.R x=268.2400 y=1675.4000 rot=270
+# pcb:sch STM32G030F6P x=938.8000 y=1472.2000 rot=0
+# pcb:sch SW_RESET x=811.8000 y=1924.3200 rot=0
+# pcb:sch Y1.Y x=722.9000 y=1624.6000 rot=270
+# pcb:sch GND.1 x=1802.4000 y=2145.3000 rot=0
+# pcb:sch VDD.1 x=1248.6800 y=1230.9000 rot=0
+# pcb:sch GND.3 x=1243.6000 y=1408.7000 rot=0
+# pcb:sch GND.4 x=735.6000 y=2081.8000 rot=0
+# pcb:sch GND.5 x=1180.1000 y=1967.5000 rot=0
+# pcb:sch GND.6 x=545.1000 y=2081.8000 rot=0
+# pcb:sch VDD.2 x=740.6800 y=1789.7000 rot=0
+# pcb:sch VDD.3 x=1705.8800 y=2018.3000 rot=0
+# pcb:sch VDD.4 x=1705.8800 y=1573.8000 rot=0
+# pcb:sch VDD.5 x=1324.8800 y=1967.5000 rot=0
+# pcb:sch GND.9 x=595.9000 y=1726.2000 rot=0
+# pcb:sch VDD.6 x=1185.1800 y=1421.4000 rot=0
+# pcb:sch GND.10 x=1802.4000 y=1967.5000 rot=0
+# pcb:sch GND.11 x=1815.1000 y=1650.0000 rot=0
+# pcb:sch VBUS.3 x=219.9800 y=1472.2000 rot=0
+# pcb:sch GND.13 x=1510.3000 y=2119.9000 rot=0
+# pcb:sch R_BTN_VDD.R x=1322.3400 y=2018.3000 rot=0
+# pcb:sch SW_VDD x=1357.9000 y=2076.7200 rot=0
+# pcb:sch VDD.7 x=1705.8800 y=1865.9000 rot=0
+# pcb:sch GND.14 x=913.4000 y=2081.8000 rot=0

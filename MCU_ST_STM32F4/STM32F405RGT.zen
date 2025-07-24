@@ -53,11 +53,13 @@ if clock_source == ClockSource("Crystal"):
 # RTC configuration
 add_rtc = config("add_rtc", bool, default = True, optional = True)
 
+if add_rtc:
+    add_vbat_battery = config("add_vbat_battery", bool, default = True, optional = True)
+
 # VDDA filter configuration
 add_vdda_filter = config("add_vdda_filter", bool, default = True, optional = True)
 
-# VBAT configuration  
-add_vbat_battery = config("add_vbat_battery", bool, default = add_rtc, optional = True)
+# VBAT configuration
 
 # USB configuration
 add_usb = config("add_usb", bool, default = True, optional = True)
@@ -358,7 +360,7 @@ if add_usb:
     Component(
         name = "J_USB",
         symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_G-Switch_GT-USB-7010ASV.kicad_mod"),
+        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
         pins = {
             "VBUS": VBUS,
             "GND": GND,
