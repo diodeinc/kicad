@@ -1,0 +1,177 @@
+"""BNO055 - Intelligent 9-axis absolute orientation sensor
+
+The BNO055 is a System in Package (SiP), integrating a triaxial 14-bit accelerometer, 
+a triaxial 16-bit gyroscope with a range of ±2000 degrees per second, a triaxial 
+geomagnetic sensor and a 32-bit cortex M0+ microcontroller running Bosch Sensortec 
+sensor fusion software, in a single package. It provides outputs in quaternion, 
+Euler angles, rotation vector, linear acceleration, gravity and heading formats.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Uart")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+
+# Types
+InterfaceMode = enum("I2C", "UART", "HID_I2C")
+I2cAddress = enum("0x28", "0x29")
+CrystalMode = enum("INTERNAL", "EXTERNAL")
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+i2c_address = config("i2c_address", I2cAddress, default = "0x28")
+crystal_mode = config("crystal_mode", CrystalMode, default = "EXTERNAL")
+add_decoupling = config("add_decoupling", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_reset_pullup = config("add_reset_pullup", bool, default = True)
+add_boot_pullup = config("add_boot_pullup", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDDIO = VDD  # Connect VDDIO to VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+RESET = io("RESET", Net, default = Net("nRESET"))
+INT = io("INT", Net, default = Net("INT"))
+
+# Interface IO based on mode
+if interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("HID_I2C"):
+    i2c = io("I2C", I2c, default = I2c("I2C"))
+    _COM0 = i2c.SDA
+    _COM1 = i2c.SCL
+    _COM2 = GND if i2c_address == I2cAddress("0x28") else VDDIO
+    _COM3 = GND
+elif interface_mode == InterfaceMode("UART"):
+    uart = io("UART", Uart, default = Uart("UART"))
+    _COM0 = uart.TX
+    _COM1 = uart.RX
+    _COM2 = GND
+    _COM3 = VDDIO
+
+# Internal nets
+_CAP = Net("CAP")
+_BL_IND = Net("BL_IND")
+_BOOT_LOAD = Net("nBOOT_LOAD")
+
+# Crystal oscillator nets
+if crystal_mode == CrystalMode("EXTERNAL"):
+    _XIN32 = Net("XIN32")
+    _XOUT32 = Net("XOUT32")
+else:
+    _XIN32 = GND
+    _XOUT32 = Net("NC_XOUT32")
+
+# Protocol select pins
+# PS1 PS0 Functionality
+# 0   0   Standard/Fast I2C Interface
+# 0   1   HID over I2C  
+# 1   0   UART Interface
+# 1   1   Reserved
+if interface_mode == InterfaceMode("I2C"):
+    _PS0 = GND      # 0
+    _PS1 = GND      # 0
+elif interface_mode == InterfaceMode("HID_I2C"):
+    _PS0 = VDDIO    # 1
+    _PS1 = GND      # 0
+elif interface_mode == InterfaceMode("UART"):
+    _PS0 = GND      # 0
+    _PS1 = VDDIO    # 1
+
+# Intelligent 9-axis absolute orientation sensor, LGA-28
+Component(
+    name = "BNO055",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "BNO055"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-28_5.2x3.8mm_P0.5mm.kicad_mod"),
+    pins = {
+        "~{RESET}": RESET,
+        "INT": INT,
+        "~{BOOT_LOAD_PIN}": _BOOT_LOAD,
+        "BL_IND": _BL_IND,
+        "COM0": _COM0,
+        "COM1": _COM1,
+        "COM2": _COM2,
+        "COM3": _COM3,
+        "PIN1": GND,
+        "PIN7": GND,
+        "PIN8": GND,
+        "VDD": VDD,
+        "GND": GND,
+        "VDDIO": VDDIO,
+        "GNDIO": GND,
+        "PIN15": GND,
+        "PIN16": GND,
+        "PIN12": GND,
+        "PIN13": GND,
+        "PIN21": GND,
+        "PIN22": GND,
+        "PIN23": GND,
+        "PIN24": GND,
+        "XOUT32": _XOUT32,
+        "XIN32": _XIN32,
+        "PS0": _PS0,
+        "PS1": _PS1,
+        "CAP": _CAP
+    },
+)
+
+# CAP pin capacitor - always required for internal voltage regulator
+Capacitor(name = "C_CAP", value = "1uF", package = "0402", P1 = _CAP, P2 = GND)
+
+# Power Supply Decoupling
+if add_decoupling:
+    # VDD decoupling - close to pin 3
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+    # VDDIO decoupling - close to pin 28
+    Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO, P2 = GND)
+
+# I2C pull-up resistors
+if add_i2c_pullups:
+    if interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("HID_I2C"):
+        # I2C pull-ups
+        Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _COM0, P2 = VDDIO)
+        Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _COM1, P2 = VDDIO)
+
+# Reset pull-up
+if add_reset_pullup:
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = RESET, P2 = VDDIO)
+
+# Boot mode pull-up
+if add_boot_pullup:
+    Resistor(name = "R_BOOT", value = "10kohms", package = "0402", P1 = _BOOT_LOAD, P2 = VDDIO)
+
+# External crystal oscillator components
+if crystal_mode == CrystalMode("EXTERNAL"):
+    # 32.768kHz crystal
+    Crystal(
+        name = "Y1",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _XIN32,
+        XOUT = _XOUT32,
+    )
+    
+    # Load capacitors for crystal
+    Capacitor(name = "C_XIN", value = "22pF", package = "0402", P1 = _XIN32, P2 = GND)
+    Capacitor(name = "C_XOUT", value = "22pF", package = "0402", P1 = _XOUT32, P2 = GND)
+
+# pcb:sch BNO055 x=519.7000 y=240.3000 rot=0
+# pcb:sch C_CAP.C x=867.6800 y=557.8000 rot=0
+# pcb:sch C_VDD.C x=181.8800 y=392.7000 rot=0
+# pcb:sch C_VDDIO.C x=92.9800 y=392.7000 rot=0
+# pcb:sch R_BOOT.R x=382.5400 y=202.2000 rot=180
+# pcb:sch R_RESET.R x=446.0400 y=202.2000 rot=180
+# pcb:sch R_SCL.R x=268.2400 y=316.5000 rot=180
+# pcb:sch R_SDA.R x=331.7400 y=316.5000 rot=180
+# pcb:sch GND.1 x=1027.7000 y=430.8000 rot=0
+# pcb:sch GND.2 x=659.4000 y=646.7000 rot=0
+# pcb:sch VDD.1 x=639.0800 y=126.0000 rot=0
+
+# pcb:sch C_XIN.C x=969.2800 y=380.0000 rot=270
+# pcb:sch C_XOUT.C x=969.2800 y=253.0000 rot=270
+# pcb:sch Y1.Y x=875.3000 y=329.2000 rot=270

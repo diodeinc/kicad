@@ -1,0 +1,110 @@
+"""TPS60403DBV - Unregulated 60-mA Charge Pump Voltage Inverter with Fixed 250kHz Switching Frequency
+
+The TPS60403DBV is a charge pump voltage inverter that generates an unregulated negative 
+output voltage from an input voltage ranging from 1.6V to 5.5V. It can deliver up to 
+60mA of output current with a typical conversion efficiency greater than 90%. The device 
+operates at a fixed 250kHz switching frequency and requires only three small 1μF ceramic 
+capacitors to build a complete DC-DC inverter. It features an integrated active Schottky 
+diode for start-up into load, eliminating the need for an external diode.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tps60403.pdf
+"""
+
+# Dependencies
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+CapacitorValue = enum("1uF", "2.2uF", "4.7uF", "10uF")
+FilterType = enum("None", "RC", "LC")
+RCResistorValue = enum("10ohms", "22ohms", "33ohms", "47ohms", "50ohms", "100ohms")
+RCCapacitorValue = enum("10nF", "22nF", "47nF", "100nF", "220nF", "470nF")
+LCInductorValue = enum("1uH", "2.2uH", "4.7uH", "10uH", "22uH", "47uH")
+LCCapacitorValue = enum("1uF", "2.2uF", "4.7uF", "10uF", "22uF", "47uF")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_flying_cap = config("add_flying_cap", bool, default = True)
+input_cap_value = config("input_cap_value", CapacitorValue, default = "1uF")
+flying_cap_value = config("flying_cap_value", CapacitorValue, default = "1uF")
+output_cap_value = config("output_cap_value", CapacitorValue, default = "1uF")
+output_filter = config("output_filter", FilterType, default = "None")
+
+# Conditional filter component configurations
+if output_filter == FilterType("RC"):
+    rc_res_value = config("rc_res_value", RCResistorValue, default = "50ohms")
+    rc_cap_value = config("rc_cap_value", RCCapacitorValue, default = "100nF")
+elif output_filter == FilterType("LC"):
+    lc_ind_value = config("lc_ind_value", LCInductorValue, default = "10uH")
+    lc_cap_value = config("lc_cap_value", LCCapacitorValue, default = "10uF")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_CFLY_P = Net("C_FLY+")
+_CFLY_N = Net("C_FLY-")
+
+# Unregulated 60-mA Charge Pump Voltage Inverter with Fixed Switching Frequency 250 kHz, SOT-23-5
+Component(
+    name = "TPS60403DBV",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_SwitchedCapacitor.kicad_sym", name = "TPS60403DBV"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "IN": VIN,
+        "GND": GND,
+        "OUT": VOUT,
+        "C_{FLY+}": _CFLY_P,
+        "C_{FLY-}": _CFLY_N
+    },
+)
+
+# Input Capacitor - Datasheet recommends same value as flying capacitor
+if add_input_cap:
+    Capacitor(name = "C_IN", value = input_cap_value.value, package = "0805", P1 = VIN, P2 = GND)
+
+# Flying Capacitor - Required for charge pump operation
+if add_flying_cap:
+    Capacitor(name = "C_FLY", value = flying_cap_value.value, package = "0805", P1 = _CFLY_P, P2 = _CFLY_N)
+
+# Output Capacitor - Required for filtering and stability
+if add_output_cap:
+    Capacitor(name = "C_OUT", value = output_cap_value.value, package = "0805", P1 = VOUT, P2 = GND)
+
+# Optional Output Filter
+if output_filter == FilterType("RC"):
+    # RC filter for additional ripple reduction
+    Resistor = Module("@stdlib/generics/Resistor.zen")
+    _VOUT_FILT = Net("VOUT_FILTERED")
+    
+    # Typical values for RC filter
+    Resistor(name = "R_FILT", value = rc_res_value.value, package = "0603", P1 = VOUT, P2 = _VOUT_FILT)
+    Capacitor(name = "C_FILT", value = rc_cap_value.value, package = "0603", P1 = _VOUT_FILT, P2 = GND)
+    
+    # Update output to filtered net
+    VOUT = _VOUT_FILT
+
+elif output_filter == FilterType("LC"):
+    # LC filter for maximum ripple reduction
+    Inductor = Module("@stdlib/generics/Inductor.zen")
+    _VOUT_FILT = Net("VOUT_FILTERED")
+    
+    # Typical values for LC filter
+    Inductor(name = "L_FILT", value = lc_ind_value.value, package = "1210", P1 = VOUT, P2 = _VOUT_FILT)
+    Capacitor(name = "C_FILT", value = lc_cap_value.value, package = "0805", P1 = _VOUT_FILT, P2 = GND)
+    
+    # Update output to filtered net
+    VOUT = _VOUT_FILT
+
+# pcb:sch TPS60403DBV x=-26.4000 y=-13.7000 rot=0
+# pcb:sch C_IN.C x=-97.5200 y=49.8000 rot=0
+# pcb:sch C_FLY.C x=219.9800 y=49.8000 rot=0
+# pcb:sch C_OUT.C x=308.8800 y=49.8000 rot=0
+# pcb:sch GND.1 x=62.5000 y=202.2000 rot=0
+# pcb:sch C_FILT.C x=486.6800 y=49.8000 rot=0
+# pcb:sch R_FILT.R x=407.9400 y=-26.4000 rot=270
+# pcb:sch L_FILT.L x=414.9381 y=-26.4000 rot=270
