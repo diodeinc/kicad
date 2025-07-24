@@ -21,7 +21,7 @@ FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
 PinHeader = Module("@stdlib/kicad/PinHeader.zen")
 
-TLV70033_SOT23_5 = Module("../../Regulator_Linear/TLV70033_SOT23-5/TLV70033_SOT23-5.zen")
+TLV70033_SOT23_5 = Module("../../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
