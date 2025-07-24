@@ -1,0 +1,426 @@
+"""STM32F103C8T - Medium-density performance line ARM Cortex-M3 MCU
+
+The STM32F103C8T is a 32-bit ARM Cortex-M3 microcontroller operating at up to 72 MHz 
+with 64KB Flash memory, 20KB SRAM, 12-bit ADCs, 4 timers, up to 9 communication 
+interfaces including USB, CAN, I2C, SPI, and USART. It features 37 GPIO pins, 
+dual 12-bit ADCs with 10 channels, and operates from 2.0V to 3.6V supply voltage.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Anand Kapadia
+Datasheet: https://www.st.com/resource/en/datasheet/stm32f103c8.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+Led = Module("@stdlib/generics/Led.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+NetTie = Module("@stdlib/generics/NetTie.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+
+TLV70033_SOT23_5 = Module("../../Regulator_Linear/TLV70033_SOT23-5/TLV70033_SOT23-5.zen")
+
+# Types
+ClockSource = enum("Internal", "Crystal", "External")
+CrystalFreq = enum("4MHz", "8MHz", "12MHz", "16MHz")
+
+# Configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_power_decoupling = config("add_power_decoupling", bool, default = True)
+add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
+add_vbatt_ferrite_bead = config("add_vbatt_ferrite_bead", bool, default = True)
+add_reset_circuit = config("add_reset_circuit", bool, default = True)
+add_reset_button = config("add_reset_button", bool, default = True, optional = True)
+add_boot0_button = config("add_boot0_button", bool, default = True, optional = True)
+add_status_led = config("add_status_led", bool, default = True, optional = True)
+
+# Clock configuration
+clock_source = config("clock_source", ClockSource, default = "Crystal")
+if clock_source == ClockSource("Crystal"):
+    crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "20pF")
+    
+# Interface configuration
+add_swd_header = config("add_swd_header", bool, default = True)
+add_usb = config("add_usb", bool, default = True, optional = True)
+power_from_usb = config("power_from_usb", bool, default = True, optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# GPIO IO - Expose all available GPIO pins to the user
+# Port A pins
+PA0 = io("PA0", Net)
+PA1 = io("PA1", Net)
+PA2 = io("PA2", Net)
+PA3 = io("PA3", Net)
+PA4 = io("PA4", Net)
+PA5 = io("PA5", Net)
+PA6 = io("PA6", Net)
+PA7 = io("PA7", Net)
+PA8 = io("PA8", Net)
+PA9 = io("PA9", Net)
+PA10 = io("PA10", Net)
+PA15 = io("PA15", Net)
+
+# Port B pins
+PB0 = io("PB0", Net)
+PB1 = io("PB1", Net)
+PB2 = io("PB2", Net)
+PB3 = io("PB3", Net)
+PB4 = io("PB4", Net)
+PB5 = io("PB5", Net)
+PB6 = io("PB6", Net)
+PB7 = io("PB7", Net)
+PB8 = io("PB8", Net)
+PB9 = io("PB9", Net)
+PB10 = io("PB10", Net)
+PB11 = io("PB11", Net)
+PB12 = io("PB12", Net)
+PB13 = io("PB13", Net)
+PB14 = io("PB14", Net)
+PB15 = io("PB15", Net)
+
+# Port C pins (PC13-PC15 available on LQFP48)
+PC14 = io("PC14", Net)
+PC15 = io("PC15", Net)
+
+# PC13 - conditionally exposed based on status LED configuration
+if add_status_led:
+    _PC13 = Net("PC13")  # Internal net for LED
+else:
+    PC13 = io("PC13", Net)  # Exposed to user
+    _PC13 = PC13
+
+# USB IO (if enabled) - PA11 and PA12
+if add_usb:
+    usb = io("USB", Usb2)
+    VUSB = io("VUSB", Net)
+    PA11 = usb.DM
+    PA12 = usb.DP
+else:
+    PA11 = io("PA11", Net)
+    PA12 = io("PA12", Net)
+
+# SWD IO (if enabled) - PA13 and PA14
+if add_swd_header:
+    swd = io("SWD", Swd)
+    PA13 = swd.SWDIO
+    PA14 = swd.SWCLK
+else:
+    PA13 = io("PA13", Net)
+    PA14 = io("PA14", Net)
+
+# Crystal pins - PD0 and PD1 (conditionally exposed)
+if clock_source == ClockSource("Crystal"):
+    _PD0 = Net("PD0_OSC_IN")
+    _PD1 = Net("PD1_OSC_OUT")
+else:
+    PD0 = io("PD0", Net)
+    PD1 = io("PD1", Net)
+    _PD0 = PD0
+    _PD1 = PD1
+
+# NRST - conditionally exposed based on reset button configuration
+if add_reset_button:
+    _NRST = Net("NRST")  # Internal net for reset button
+else:
+    NRST = io("NRST", Net)  # Exposed to user
+    _NRST = NRST
+
+# Internal nets
+_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA"))
+_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VBAT = Net("VBAT")
+_BOOT0 = Net("BOOT0")
+
+# STMicroelectronics Arm Cortex-M3 MCU, 64KB flash, 20KB RAM, 72 MHz, 2.0-3.6V, 37 GPIO, LQFP48
+Component(
+    name = "STM32F103C8T",
+    symbol = Symbol(library = "@kicad-symbols/MCU_ST_STM32F1.kicad_sym", name = "STM32F103C8Tx"),
+    footprint = File("@kicad-footprints/Package_QFP.pretty/LQFP-48_7x7mm_P0.5mm.kicad_mod"),
+    pins = {
+        "NRST": _NRST,
+        "BOOT0": _BOOT0,
+        "PD0": _PD0,
+        "PD1": _PD1,
+        "PC13": _PC13,
+        "PC14": PC14,
+        "PC15": PC15,
+        "PB0": PB0,
+        "PB1": PB1,
+        "PB2": PB2,
+        "PB3": PB3,
+        "PB4": PB4,
+        "PB5": PB5,
+        "PB6": PB6,
+        "PB7": PB7,
+        "PB8": PB8,
+        "PB9": PB9,
+        "PB10": PB10,
+        "PB11": PB11,
+        "PB12": PB12,
+        "PB13": PB13,
+        "PB14": PB14,
+        "PB15": PB15,
+        "VBAT": _VBAT,
+        "VDD": VDD,
+        "VSS": GND,
+        "VSSA": _VSSA,
+        "VDDA": _VDDA,
+        "PA0": PA0,
+        "PA1": PA1,
+        "PA2": PA2,
+        "PA3": PA3,
+        "PA4": PA4,
+        "PA5": PA5,
+        "PA6": PA6,
+        "PA7": PA7,
+        "PA8": PA8,
+        "PA9": PA9,
+        "PA10": PA10,
+        "PA11": PA11,
+        "PA12": PA12,
+        "PA13": PA13,
+        "PA14": PA14,
+        "PA15": PA15
+    },
+)
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0402", P1 = VDD, P2 = GND)
+
+# Power Supply Decoupling - One capacitor per VDD pin (3 total)
+if add_power_decoupling:
+    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD3", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+# Analog Power Supply Decoupling
+if add_analog_decoupling:
+    # Connect VDDA to VDD through ferrite bead for noise filtering
+    FerriteBead(name = "FB_VDDA", package = "0402", P1 = VDD, P2 = _VDDA)
+    # Connect VSSA to GND using net tie
+    NetTie(name = "NT_VSSA", P1 = GND, P2 = _VSSA)
+    Capacitor(name = "C_VDDA", value = "100nF", package = "0402", P1 = _VDDA, P2 = _VSSA)
+    Capacitor(name = "C_VDDA2", value = "1uF", package = "0402", P1 = _VDDA, P2 = _VSSA)
+
+else:
+    # If analog decoupling is disabled, always tie directly
+    _VDDA = VDD
+    _VSSA = GND
+
+# VBAT Connection
+if add_vbatt_ferrite_bead:
+    # Connect to VDD through ferrite bead for noise filtering
+    FerriteBead(name = "FB_VBAT", package = "0402", P1 = VDD, P2 = _VBAT)
+    # VBAT filtering capacitor
+    Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = GND)
+else:
+    # Direct connection to VDD
+    _VBAT = VDD
+
+# Reset Circuit
+if add_reset_circuit:
+    # Pull-up resistor on RESET pin
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+    # Reset capacitor for noise filtering
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
+
+# Reset Button
+if add_reset_button:
+    Component(
+        name = "SW_RESET",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": GND,
+            "2": _NRST,
+        }
+    )
+
+# Boot Configuration - Pull-down for normal Flash boot
+Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = GND)
+
+# BOOT0 Button for entering bootloader mode
+if add_boot0_button:
+    Component(
+        name = "SW_BOOT0",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _BOOT0,
+            "2": VDD,
+        }
+    )
+
+# Crystal Oscillator Circuit
+if clock_source == ClockSource("Crystal"):
+    # Crystal frequency selection
+    freq_value = crystal_freq.value
+    _C_XTAL = Net("C_XTAL")
+    # Crystal with appropriate package
+    Crystal(
+        name = "Y1",
+        frequency = freq_value,
+        package = "3215_2Pin",
+        XIN = _PD0,
+        XOUT = _PD1,
+        GND = GND
+    )
+    
+    # Load capacitors with configurable values
+    Capacitor(name = "C_OSC1", value = crystal_capacitor_value, package = "0402", P1 = _PD0, P2 = _C_XTAL)
+    Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = "0402", P1 = _PD1, P2 = _C_XTAL)
+    Resistor(name = "R_XTAL", value = "1Mohms", package = "0402", P1 = _PD1, P2 = _PD0)
+
+# Status LED on PC13
+if add_status_led:
+    _LED_K = Net("LED_K")
+    Led(
+        name = "LED_STATUS",
+        color = "green",
+        package = "0402",
+        A = _PC13,
+        K = _LED_K,
+    )
+    Resistor(name = "R_LED", value = "510ohms", package = "0402", P1 = _LED_K, P2 = GND)
+
+# USB Connector and Circuitry
+if add_usb:
+    # Internal USB data nets (before series resistors)
+    _USB_DM_INT = Net("USB_DM_INT")
+    _USB_DP_INT = Net("USB_DP_INT")
+    
+    # USB-C Configuration Channel nets
+    _USB_CC1 = Net("USB_CC1")
+    _USB_CC2 = Net("USB_CC2")
+    
+    # USB-C connector (USB 2.0 only)
+    Component(
+        name = "J_USB",
+        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
+        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins = {
+            "VBUS": VUSB,           # VBUS
+            "D-": _USB_DM_INT,      # D- (before series resistor)
+            "D+": _USB_DP_INT,      # D+ (before series resistor)
+            "CC1": _USB_CC1,        # Configuration Channel 1
+            "CC2": _USB_CC2,        # Configuration Channel 2
+            "SBU1": Net("USB_SBU1"), # Sideband Use 1 (not connected)
+            "SBU2": Net("USB_SBU2"), # Sideband Use 2 (not connected)
+            "GND": GND,             # GND
+            "SHIELD": GND,          # Shield
+        }
+    )
+    
+    # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
+    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
+    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
+    
+    # Series resistors on USB data lines (20 ohms)
+    Resistor(name = "R_USB_DM", value = "20ohms 1%", package = "0402", P1 = _USB_DM_INT, P2 = PA11)
+    Resistor(name = "R_USB_DP", value = "20ohms 1%", package = "0402", P1 = _USB_DP_INT, P2 = PA12)
+    Resistor(name = "R_USB_PULLUP", value = "4.7kohms 10%", package = "0402", P1 = PA12, P2 = VDD)
+
+    # USB Power Regulation
+    if power_from_usb:
+        # 3.3V LDO regulator from USB 5V to VDD
+        TLV70033_SOT23_5(
+            name = "U_USB_REG",
+            VIN = VUSB,
+            VOUT = VDD,
+            GND = GND,
+            add_input_cap = True,
+            add_output_cap = True,
+            enable_control = False,
+            add_enable_pullup = False,
+        )
+
+# SWD Header
+if add_swd_header:
+    PinHeader(
+        name = "J_SWD",
+        pins = 4,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Horizontal",
+        Pin_1 = VDD,       # VDD
+        Pin_2 = swd.SWDIO, # SWDIO
+        Pin_3 = swd.SWCLK, # SWCLK
+        Pin_4 = GND,       # GND
+    )
+
+# pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
+# pcb:sch C_OSC1.C x=181.8800 y=786.4000 rot=90
+# pcb:sch C_OSC2.C x=181.8800 y=888.0000 rot=90
+# pcb:sch C_RESET.C x=4.0800 y=1167.4000 rot=0
+# pcb:sch C_VDD1.C x=854.9800 y=405.4000 rot=0
+# pcb:sch C_VDD2.C x=753.3800 y=405.4000 rot=0
+# pcb:sch C_VDD3.C x=651.7800 y=405.4000 rot=0
+# pcb:sch C_VDDA.C x=943.8800 y=646.7000 rot=0
+# pcb:sch C_VDDA2.C x=1032.7800 y=646.7000 rot=0
+# pcb:sch J_SWD.PH x=1199.1500 y=1065.8000 rot=0
+# pcb:sch LED_STATUS.LED x=325.3900 y=946.4200 rot=0
+# pcb:sch R_BOOT0.R x=-138.1600 y=824.5000 rot=0
+# pcb:sch R_LED.R x=306.3400 y=1015.0000 rot=0
+# pcb:sch R_RESET.R x=14.2400 y=1065.8000 rot=180
+# pcb:sch R_VBAT.R x=674.6400 y=595.9000 rot=0
+# pcb:sch R_VDDA.R x=776.2400 y=595.9000 rot=0
+# pcb:sch R_VSSA.R x=1411.2400 y=1396.0000 rot=0
+# pcb:sch STM32F103C8T x=583.2000 y=697.5000 rot=0
+# pcb:sch SW_BOOT0 x=-102.6000 y=768.6200 rot=0
+# pcb:sch SW_RESET x=-115.3000 y=1124.2200 rot=0
+# pcb:sch Y1.Y x=253.0000 y=849.9000 rot=90
+# pcb:sch VDD.1 x=385.0800 y=583.2000 rot=0
+# pcb:sch VSS.1 x=291.1000 y=1103.9000 rot=0
+# pcb:sch VDD.2 x=16.7800 y=1002.3000 rot=0
+# pcb:sch VSS.2 x=240.3000 y=24.4000 rot=0
+# pcb:sch VSS.3 x=672.1000 y=1523.0000 rot=0
+# pcb:sch VDD.3 x=16.7800 y=735.6000 rot=0
+# pcb:sch VSS.4 x=291.1000 y=875.3000 rot=0
+# pcb:sch GND.1 x=722.9000 y=1535.7000 rot=0
+# pcb:sch VDD.4 x=664.4800 y=367.3000 rot=0
+# pcb:sch VDD.5 x=753.3800 y=595.9000 rot=0
+# pcb:sch FB_VDDA.FB x=1101.6140 y=595.9000 rot=90
+# pcb:sch FB_VBAT.FB x=428.5140 y=595.9000 rot=270
+
+# pcb:sch GND.3 x=303.8000 y=1129.3000 rot=0
+# pcb:sch GND.4 x=-140.7000 y=951.5000 rot=0
+# pcb:sch GND.5 x=-140.7000 y=1269.0000 rot=0
+# pcb:sch VDD.6 x=1172.4800 y=595.9000 rot=0
+# pcb:sch NT_VSSA.NT x=1205.5000 y=1408.7000 rot=0
+# pcb:sch VDD.7 x=1159.7800 y=1027.7000 rot=0
+# pcb:sch GND.6 x=1129.3000 y=1434.1000 rot=0
+# pcb:sch GND.7 x=1154.7000 y=1192.8000 rot=0
+
+# pcb:sch GND.9 x=659.4000 y=545.1000 rot=0
+# pcb:sch GND.10 x=557.8000 y=735.6000 rot=0
+# pcb:sch GND.11 x=1777.0000 y=926.1000 rot=0
+# pcb:sch R_XTAL.R x=420.6400 y=837.2000 rot=180
+# pcb:sch VBAT.1 x=702.5800 y=595.9000 rot=0
+# pcb:sch VDDA.1 x=804.1800 y=595.9000 rot=0
+# pcb:sch VSSA.1 x=1307.1000 y=1434.1000 rot=0
+# pcb:sch VSSA.2 x=1167.4000 y=735.6000 rot=0
+# pcb:sch VSSA.3 x=799.1000 y=1535.7000 rot=0
+
+# pcb:sch C_VBAT.C x=550.1800 y=646.7000 rot=0
+# pcb:sch J_USB x=1383.3000 y=799.1000 rot=0
+# pcb:sch R_USB_DM.R x=1703.3400 y=926.1000 rot=270
+# pcb:sch R_USB_DP.R x=1703.3400 y=964.2000 rot=270
+# pcb:sch R_USB_PULLUP.R x=1931.9400 y=913.4000 rot=180
+# pcb:sch R_USB_CC1.R x=1716.0400 y=837.2000 rot=270
+# pcb:sch R_USB_CC2.R x=1716.0400 y=875.3000 rot=270
+# pcb:sch VDD.8 x=1934.4800 y=849.9000 rot=0
+# pcb:sch GND.12 x=1434.1000 y=1230.9000 rot=0
+# pcb:sch U_USB_REG.C_IN.C x=1667.7800 y=684.8000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=1870.9800 y=684.8000 rot=0
+# pcb:sch U_USB_REG.TLV70033_SOT23-5 x=1726.2000 y=649.8750 rot=0
+# pcb:sch GND.13 x=1789.7000 y=786.4000 rot=0
+# pcb:sch VDD.9 x=1934.4800 y=634.0000 rot=0
+# pcb:sch GND.14 x=11.7000 y=1269.0000 rot=0
