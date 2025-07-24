@@ -32,8 +32,10 @@ add_bulk_cap = config("add_bulk_cap", bool, default = True)
 add_power_decoupling = config("add_power_decoupling", bool, default = True)
 add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
 add_vbatt_ferrite_bead = config("add_vbatt_ferrite_bead", bool, default = True)
-add_reset_circuit = config("add_reset_circuit", bool, default = True)
 add_reset_button = config("add_reset_button", bool, default = True, optional = True)
+if not add_reset_button:
+    add_reset_circuit = config("add_reset_circuit", bool, default = True)
+
 add_boot0_button = config("add_boot0_button", bool, default = True, optional = True)
 add_status_led = config("add_status_led", bool, default = True, optional = True)
 
@@ -234,12 +236,6 @@ else:
     # Direct connection to VDD
     _VBAT = VDD
 
-# Reset Circuit
-if add_reset_circuit:
-    # Pull-up resistor on RESET pin
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
-    # Reset capacitor for noise filtering
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
 
 # Reset Button
 if add_reset_button:
@@ -252,6 +248,13 @@ if add_reset_button:
             "2": _NRST,
         }
     )
+
+# Reset Circuit
+if add_reset_button or add_reset_circuit:
+    # Pull-up resistor on RESET pin
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+    # Reset capacitor for noise filtering
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
 
 # Boot Configuration - Pull-down for normal Flash boot
 Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = GND)
