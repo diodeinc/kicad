@@ -22,7 +22,6 @@ Led = Module("@stdlib/generics/Led.zen")
 PinHeader = Module("@stdlib/kicad/PinHeader.zen")
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
-
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
 CrystalFreq = enum("4MHz", "8MHz", "16MHz", "24MHz", "32MHz", "48MHz")
@@ -31,13 +30,12 @@ PassivesSize = enum("0402", "0603", "0805")
 # Power Configuration
 add_bulk_cap = config("add_bulk_cap", bool, default = True)
 add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_power_led = config("add_power_led", bool, default = False, optional = True)
+add_power_led = config("add_power_led", bool, default = True, optional = True)
 
 # Clock configuration
 clock_source = config("clock_source", ClockSource, default = "Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
-    add_crystal_caps = config("add_crystal_caps", bool, default = True)
 
 # Debug/Programming configuration
 add_swd_header = config("add_swd_header", bool, default = True)
@@ -143,11 +141,9 @@ if clock_source == ClockSource("Crystal"):
         XOUT = _OSC_OUT,
     )
     
-    # Load capacitors
-    if add_crystal_caps:
-        # Typical values for STM32
-        Capacitor(name = "C_OSC1", value = "12pF", package = "0402", P1 = _OSC_IN, P2 = GND)
-        Capacitor(name = "C_OSC2", value = "12pF", package = "0402", P1 = _OSC_OUT, P2 = GND)
+    # Typical values for STM32
+    Capacitor(name = "C_OSC1", value = "12pF", package = "0402", P1 = _OSC_IN, P2 = GND)
+    Capacitor(name = "C_OSC2", value = "12pF", package = "0402", P1 = _OSC_OUT, P2 = GND)
 
 # Reset Button
 if add_reset_button:
@@ -300,3 +296,6 @@ if add_gpio_headers:
 # pcb:sch SW_VDD x=1357.9000 y=2076.7200 rot=0
 # pcb:sch VDD.7 x=1705.8800 y=1865.9000 rot=0
 # pcb:sch GND.14 x=913.4000 y=2081.8000 rot=0
+
+# pcb:sch LED_PWR.LED x=1065.8000 y=1305.8300 rot=270
+# pcb:sch R_LED_PWR.R x=1144.5400 y=1230.9000 rot=90

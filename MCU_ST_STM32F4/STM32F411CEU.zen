@@ -12,7 +12,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f411ce.pdf
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2")
-load("/Users/nasheed-x/Documents/GitHub/refdes/parts/validated/Sensor_Temperature/MCP9844/MCP9844.zen", "add_decoupling")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
