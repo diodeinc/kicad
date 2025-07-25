@@ -1,0 +1,172 @@
+"""ISM330DHCX - iNEMO inertial module with embedded Machine Learning Core
+
+The ISM330DHCX is a system-in-package featuring a high-performance 3D digital 
+accelerometer and 3D digital gyroscope tailored for Industry 4.0 applications. 
+It features selectable full scales (±2/±4/±8/±16g for accelerometer, 
+±125/±250/±500/±1000/±2000/±4000dps for gyroscope), embedded compensation for 
+high stability over temperature, and an extended temperature range from -40°C 
+to +105°C. The device includes a Machine Learning Core, programmable Finite 
+State Machine, 9KB FIFO, sensor hub for external sensors, and various embedded 
+functions like pedometer, free-fall detection, and 6D orientation.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/ism330dhcx.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+InterfaceMode = enum("Mode1", "Mode2", "Mode3", "Mode4")
+InterfaceType = enum("I2C", "SPI")
+
+# Types
+I2cAddress = enum("0x6A", "0x6B")
+
+# Configuration
+
+interface_type = config("interface_type", InterfaceType, default = "I2C")
+interface_mode = config("interface_mode", InterfaceMode, default = "Mode1")
+
+# I2C-specific configurations
+if interface_type == InterfaceType("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x6A")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True, optional = True)
+else:
+    # Set defaults for I2C configs when in SPI mode
+    i2c_address = I2cAddress("0x6A")  # Default value, not used in SPI mode
+    add_i2c_pullups = False
+
+# Mode2-specific configuration (Master I2C for external sensors)
+if interface_mode == InterfaceMode("Mode2"):
+    add_master_pullups = config("add_master_pullups", bool, default = True, optional = True)
+else:
+    add_master_pullups = False
+
+# General configurations
+add_interrupt_pullups = config("add_interrupt_pullups", bool, default = True, optional = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True, optional = True)
+add_decoupling_caps = config("add_decoupling", bool, default = True, optional = True)
+
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDDIO = io("VDDIO", Net, default = VDD)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Interrupt pins
+INT1 = io("INT1", Net, default = Net("INT1"))
+INT2 = io("INT2", Net, default = Net("INT2"))
+
+# Mode-specific auxiliary interface IOs
+if interface_mode == InterfaceMode("Mode2"):
+    # Master I2C interface for external sensors
+    MSDA = io("MSDA", Net, default = Net("MSDA"))
+    MSCL = io("MSCL", Net, default = Net("MSCL"))
+elif interface_mode == InterfaceMode("Mode3") or interface_mode == InterfaceMode("Mode4"):
+    # Auxiliary SPI interface
+    SDI_AUX = io("SDI_AUX", Net, default = Net("SDI_AUX"))
+    SPC_AUX = io("SPC_AUX", Net, default = Net("SPC_AUX"))
+    OCS_AUX = io("OCS_AUX", Net, default = Net("OCS_AUX"))
+    SDO_AUX = io("SDO_AUX", Net, default = Net("SDO_AUX"))
+
+# Interface selection
+if interface_type == InterfaceType("I2C"):
+    i2c = io("I2C", I2c, default = I2c("I2C"))
+    _CS = VDD  # CS must be tied high for I2C mode
+    _SCL = i2c.SCL
+    _SDA = i2c.SDA
+    _SDO_SA0 = GND if i2c_address == I2cAddress("0x6A") else VDD
+else:  # SPI mode
+    spi = io("SPI", Spi, default = Spi("SPI"))
+    _CS = spi.CS
+    _SCL = spi.CLK
+    _SDA = spi.MOSI
+    _SDO_SA0 = spi.MISO
+
+# Mode-specific pin connections
+if interface_mode == InterfaceMode("Mode1"):
+    # Mode 1: Basic I2C/SPI only
+    _SDx = VDD  # Connect to VDD or GND
+    _SCx = VDD  # Connect to VDD or GND
+    _OCS_AUX = Net("NC_OCS")  # Leave unconnected
+    _SDO_AUX = VDD  # Connect to VDD or leave unconnected
+elif interface_mode == InterfaceMode("Mode2"):
+    # Mode 2: I2C/SPI + Master I2C for external sensors
+    _SDx = MSDA  # I2C master data
+    _SCx = MSCL  # I2C master clock
+    _OCS_AUX = Net("NC_OCS")  # Leave unconnected
+    _SDO_AUX = VDD  # Connect to VDD or leave unconnected
+else:  # Mode3 or Mode4
+    # Mode 3/4: I2C/SPI + Auxiliary SPI
+    _SDx = SDI_AUX  # Auxiliary SPI data
+    _SCx = SPC_AUX  # Auxiliary SPI clock
+    _OCS_AUX = OCS_AUX  # Auxiliary SPI enable
+    _SDO_AUX = SDO_AUX  # Auxiliary SPI data out
+
+# iNEMO inertial module with embedded Machine Learning Core
+Component(
+    name = "ISM330DHCX",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "ISM330DHCX"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y.kicad_mod"),
+    pins = {
+        "SDA": _SDA,
+        "SDO/SA0": _SDO_SA0,
+        "SCL": _SCL,
+        "CS": _CS,
+        "INT1": INT1,
+        "INT2": INT2,
+        "VDD": VDD,
+        "VDDIO": VDDIO,
+        "GND": GND,
+        "SDx": _SDx,
+        "SCx": _SCx,
+        "OCS_AUX": _OCS_AUX,
+        "SDO_AUX": _SDO_AUX
+    },
+)
+
+# Bulk Capacitor
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0603", P1 = VDD, P2 = GND)
+
+# Power Supply Decoupling
+if add_decoupling_caps:
+    # VDD decoupling - 100nF ceramic close to pin
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+    # VDDIO decoupling - 100nF ceramic close to pin
+    Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO, P2 = GND)
+    
+# I2C Pull-up Resistors
+if add_i2c_pullups and interface_type == InterfaceType("I2C"):
+    # Typical 4.7k pull-ups for I2C
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDDIO)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDDIO)
+
+# Interrupt pull-ups (optional, depends on host configuration)
+if add_interrupt_pullups:
+    Resistor(name = "R_INT1", value = "10kohms", package = "0402", P1 = INT1, P2 = VDDIO)
+    Resistor(name = "R_INT2", value = "10kohms", package = "0402", P1 = INT2, P2 = VDDIO)
+
+# Mode 2: Master I2C pull-ups for external sensors
+if add_master_pullups and interface_mode == InterfaceMode("Mode2"):
+    Resistor(name = "R_MSCL", value = "4.7kohms", package = "0402", P1 = _SCx, P2 = VDDIO)
+    Resistor(name = "R_MSDA", value = "4.7kohms", package = "0402", P1 = _SDx, P2 = VDDIO)
+
+# pcb:sch C_BULK.C x=994.6800 y=214.9000 rot=0
+# pcb:sch C_VDD.C x=816.8800 y=214.9000 rot=0
+# pcb:sch C_VDDIO.C x=905.7800 y=214.9000 rot=0
+# pcb:sch ISM330DHCX x=481.6000 y=75.2000 rot=0
+# pcb:sch R_INT1.R x=293.6400 y=176.8000 rot=180
+# pcb:sch R_INT2.R x=230.1400 y=176.8000 rot=180
+# pcb:sch R_SCL.R x=344.4400 y=87.9000 rot=180
+# pcb:sch R_SDA.R x=407.9400 y=87.9000 rot=180
+# pcb:sch GND.1 x=570.5000 y=468.9000 rot=0
+# pcb:sch VDD.1 x=562.8800 y=24.4000 rot=0
+# pcb:sch R_MSCL.R x=801.6400 y=87.9000 rot=180
+# pcb:sch R_MSDA.R x=738.1400 y=87.9000 rot=180

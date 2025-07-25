@@ -12,6 +12,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f411ce.pdf
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2")
+TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -533,10 +534,7 @@ if add_usb:
     Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
 
     # USB Power Regulation (optional)
-    if power_from_usb:
-        # Import TLV70033 module from validated parts
-        TLV70033_SOT23_5 = Module("../../Regulator_Linear/TLV70033_SOT23-5/TLV70033_SOT23-5.zen")
-        
+    if power_from_usb:        
         # 3.3V LDO regulator from USB 5V to VDD
         TLV70033_SOT23_5(
             name = "U_USB_REG",
