@@ -40,6 +40,14 @@ description = "USB to Serial UART Interface IC"
 datasheet = "https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf"
 
 
+[[workspace.ESP32_S3]]
+name = "ESP32-S3"
+path = "MCU_Espressif/ESP32-S3.zen"
+category = "MCU_Espressif"
+description = "Xtensa® 32-bit LX7 dual-core microprocessor with Wi-Fi and Bluetooth® 5 (LE)"
+datasheet = "https://www.espressif.com/documentation/esp32-s3_datasheet_en.pdf"
+
+
 [[workspace.ATmega328_A]]
 name = "ATmega328-A"
 path = "MCU_Microchip_ATmega/ATmega328-A.zen"
