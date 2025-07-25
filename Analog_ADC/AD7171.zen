@@ -40,7 +40,7 @@ GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.
 
 # Internal nets
 _VREF = VREF_EXT if use_external_ref else VDD
-_PDRST = PDRST_CTRL if power_on_delay else VDD
+_PDRST = PDRST_CTRL if power_on_delay != PowerOnDelay("0ms") else VDD
 
 # Filtered analog inputs (if filtering is enabled)
 if add_input_filter:
@@ -138,7 +138,7 @@ if power_on_delay.value != "0ms":
 # pcb:sch C_AINN.C x=67.5800 y=354.6000 rot=0
 # pcb:sch C_AINP.C x=-59.4200 y=214.9000 rot=0
 # pcb:sch C_HF.C x=613.6800 y=-1.0000 rot=0
-# pcb:sch C_PDRST.C x=905.7800 y=367.3000 rot=0
+# pcb:sch C_PDRST.C x=905.7800 y=380.0000 rot=0
 # pcb:sch R_AINN.R x=-125.4600 y=291.1000 rot=270
 # pcb:sch R_AINP.R x=-125.4600 y=176.8000 rot=270
 # pcb:sch R_PDRST.R x=915.9400 y=202.2000 rot=180

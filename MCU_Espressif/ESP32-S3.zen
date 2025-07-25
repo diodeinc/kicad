@@ -1,0 +1,699 @@
+"""ESP32-S3 - Xtensa® 32-bit LX7 dual-core microprocessor with Wi-Fi and Bluetooth® 5 (LE)
+
+The ESP32-S3 is a low-power MCU-based system on a chip (SoC) with integrated 2.4 GHz Wi-Fi 
+and Bluetooth® Low Energy (Bluetooth LE). It consists of high-performance dual-core 
+microprocessor (Xtensa® 32-bit LX7), a ULP coprocessor, a Wi-Fi baseband, a Bluetooth LE 
+baseband, RF module, and numerous peripherals. The chip supports up to 240 MHz clock speed, 
+features 512 KB SRAM, and includes extensive peripheral interfaces including USB OTG, 
+multiple SPI/I2C/UART interfaces, ADCs, touch sensors, and more.
+
+Author: @Anthropic/claude-opus-4-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.espressif.com/documentation/esp32-s3_datasheet_en.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag")
+
+# Import TLV70033 module from validated parts
+TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
+
+# Import PinHeader from stdlib
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+
+# Types
+BootMode = enum("SPI", "Download")
+VddSpiVoltage = enum("1.8V", "3.3V")
+ClockSource = enum("Internal", "Crystal", "External")
+CrystalFreq = enum("26MHz", "40MHz")
+BootConfiguration = enum("None", "Resistors", "Button")
+BootPull = enum("Pullup", "Pulldown")
+ResetConfiguration = enum("None", "Pullup", "TestPoint", "Button")
+
+# Configuration
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+add_vdda_filtering = config("add_vdda_filtering", bool, default = True)
+add_rtc_filtering = config("add_rtc_filtering", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+
+# Reset configuration
+reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+
+# Boot configuration
+boot_configuration = config("boot_configuration", BootConfiguration, default = "Button")
+if boot_configuration == BootConfiguration("Resistors"):
+    gpio0_pull = config("gpio0_pull", BootPull, default = "Pullup")
+
+add_usb_circuit = config("add_usb_circuit", bool, default = True)
+if add_usb_circuit:
+    power_from_usb = config("power_from_usb", bool, default = True, optional = True)
+    
+add_vdd_spi_circuit = config("add_vdd_spi_circuit", bool, default = True)
+
+if add_vdd_spi_circuit:
+    vdd_spi_voltage = config("vdd_spi_voltage", VddSpiVoltage, default = "3.3V")
+# SPI Flash configuration
+add_spi_flash = config("add_spi_flash", bool, default = True, optional = True)
+if add_spi_flash:
+    add_flash_pullups = config("add_flash_pullups", bool, default = True, optional = True)
+
+# Antenna configuration
+add_antenna = config("add_antenna", bool, default = True)
+if add_antenna:
+    # Antenna matching network component values
+    antenna_c11_value = config("antenna_c11_value", str, default = "1.5pF", optional = True)
+    antenna_l2_value = config("antenna_l2_value", str, default = "2.7nH", optional = True)
+    antenna_c12_value = config("antenna_c12_value", str, default = "1.5pF", optional = True)
+    antenna_series_resistor_value = config("antenna_series_resistor_value", str, default = "0ohms", optional = True)
+
+# JTAG header configuration
+add_jtag_header = config("add_jtag_header", bool, default = True)
+
+# Clock configuration
+clock_source = config("clock_source", ClockSource, default = "Crystal")
+if clock_source == ClockSource("Crystal"):
+    crystal_freq = config("crystal_freq", CrystalFreq, default = "40MHz")
+    # Note: If using 26MHz crystal, the PLL bootstrap fuses must be configured accordingly
+    # during chip programming. The default ESP32-S3 expects 40MHz.
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "14pF")
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
+    if add_crystal_series_resistor:
+        crystal_series_resistor = config("crystal_series_resistor", str, default = "0ohm")
+
+add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# USB IO (if enabled)
+if add_usb_circuit:
+    usb = io("USB", Usb2, default = Usb2("USB"))
+    VUSB = io("VUSB", Net)
+
+# JTAG IO (if enabled)
+if add_jtag_header:
+    jtag = io("JTAG", Jtag)
+
+# Internal nets
+_VDD3V3 = Net("VDD3V3")  # Filtered 3.3V for ESP32
+_VDD3P3 = _VDD3V3  # Connect VDD3P3 pins to filtered VDD3V3
+_VDDA = Net("VDDA") if add_vdda_filtering else VDD
+_VDD3P3_RTC = Net("VDD3P3_RTC") if add_rtc_filtering else VDD
+_VDD3P3_CPU = VDD  # Always connect VDD3P3_CPU directly to VDD
+_VDD_SPI = Net("VDD_SPI")
+_LNA_IN = Net("LNA_IN")  # Internal net for antenna connection
+
+# CHIP_PU (reset) - conditionally exposed based on reset configuration
+if reset_configuration == ResetConfiguration("None") or reset_configuration == ResetConfiguration("Pullup"):
+    CHIP_PU = io("CHIP_PU", Net)  # Exposed to user
+    _CHIP_PU = CHIP_PU
+else:
+    _CHIP_PU = Net("CHIP_PU")  # Internal net for reset circuit
+
+# Crystal nets
+if clock_source == ClockSource("Crystal"):
+    _XTAL_P = Net("XTAL_P")
+    _XTAL_N = Net("XTAL_N")
+else:
+    _XTAL_P = Net("XTAL_P")
+    _XTAL_N = Net("XTAL_N")
+
+# RTC oscillator pins
+if add_low_speed_oscillator:
+    _XTAL_32K_P = Net("XTAL_32K_P")
+    _XTAL_32K_N = Net("XTAL_32K_N")
+else:
+    _XTAL_32K_P = Net("XTAL_32K_P")
+    _XTAL_32K_N = Net("XTAL_32K_N")
+
+# Boot and strapping pins
+# GPIO0 - conditionally exposed based on boot configuration
+if boot_configuration == BootConfiguration("None"):
+    GPIO0 = io("GPIO0", Net)  # Exposed to user
+    _GPIO0 = GPIO0
+else:
+    _GPIO0 = Net("GPIO0")  # Internal net for boot circuit
+
+# GPIO3 - internal net for JTAG strapping
+_GPIO3 = Net("GPIO3")
+
+_GPIO45 = Net("GPIO45")
+_GPIO46 = Net("GPIO46")
+
+# JTAG pins - internal nets
+_MTCK = Net("MTCK")
+_MTDO = Net("MTDO")
+_MTDI = Net("MTDI")
+_MTMS = Net("MTMS")
+
+# SPI Flash pins - conditionally exposed based on flash configuration
+if add_spi_flash:
+    _SPICS0 = Net("SPICS0")
+    _SPID = Net("SPID")
+    _SPICLK = Net("SPICLK")
+    _SPIHD = Net("SPIHD")
+    _SPIWP = Net("SPIWP")
+    _SPIQ = Net("SPIQ")
+else:
+    SPICS0 = io("SPICS0", Net)
+    SPID = io("SPID", Net)
+    SPICLK = io("SPICLK", Net)
+    SPIHD = io("SPIHD", Net)
+    SPIWP = io("SPIWP", Net)
+    SPIQ = io("SPIQ", Net)
+    _SPICS0 = SPICS0
+    _SPID = SPID
+    _SPICLK = SPICLK
+    _SPIHD = SPIHD
+    _SPIWP = SPIWP
+    _SPIQ = SPIQ
+
+# USB pins
+if add_usb_circuit:
+    _GPIO19 = usb.DM
+    _GPIO20 = usb.DP
+else:
+    _GPIO19 = Net("GPIO19/USB_D-")
+    _GPIO20 = Net("GPIO20/USB_D+")
+
+# Microcontroller, Wi-Fi 802.11b/g/n, Bluetooth, 32bit
+Component(
+    name = "ESP32-S3",
+    symbol = Symbol(library = "@kicad-symbols/MCU_Espressif.kicad_sym", name = "ESP32-S3"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-56-1EP_7x7mm_P0.4mm_EP4x4mm.kicad_mod"),
+    pins = {
+        "VDDA": _VDDA,
+        "SPICLK_N": Net("SPICLK_N"),
+        "GPIO45": _GPIO45,
+        "GPIO0": _GPIO0,
+        "GPIO1": Net("GPIO1"),
+        "GPIO2": Net("GPIO2"),
+        "GPIO3": _GPIO3,
+        "GPIO4": Net("GPIO4"),
+        "GPIO5": Net("GPIO5"),
+        "GPIO6": Net("GPIO6"),
+        "GPIO7": Net("GPIO7"),
+        "GPIO8": Net("GPIO8"),
+        "GPIO9": Net("GPIO9"),
+        "GPIO10": Net("GPIO10"),
+        "GPIO11": Net("GPIO11"),
+        "GPIO12": Net("GPIO12"),
+        "GPIO13": Net("GPIO13"),
+        "GPIO14": Net("GPIO14"),
+        "GPIO17": Net("GPIO17"),
+        "GPIO18": Net("GPIO18"),
+        "GPIO19/USB_D-": _GPIO19,
+        "GPIO20/USB_D+": _GPIO20,
+        "GPIO21": Net("GPIO21"),
+        "XTAL_32K_P": _XTAL_32K_P,
+        "XTAL_32K_N": _XTAL_32K_N,
+        "XTAL_P": _XTAL_P,
+        "XTAL_N": _XTAL_N,
+        "VDD3P3": _VDD3P3,
+        "VDD3P3_RTC": _VDD3P3_RTC,
+        "GND": GND,
+        "VDD_SPI": _VDD_SPI,
+        "VDD3P3_CPU": _VDD3P3_CPU,
+        "SPICS1": Net("SPICS1"),
+        "SPIHD": _SPIHD,
+        "SPIWP": _SPIWP,
+        "SPICS0": _SPICS0,
+        "SPICLK": _SPICLK,
+        "SPIQ": _SPIQ,
+        "SPID": _SPID,
+        "SPICLK_P": Net("SPICLK_P"),
+        "GPIO33": Net("GPIO33"),
+        "GPIO34": Net("GPIO34"),
+        "GPIO35": Net("GPIO35"),
+        "GPIO36": Net("GPIO36"),
+        "GPIO37": Net("GPIO37"),
+        "GPIO38": Net("GPIO38"),
+        "MTCK": _MTCK,
+        "MTDO": _MTDO,
+        "MTDI": _MTDI,
+        "MTMS": _MTMS,
+        "U0TXD": Net("U0TXD"),
+        "U0RXD": Net("U0RXD"),
+        "GPIO46": _GPIO46,
+        "CHIP_PU": _CHIP_PU,
+        "LNA_IN": _LNA_IN
+    },
+)
+
+# JTAG Pin Handling
+if add_jtag_header:
+    # Connect internal JTAG nets to JTAG interface
+    _MTCK = jtag.TCK
+    _MTDO = jtag.TDO
+    _MTDI = jtag.TDI
+    _MTMS = jtag.TMS
+else:
+    # Expose JTAG pins as regular IOs
+    MTCK = io("MTCK", Net)
+    MTDO = io("MTDO", Net)
+    MTDI = io("MTDI", Net)
+    MTMS = io("MTMS", Net)
+    _MTCK = MTCK
+    _MTDO = MTDO
+    _MTDI = MTDI
+    _MTMS = MTMS
+
+# Bulk Capacitors
+if add_bulk_caps:
+        Capacitor(name = "C_BULK1", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+        Capacitor(name = "C_BULK2", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+
+
+# Power Supply Decoupling
+if add_decoupling:    
+    # VDD3P3_CPU decoupling - CPU power (always on VDD)
+    Capacitor(name = "C_CPU", value = "100nF", package = "0402", P1 = _VDD3P3_CPU, P2 = GND)
+
+# VDDA filtering/decoupling - independent of main decoupling
+if add_vdda_filtering:
+    # VDDA has its own filtered supply
+    Capacitor(name = "C_VDDA1", value = "100nF", package = "0402", P1 = _VDDA, P2 = GND)
+    Capacitor(name = "C_VDDA2", value = "1uF", package = "0402", P1 = _VDDA, P2 = GND)
+elif not add_vdda_filtering and add_decoupling:
+    # When VDDA filtering is disabled, add decoupling on VDD instead
+    Capacitor(name = "C_VDDA_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+# VDD3P3_RTC filtering/decoupling - independent of main decoupling
+if add_rtc_filtering:
+    # RTC has its own filtered supply
+    Capacitor(name = "C_RTC", value = "100nF", package = "0402", P1 = _VDD3P3_RTC, P2 = GND)
+elif not add_rtc_filtering and add_decoupling:
+    # When RTC filtering is disabled, add decoupling on VDD instead
+    Capacitor(name = "C_RTC_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+
+# VDD3V3 Pi-Filter Circuit (VDD input to VDD3V3 output)
+# Input capacitors on VDD (before inductor)
+Capacitor(name = "C_VDD3V3_IN1", value = "10uF", package = "0603", P1 = VDD, P2 = GND)
+Capacitor(name = "C_VDD3V3_IN2", value = "1uF", package = "0402", P1 = VDD, P2 = GND)
+Capacitor(name = "C_VDD3V3_IN3", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+# Series inductor
+Inductor(name = "L_VDD3V3", value = "2nH", package = "0402", P1 = VDD, P2 = _VDD3V3)
+
+# Output capacitor on VDD3V3 (after inductor)
+Capacitor(name = "C_VDD3V3_OUT", value = "100nF", package = "0402", P1 = _VDD3V3, P2 = GND)
+
+# Power connections with ferrite beads for noise isolation
+# VDD3V3 is already filtered, so we connect other power domains to VDD (unfiltered)
+if add_vdda_filtering:
+    FerriteBead(name = "FB_VDDA", package = "0603", P1 = VDD, P2 = _VDDA)
+if add_rtc_filtering:
+    FerriteBead(name = "FB_VDD3P3_RTC", package = "0603", P1 = VDD, P2 = _VDD3P3_RTC)
+# VDD3P3_CPU is directly connected to VDD, no ferrite bead needed
+
+# Crystal Oscillator (40MHz)
+if clock_source == ClockSource("Crystal"):
+    # Crystal frequency selection
+    # IMPORTANT: ESP32-S3 defaults to 40MHz crystal. If using 26MHz:
+    # - Set EFUSE_XTAL_40M_SEL = 0 during chip programming
+    # - Adjust PLL settings in bootloader/application accordingly
+    if crystal_freq == CrystalFreq("26MHz"):
+        freq_value = "26MHz"
+    else:  # 40MHz
+        freq_value = "40MHz"
+    
+    # Determine crystal output connection
+    if add_crystal_series_resistor:
+        # Internal net for series resistor
+        _R_OSC = Net("_R_OSC")
+        crystal_out = _R_OSC
+    else:
+        # Direct connection without series resistor
+        crystal_out = _XTAL_N
+    
+    # Crystal with 3225_4Pin package
+    Crystal(
+        name = "Y1",
+        frequency = freq_value,
+        package = "3225_4Pin",
+        XIN = _XTAL_P,
+        XOUT = crystal_out,
+        GND = GND
+    )
+    
+    # Load capacitors
+    Capacitor(name = "C_XTAL1", value = crystal_capacitor_value, package = "0402", P1 = _XTAL_P, P2 = GND)
+    Capacitor(name = "C_XTAL2", value = crystal_capacitor_value, package = "0402", P1 = crystal_out, P2 = GND)
+    
+    # Series resistor for oscillator stability (if enabled)
+    if add_crystal_series_resistor:
+        Resistor(name = "R_OSC", value = crystal_series_resistor, package = "0402", P1 = _R_OSC, P2 = _XTAL_N)
+
+# Low Speed Oscillator for RTC
+if add_low_speed_oscillator:
+    Crystal(
+        name = "Y2",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _XTAL_32K_P,
+        XOUT = _XTAL_32K_N,
+        GND = GND,
+    )
+    Capacitor(name = "C_OSC3", value = "12pF", voltage = "6.3V", package = "0402", P1 = _XTAL_32K_P, P2 = GND)
+    Capacitor(name = "C_OSC4", value = "12pF", voltage = "6.3V", package = "0402", P1 = _XTAL_32K_N, P2 = GND)
+
+# Reset Circuit
+if reset_configuration == ResetConfiguration("Pullup"):
+    # Pull-up resistor only
+    Resistor(name = "R_PU", value = "10kohms", package = "0402", P1 = _CHIP_PU, P2 = VDD)
+    
+elif reset_configuration == ResetConfiguration("TestPoint"):
+    # Pull-up resistor, capacitor, and test point
+    Resistor(name = "R_PU", value = "10kohms", package = "0402", P1 = _CHIP_PU, P2 = VDD)
+    Capacitor(name = "C_PU", value = "1uF", package = "0402", P1 = _CHIP_PU, P2 = GND)
+    TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _CHIP_PU)
+
+elif reset_configuration == ResetConfiguration("Button"):
+    # Pull-up resistor, capacitor, and reset button
+    Resistor(name = "R_PU", value = "10kohms", package = "0402", P1 = _CHIP_PU, P2 = VDD)
+    
+    # Reset capacitor
+    Capacitor(name = "C_PU", value = "1uF", package = "0402", P1 = _CHIP_PU, P2 = GND)
+    
+    # Reset button
+    Component(
+        name = "SW_RESET",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _CHIP_PU,
+            "2": GND,
+        }
+    )
+
+# Boot Configuration Circuit
+if boot_configuration == BootConfiguration("None"):
+    # No boot configuration - GPIO0 pin exposed to user
+    pass
+
+elif boot_configuration == BootConfiguration("Resistors"):
+    # GPIO0 - Boot mode selection (strapping pin)
+    if gpio0_pull == BootPull("Pullup"):
+        # Pull-up for SPI boot mode
+        Resistor(name = "R_GPIO0", value = "10kohms", package = "0402", P1 = _GPIO0, P2 = VDD)
+    else:  # Pulldown
+        # Pull-down for download mode
+        Resistor(name = "R_GPIO0", value = "10kohms", package = "0402", P1 = _GPIO0, P2 = GND)
+    
+    # GPIO46 - ROM message printing control (strapping pin)
+    # Default pull-down
+    Resistor(name = "R_GPIO46", value = "10kohms", package = "0402", P1 = _GPIO46, P2 = GND)
+
+elif boot_configuration == BootConfiguration("Button"):
+    # GPIO0 - Boot mode selection (strapping pin)
+    # Default pull-up for SPI boot mode
+    Resistor(name = "R_GPIO0", value = "10kohms", package = "0402", P1 = _GPIO0, P2 = VDD)
+    
+    # Boot button to pull GPIO0 low for download mode
+    Component(
+        name = "SW_BOOT",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _GPIO0,
+            "2": GND,
+        }
+    )
+    
+    # GPIO46 - ROM message printing control (strapping pin)
+    # Default pull-down
+    Resistor(name = "R_GPIO46", value = "10kohms", package = "0402", P1 = _GPIO46, P2 = GND)
+
+# VDD_SPI Configuration
+if add_vdd_spi_circuit:
+    if vdd_spi_voltage == VddSpiVoltage("3.3V"):
+        # GPIO45 strapping pin - pull-down for 3.3V
+        Resistor(name = "R_GPIO45", value = "10kohms", package = "0402", P1 = _GPIO45, P2 = GND)
+    else:  # 1.8V
+        # GPIO45 strapping pin - pull-up for 1.8V
+        Resistor(name = "R_GPIO45", value = "10kohms", package = "0402", P1 = _GPIO45, P2 = VDD)
+        # VDD_SPI will be powered by internal regulator at 1.8V
+
+# JTAG Source Selection (GPIO3 strapping pin)
+if add_jtag_header:
+    # GPIO3 - JTAG signal source control
+    # Pull-down to select JTAG pins (MTDI, MTDO, MTCK, MTMS)
+    # Leave floating or pull-up to select USB Serial/JTAG
+    Resistor(name = "R_GPIO3", value = "10kohms", package = "0402", P1 = _GPIO3, P2 = GND)
+
+# VDD_SPI decoupling
+if add_vdd_spi_circuit:
+    Capacitor(name = "C_VDD_SPI", value = "100nF", package = "0402", P1 = _VDD_SPI, P2 = GND)
+
+# USB Circuit
+if add_usb_circuit:
+    # Internal USB data nets (before series resistors)
+    _USB_DM_INT = Net("USB_DM_INT")
+    _USB_DP_INT = Net("USB_DP_INT")
+    
+    # USB-C Configuration Channel nets
+    _USB_CC1 = Net("USB_CC1")
+    _USB_CC2 = Net("USB_CC2")
+    
+    # USB-C connector (USB 2.0 only)
+    Component(
+        name = "J_USB",
+        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
+        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins = {
+            "VBUS": VUSB,           # VBUS
+            "D-": _USB_DM_INT,      # D- (before series resistor)
+            "D+": _USB_DP_INT,      # D+ (before series resistor)
+            "CC1": _USB_CC1,        # Configuration Channel 1
+            "CC2": _USB_CC2,        # Configuration Channel 2
+            "SBU1": Net("USB_SBU1"), # Sideband Use 1 (not connected)
+            "SBU2": Net("USB_SBU2"), # Sideband Use 2 (not connected)
+            "GND": GND,             # GND
+            "SHIELD": GND,          # Shield
+        }
+    )
+    
+    # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
+    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
+    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
+    
+    # Series resistors on USB data lines (22 ohms as used in Espressif dev-kits)
+    Resistor(name = "R_USB_DM", value = "22ohms", package = "0402", P1 = _USB_DM_INT, P2 = _GPIO19)
+    Resistor(name = "R_USB_DP", value = "22ohms", package = "0402", P1 = _USB_DP_INT, P2 = _GPIO20)
+    
+    # USB ESD Protection
+    Component(
+        name = "U_USB_ESD",
+        symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
+        footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+        pins = {
+            "I/O1": _USB_DM_INT,
+            "GND": GND,
+            "I/O2": _USB_DP_INT,
+            "VBUS": VUSB,
+        },
+    )
+    
+    # VBUS decoupling
+    Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
+
+    # USB Power Regulation (optional)
+    if power_from_usb:        
+        # 3.3V LDO regulator from USB 5V to VDD
+        TLV70033_SOT23_5(
+            name = "U_USB_REG",
+            VIN = VUSB,
+            VOUT = VDD,
+            GND = GND,
+            add_input_cap = True,
+            add_output_cap = True,
+            enable_control = False,
+            add_enable_pullup = False,
+        )
+
+# SPI Flash Memory
+if add_spi_flash:
+    # W25Q128JV - 128Mbit (16MB) SPI Flash for ESP32-S3
+    Component(
+        name = "U_FLASH",
+        symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25Q128JVS"),
+        footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+        pins = {
+            "~{CS}": _SPICS0,           # Chip Select (active low)
+            "CLK": _SPICLK,             # Clock
+            "DI/IO_{0}": _SPID,         # Data In / IO0 (MOSI)
+            "DO/IO_{1}": _SPIQ,         # Data Out / IO1 (MISO)
+            "~{WP}/IO_{2}": _SPIWP,     # Write Protect / IO2
+            "~{HOLD}/~{RESET}/IO_{3}": _SPIHD,  # Hold/Reset / IO3
+            "VCC": _VDD_SPI,            # Power from VDD_SPI
+            "GND": GND,
+        }
+    )
+    
+    # Pull-up resistors for WP and HOLD pins (required for normal SPI operation)
+    if add_flash_pullups:
+        Resistor(name = "R_FLASH_WP", value = "10kohms", package = "0402", P1 = _SPIWP, P2 = _VDD_SPI)
+        Resistor(name = "R_FLASH_HD", value = "10kohms", package = "0402", P1 = _SPIHD, P2 = _VDD_SPI)
+    
+    # Decoupling capacitor for flash
+    Capacitor(name = "C_FLASH", value = "100nF", package = "0402", P1 = _VDD_SPI, P2 = GND)
+
+# Antenna Circuit
+if add_antenna:
+    # Internal nets for antenna connection
+    _ANT_PORT1 = _LNA_IN  # Port 1 - near the chip
+    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and capacitors
+    _ANT_PORT2 = Net("ANT_PORT2")  # Port 2 - near the antenna
+    _ANT_FEED = Net("ANT_FEED")  # Connection to antenna after series resistor
+    
+    # Pi-network matching circuit
+    # Port 1 side - Shunt capacitor C11 (1.2-1.8pF recommended)
+    Capacitor(name = "C_ANT_PORT1", value = antenna_c11_value, package = "0402", P1 = _ANT_PORT1, P2 = GND)
+    
+    # Series inductor L2 (2.4-3.0nH recommended)
+    Inductor(name = "L_ANT_MATCH", value = antenna_l2_value, package = "0402", P1 = _ANT_PORT1, P2 = _ANT_MATCH)
+    
+    # Port 2 side - Shunt capacitor C12 (1.8-1.2pF recommended)
+    Capacitor(name = "C_ANT_PORT2", value = antenna_c12_value, package = "0402", P1 = _ANT_MATCH, P2 = GND)
+    
+    # Connection from matching network to antenna
+    _ANT_PORT2 = _ANT_MATCH
+    
+    # Series resistor to antenna (0ohms default for tuning/debugging)
+    Resistor(name = "R_ANT", value = antenna_series_resistor_value, package = "0402", P1 = _ANT_PORT2, P2 = _ANT_FEED)
+    
+    # Antenna component (2-pin chip antenna)
+    # Pin 1: Feed, Pin 2: GND
+    Component(
+        name = "ANT1",
+        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Antenna_Chip"),
+        footprint = File("@kicad-footprints/RF_Antenna.pretty/Johanson_2450AT18x100.kicad_mod"),
+        pins = {
+            "FEED": _ANT_FEED,
+            "PCB_Trace": GND
+        }
+    )
+
+# JTAG Header
+if add_jtag_header:
+    PinHeader(
+        name = "J_JTAG",
+        pins = 6,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Horizontal",
+        Pin_1 = VDD,       # VDD
+        Pin_2 = jtag.TMS,  # TMS
+        Pin_3 = jtag.TCK,  # TCK
+        Pin_4 = jtag.TDO,  # TDO
+        Pin_5 = jtag.TDI,  # TDI
+        Pin_6 = GND,       # GND
+    )
+
+# pcb:sch C_BULK1.C x=1147.0800 y=1040.4000 rot=0
+# pcb:sch C_BULK2.C x=1248.6800 y=1040.4000 rot=0
+# pcb:sch C_CPU.C x=715.2800 y=1040.4000 rot=0
+# pcb:sch C_PU.C x=1388.3800 y=1992.9000 rot=0
+# pcb:sch C_RTC.C x=1045.4800 y=1040.4000 rot=0
+# pcb:sch C_VDD1.C x=753.3800 y=837.2000 rot=0
+# pcb:sch C_VDD2.C x=854.9800 y=849.9000 rot=0
+# pcb:sch C_VDDA1.C x=816.8800 y=1040.4000 rot=0
+# pcb:sch C_VDDA2.C x=893.0800 y=1040.4000 rot=0
+# pcb:sch C_VDD_SPI.C x=1807.4800 y=1535.7000 rot=0
+# pcb:sch C_XTAL1.C x=499.3800 y=2107.2000 rot=0
+# pcb:sch C_XTAL2.C x=651.7800 y=2107.2000 rot=0
+# pcb:sch ESP32-S3 x=786.4000 y=1307.1000 rot=0
+# pcb:sch FB_VDD3P3_CPU.FB x=1101.6140 y=608.6000 rot=90
+# pcb:sch FB_VDD3P3_RTC.FB x=1088.9140 y=989.6000 rot=90
+# pcb:sch FB_VDDA.FB x=758.7140 y=989.6000 rot=270
+# pcb:sch R_GPIO0.R x=598.4400 y=1294.4000 rot=180
+# pcb:sch R_GPIO45.R x=1335.0400 y=1992.9000 rot=0
+# pcb:sch R_GPIO46.R x=496.8400 y=1345.2000 rot=0
+# pcb:sch R_PU.R x=1398.5400 y=1865.9000 rot=180
+# pcb:sch R_USB_DM.R x=458.7400 y=1764.3000 rot=270
+# pcb:sch R_USB_DP.R x=458.7400 y=1789.7000 rot=270
+# pcb:sch R_VDD_SPI.R x=407.9400 y=926.1000 rot=0
+# pcb:sch SW_BOOT x=570.5000 y=1416.3200 rot=90
+# pcb:sch SW_RESET x=1446.8000 y=2000.5200 rot=90
+# pcb:sch Y1.Y x=557.8000 y=2043.7000 rot=0
+# pcb:sch GND.1 x=583.2000 y=2208.8000 rot=0
+# pcb:sch GND.2 x=1002.3000 y=2107.2000 rot=0
+# pcb:sch GND.3 x=595.9000 y=1523.0000 rot=0
+# pcb:sch VDD.1 x=1058.1800 y=1218.2000 rot=0
+# pcb:sch VDD.2 x=1401.0800 y=1802.4000 rot=0
+# pcb:sch VDD.3 x=740.6800 y=1154.7000 rot=0
+# pcb:sch VDD.4 x=600.9800 y=1256.3000 rot=0
+# pcb:sch VDD.5 x=334.2800 y=1408.7000 rot=0
+
+# pcb:sch C_OSC3.C x=423.1800 y=1840.5000 rot=90
+# pcb:sch C_OSC4.C x=423.1800 y=1942.1000 rot=90
+# pcb:sch R_OSC.R x=687.3400 y=1992.9000 rot=270
+# pcb:sch Y2.Y x=468.9000 y=1904.0000 rot=90
+# pcb:sch GND.4 x=329.2000 y=1916.7000 rot=90
+# pcb:sch GND.5 x=1294.4000 y=1129.3000 rot=0
+# pcb:sch GND.6 x=-242.3000 y=2056.4000 rot=0
+# pcb:sch GND.7 x=189.5000 y=1573.8000 rot=0
+# pcb:sch GND.8 x=202.2000 y=1891.3000 rot=0
+
+# pcb:sch C_VBUS.C x=-21.3200 y=1459.5000 rot=0
+# pcb:sch J_USB x=-305.8000 y=1624.6000 rot=0
+# pcb:sch R_USB_CC1.R x=26.9400 y=1662.7000 rot=270
+# pcb:sch R_USB_CC2.R x=26.9400 y=1688.1000 rot=270
+# pcb:sch U_USB_ESD x=164.1000 y=1751.6000 rot=0
+# pcb:sch U_USB_REG.C_IN.C x=67.5800 y=1459.5000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=321.5800 y=1459.5000 rot=0
+# pcb:sch U_USB_REG.TLV70033_SOT23-5 x=126.0000 y=1424.5750 rot=0
+# pcb:sch GND.9 x=87.9000 y=1726.2000 rot=0
+# pcb:sch GND.10 x=735.6000 y=1307.1000 rot=0
+# pcb:sch GND.11 x=1650.0000 y=1726.2000 rot=0
+# pcb:sch GND.12 x=824.5000 y=1142.0000 rot=0
+# pcb:sch GND.13 x=1472.2000 y=2310.4000 rot=0
+# pcb:sch GND.14 x=862.6000 y=1307.1000 rot=0
+
+
+
+# pcb:sch C11.C x=880.3800 y=1205.5000 rot=0
+# pcb:sch C15.C x=664.4800 y=1205.5000 rot=0
+# pcb:sch C16.C x=740.6800 y=1205.5000 rot=0
+# pcb:sch FB_VDD.FB x=936.5140 y=1167.4000 rot=270
+# pcb:sch IND2.L x=821.3381 y=1154.7000 rot=270
+# pcb:sch 3V3.1 x=651.7800 y=1142.0000 rot=0
+# pcb:sch VDD.7 x=689.8800 y=989.6000 rot=0
+# pcb:sch VDD.8 x=1299.4800 y=989.6000 rot=0
+# pcb:sch GND.16 x=1396.0000 y=2119.9000 rot=0
+# pcb:sch C_FLASH.C x=1909.0800 y=1535.7000 rot=0
+# pcb:sch R_FLASH_HD.R x=1385.8400 y=1319.8000 rot=180
+# pcb:sch R_FLASH_WP.R x=1449.3400 y=1319.8000 rot=180
+# pcb:sch U_FLASH x=1561.1000 y=1446.8000 rot=0
+
+
+# pcb:sch C_VDD3V3_IN1.C x=651.7800 y=1218.2000 rot=0
+# pcb:sch C_VDD3V3_IN2.C x=727.9800 y=1218.2000 rot=0
+# pcb:sch C_VDD3V3_OUT.C x=918.4800 y=1218.2000 rot=0
+# pcb:sch L_VDD3V3.L x=872.1381 y=1167.4000 rot=270
+# pcb:sch C_VDD3V3_IN3.C x=804.1800 y=1218.2000 rot=0
+# pcb:sch C_VDDA_VDD.C x=854.9800 y=1040.4000 rot=0
+# pcb:sch C_RTC_VDD.C x=1032.7800 y=1040.4000 rot=0
+
+
+# pcb:sch GND.15 x=1510.3000 y=1192.8000 rot=0
+# pcb:sch ANT1 x=1529.3500 y=2084.9750 rot=0
+# pcb:sch C_ANT1.C x=1362.9800 y=2196.1000 rot=0
+# pcb:sch L_ANT1.L x=1303.9381 y=2145.3000 rot=270
+# pcb:sch R_ANT.R x=1474.7400 y=2145.3000 rot=270
+# pcb:sch L2.L x=1380.1381 y=2145.3000 rot=270
+# pcb:sch C_ANT_PORT1.C x=1248.6800 y=2208.8000 rot=0
+# pcb:sch C_ANT_PORT2.C x=1388.3800 y=2208.8000 rot=0
+# pcb:sch L_ANT_MATCH.L x=1342.0381 y=2145.3000 rot=270
+# pcb:sch J_JTAG.PH x=1529.3500 y=1015.0000 rot=0
+# pcb:sch R_GPIO3.R x=649.2400 y=1459.5000 rot=90
