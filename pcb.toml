@@ -336,6 +336,22 @@ description = "Intelligent 9-axis absolute orientation sensor"
 datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf"
 
 
+[[workspace.ISM330DHCX]]
+name = "ISM330DHCX"
+path = "Sensor_Motion/ISM330DHCX.zen"
+category = "Sensor_Motion"
+description = "iNEMO inertial module with embedded Machine Learning Core"
+datasheet = "https://www.st.com/resource/en/datasheet/ism330dhcx.pdf"
+
+
+[[workspace.MPU_6050]]
+name = "MPU-6050"
+path = "Sensor_Motion/MPU-6050.zen"
+category = "Sensor_Motion"
+description = "6-Axis Motion Sensor with Gyroscope and Accelerometer"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf"
+
+
 [[workspace.LM73_1]]
 name = "LM73-1"
 path = "Sensor_Temperature/LM73-1.zen"
