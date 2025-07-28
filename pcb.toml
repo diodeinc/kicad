@@ -8,6 +8,14 @@ description = "16-Bit Sigma-Delta ADC with SPI Interface"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
 
 
+[[workspace.DAC5311]]
+name = "DAC5311"
+path = "Analog_DAC/DAC5311.zen"
+category = "Analog_DAC"
+description = "8-Bit, Single-Channel, Voltage Output, Serial Interface Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac5311.pdf"
+
+
 [[workspace.LTC3553]]
 name = "LTC3553"
 path = "Battery_Management/LTC3553.zen"
@@ -22,6 +30,14 @@ path = "Interface_Expansion/LTC4317.zen"
 category = "Interface_Expansion"
 description = "Dual I²C/SMBus Address Translator"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf"
+
+
+[[workspace.ISL3172E]]
+name = "ISL3172E"
+path = "Interface_UART/ISL3172E.zen"
+category = "Interface_UART"
+description = "3.3V, ±15kV ESD Protected, 250kbps, Half-Duplex RS-485/RS-422 Transceiver"
+datasheet = "https://www.renesas.com/us/en/www/doc/datasheet/isl3170e-71e-72e-73e-74e-75e-76e-77e-78e.pdf"
 
 
 [[workspace.AP33771]]
@@ -40,6 +56,14 @@ description = "USB to Serial UART Interface IC"
 datasheet = "https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf"
 
 
+[[workspace.WS2812B]]
+name = "WS2812B"
+path = "LED/WS2812B.zen"
+category = "LED"
+description = "Intelligent RGB LED with integrated controller"
+datasheet = "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
+
+
 [[workspace.ESP32_S3]]
 name = "ESP32-S3"
 path = "MCU_Espressif/ESP32-S3.zen"
@@ -54,6 +78,14 @@ path = "MCU_Microchip_ATmega/ATmega328-A.zen"
 category = "MCU_Microchip_ATmega"
 description = "8-bit AVR Microcontroller with 32K Bytes In-System Programmable Flash"
 datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf"
+
+
+[[workspace.nRF52840]]
+name = "nRF52840"
+path = "MCU_Nordic/nRF52840.zen"
+category = "MCU_Nordic"
+description = "Multiprotocol BLE/ANT/2.4 GHz/802.15.4 Cortex-M4F SoC"
+datasheet = "https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html"
 
 
 [[workspace.RP2040]]
@@ -192,6 +224,14 @@ description = "1A Low Dropout Adjustable Linear Voltage Regulator"
 datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
 
 
+[[workspace.AP2112K_3_3]]
+name = "AP2112K-3.3"
+path = "Regulator_Linear/AP2112K-3.3.zen"
+category = "Regulator_Linear"
+description = "600mA Low Dropout Linear Regulator with Enable"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
+
+
 [[workspace.LM3480_12]]
 name = "LM3480-12"
 path = "Regulator_Linear/LM3480-12.zen"
@@ -206,6 +246,22 @@ path = "Regulator_Linear/LM3480-15.zen"
 category = "Regulator_Linear"
 description = "100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator"
 datasheet = "https://www.ti.com/lit/ds/symlink/lm3480.pdf"
+
+
+[[workspace.LT1129_3_3]]
+name = "LT1129-3.3"
+path = "Regulator_Linear/LT1129-3.3_SOT223.zen"
+category = "Regulator_Linear"
+description = "700mA Micropower Low Dropout Regulator with Shutdown, Fixed Output 3.3V, SOT-223"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1129335fa.pdf"
+
+
+[[workspace.LT1129_5_0]]
+name = "LT1129-5.0"
+path = "Regulator_Linear/LT1129-5.0_SOT223.zen"
+category = "Regulator_Linear"
+description = "700mA Micropower Low Dropout Regulator with Shutdown, Fixed Output 5.0V, SOT-223"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/112935ff.pdf"
 
 
 [[workspace.MCP1804]]
@@ -358,6 +414,14 @@ path = "Sensor_Motion/MPU-6050.zen"
 category = "Sensor_Motion"
 description = "6-Axis Motion Sensor with Gyroscope and Accelerometer"
 datasheet = "https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf"
+
+
+[[workspace.MPU_9250]]
+name = "MPU-9250"
+path = "Sensor_Motion/MPU-9250.zen"
+category = "Sensor_Motion"
+description = "9-Axis Motion Sensor with Accelerometer, Gyroscope, and Magnetometer"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf"
 
 
 [[workspace.LM73_1]]
