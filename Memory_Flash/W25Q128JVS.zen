@@ -30,7 +30,7 @@ if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
     enable_hold = config("enable_hold", bool, default = True)
 
 # External IO
-spi = io("SPI", Spi, default = Spi("SPI"))
+spi = io("spi", Spi, default = Spi("spi"))
 VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
