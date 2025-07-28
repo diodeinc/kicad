@@ -42,6 +42,11 @@ enable_ldo = config("enable_ldo", bool, default = True)
 buck_voltage = config("buck_voltage", BuckVoltage, default = BuckVoltage("1.2V"))
 ldo_voltage = config("ldo_voltage", LdoVoltage, default = LdoVoltage("3.3V"))
 
+if not enable_buck and sequence_mode == SequenceMode("BuckFirst"):
+    error("BuckFirst sequence mode requires buck to be enabled")
+if not enable_ldo and sequence_mode == SequenceMode("LDOFirst"):
+    error("LDOFirst sequence mode requires LDO to be enabled")
+
 # External IO
 VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
@@ -119,7 +124,7 @@ Resistor(name = "R_PROG", value = r_prog_value, package = "0402", P1 = _PROG, P2
 # NTC Thermistor Circuit (if enabled)
 if enable_ntc:
     # Bias resistor from VBUS to NTC
-    Resistor(name = "R_NTC_BIAS", value = "100kohms", package = "0402", P1 = VBUS, P2 = _NTC)
+    Resistor(name = "R_NTC_BIAS", value = "100kohms 1%", package = "0402", P1 = VBUS, P2 = _NTC)
     # NTC thermistor placeholder (100k at 25°C)
     Thermistor(
         name = "R_NTC", 
@@ -167,11 +172,11 @@ if enable_buck:
     Resistor(name = "R_BUCK_FB1", value = r1_buck, package = "0402", P1 = BUCK_OUT, P2 = _BUCK_FB)
     Resistor(name = "R_BUCK_FB2", value = r2_buck, package = "0402", P1 = _BUCK_FB, P2 = GND)
 
+Capacitor(name = "C_VINLDO", value = "2.2uF", package = "0603", P1 = VOUT, P2 = GND)
+
 # LDO Components
 if enable_ldo:
-    # LDO input capacitor
-    Capacitor(name = "C_VINLDO", value = "2.2uF", package = "0603", P1 = VOUT, P2 = GND)
-    
+
     # LDO output capacitor
     Capacitor(name = "C_LDO", value = "4.7uF", package = "0603", P1 = LDO_OUT, P2 = GND)
     
@@ -197,10 +202,10 @@ if enable_ldo:
     Resistor(name = "R_LDO_FB2", value = r2_ldo, package = "0402", P1 = _LDO_FB, P2 = GND)
 
 # Standby Mode Control - Pull low for normal operation, high for standby
-Resistor(name = "R_STBY", value = "100kohms", package = "0402", P1 = _STBY, P2 = GND)
+Resistor(name = "R_STBY", value = "47kohms", package = "0402", P1 = _STBY, P2 = GND)
 
 # Pushbutton Status Pull-up
-Resistor(name = "R_PBSTAT", value = "100kohms", package = "0402", P1 = PBSTAT, P2 = VOUT)
+Resistor(name = "R_PBSTAT", value = "47kohms", package = "0402", P1 = PBSTAT, P2 = VOUT)
 
 # Charge Status LED Resistor
 _CHRG_LED = Net("_CHRG_LED")

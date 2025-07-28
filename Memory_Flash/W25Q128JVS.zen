@@ -28,6 +28,8 @@ spi_mode = config("spi_mode", SpiMode, default = "Standard")
 if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
     write_protect_mode = config("write_protect_mode", WriteProtectMode, default = "Software")
     enable_hold = config("enable_hold", bool, default = True)
+    if not enable_hold:
+        reset_pullup = config("reset_pullup", bool, default = True)
 
 # External IO
 spi = io("spi", Spi, default = Spi("spi"))
@@ -98,7 +100,7 @@ if spi_mode != SpiMode("Quad") and write_protect_mode == WriteProtectMode("Softw
     Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
 
 # HOLD pull-up when HOLD function is enabled
-if spi_mode != SpiMode("Quad") and enable_hold:
+if spi_mode != SpiMode("Quad") and (enable_hold or reset_pullup):
     Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
 
 # pcb:sch W25Q128JVS x=253.0000 y=189.5000 rot=0

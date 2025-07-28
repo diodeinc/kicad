@@ -28,6 +28,8 @@ add_decoupling = config("add_decoupling", bool, default = True)
 add_cs_pullup = config("add_cs_pullup", bool, default = True)
 write_protect_mode = config("write_protect_mode", WriteProtectMode, default = "Software")
 enable_hold = config("enable_hold", bool, default = True)
+if not enable_hold:
+    reset_pullup = config("reset_pullup", bool, default = True)
 
 # External IO
 spi = io("spi", Spi, default = Spi("spi"))
@@ -91,7 +93,7 @@ if write_protect_mode == WriteProtectMode("Software"):
     Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
 
 # HOLD pull-up to prevent unintended hold conditions
-if enable_hold:
+if enable_hold or reset_pullup:
     Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
 
 # pcb:sch W25X40CLSN x=-1.0000 y=-1.0000 rot=0
