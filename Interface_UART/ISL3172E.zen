@@ -1,0 +1,193 @@
+"""ISL3172E - 3.3V, ±15kV ESD Protected, 250kbps, Half-Duplex RS-485/RS-422 Transceiver
+
+The ISL3172E is a ±15kV ESD protected, 3.3V powered, half-duplex transceiver that meets 
+both the RS-485 and RS-422 standards for balanced communication. It features very low bus 
+currents (+125µA/-100µA), presenting a true "1/8 unit load" to the RS-485 bus, allowing up 
+to 256 transceivers on the network. The device includes full fail-safe receivers, hot plug 
+capability, slew rate limited drivers for reduced EMI, and operates at data rates up to 250kbps.
+It operates from a single 3.3V supply with -7V to +12V common-mode range.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl3170e-71e-72e-73e-74e-75e-76e-77e-78e.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Configuration options
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_bus_termination = config("add_bus_termination", bool, default = True)
+if add_bus_termination:
+    termination_resistance = config("termination_resistance", str, default = "120ohms")
+
+add_fail_safe_biasing = config("add_fail_safe_biasing", bool, default = False)
+if add_fail_safe_biasing:
+    bias_resistance = config("bias_resistance", str, default = "10kohms")
+
+add_test_points = config("add_test_points", bool, default = False)
+
+# Enable pin configurations
+re_pulldown = config("re_pulldown", bool, default = False)
+if re_pulldown:
+    re_pulldown_value = config("re_pulldown_value", str, default = "2kohms")
+
+de_pullup = config("de_pullup", bool, default = False)
+if de_pullup:
+    de_pullup_value = config("de_pullup_value", str, default = "2kohms")
+
+# External IOs
+VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# RS-485 bus lines
+RS485_A = io("RS485_A", Net)
+RS485_B = io("RS485_B", Net)
+
+# Control signals
+RO = io("RO", Net)
+RE = io("RE", Net)
+DE = io("DE", Net)
+DI = io("DI", Net)
+
+# Internal nets
+_RE_INT = Net("RE_INT") if re_pulldown else RE
+_DE_INT = Net("DE_INT") if de_pullup else DE
+
+# Main transceiver component
+Component(
+    name = "ISL3172E",
+    symbol = Symbol(library = "@kicad-symbols/Interface_UART.kicad_sym", name = "ISL3172E"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
+    pins = {
+        "RO": RO,
+        "~{RE}": _RE_INT,
+        "DE": _DE_INT,
+        "DI": DI,
+        "VCC": VCC,
+        "GND": GND,
+        "A": RS485_A,
+        "B": RS485_B
+    },
+)
+
+# Power supply decoupling - as per datasheet Figure 1
+if add_bulk_cap:
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        voltage = "10V",
+        package = "0805",
+        P1 = VCC,
+        P2 = GND
+    )
+
+if add_decoupling_caps:
+    # 0.1µF decoupling cap as shown in typical circuits
+    Capacitor(
+        name = "C_VCC",
+        value = "0.1uF",
+        voltage = "10V",
+        package = "0402",
+        P1 = VCC,
+        P2 = GND
+    )
+
+# Control signal pull resistors
+if re_pulldown:
+    # RE is active low - pull down for receive enable by default (1k to 3k per datasheet)
+    Resistor(
+        name = "R_RE_PD",
+        value = re_pulldown_value,
+        package = "0402",
+        P1 = _RE_INT,
+        P2 = GND
+    )
+    # Connect internal net to external
+    _RE_INT = RE
+
+if de_pullup:
+    # DE is active high - pull up through resistor for transmit enable (1k to 3k per datasheet)
+    Resistor(
+        name = "R_DE_PU",
+        value = de_pullup_value,
+        package = "0402",
+        P1 = _DE_INT,
+        P2 = VCC
+    )
+    # Connect internal net to external
+    _DE_INT = DE
+
+# Bus termination
+if add_bus_termination:
+    Resistor(
+        name = "R_TERM",
+        value = termination_resistance,
+        package = "0603",
+        P1 = RS485_A,
+        P2 = RS485_B
+    )
+
+# Fail-safe biasing network
+if add_fail_safe_biasing:
+    # Pull A to VCC through resistor
+    Resistor(
+        name = "R_BIAS_A",
+        value = bias_resistance,
+        package = "0402",
+        P1 = RS485_A,
+        P2 = VCC
+    )
+    
+    # Pull B to GND through resistor
+    Resistor(
+        name = "R_BIAS_B",
+        value = bias_resistance,
+        package = "0402",
+        P1 = RS485_B,
+        P2 = GND
+    )
+
+# Test points
+if add_test_points:
+    TestPoint(
+        name = "TP_A",
+        variant = "Pad_D1.0mm",
+        P1 = RS485_A
+    )
+    
+    TestPoint(
+        name = "TP_B",
+        variant = "Pad_D1.0mm",
+        P1 = RS485_B
+    )
+    
+    TestPoint(
+        name = "TP_RO",
+        variant = "Pad_D1.0mm",
+        P1 = RO
+    )
+    
+    TestPoint(
+        name = "TP_DI",
+        variant = "Pad_D1.0mm",
+        P1 = DI
+    )
+
+# pcb:sch C_BULK.C x=-161.0200 y=316.5000 rot=0
+# pcb:sch C_VCC.C x=-288.0200 y=316.5000 rot=0
+# pcb:sch ISL3172E x=100.6000 y=189.5000 rot=0
+# pcb:sch GND.1 x=189.5000 y=545.1000 rot=0
+# pcb:sch VCC.1 x=194.5800 y=126.0000 rot=0
+# pcb:sch R_TERM.R x=433.3400 y=253.0000 rot=0
+# pcb:sch R_BIAS_A.R x=369.8400 y=176.8000 rot=180
+# pcb:sch R_BIAS_B.R x=369.8400 y=329.2000 rot=0
+# pcb:sch R_RE_PD.R x=-49.2600 y=405.4000 rot=0
+# pcb:sch R_DE_PU.R x=-100.0600 y=214.9000 rot=180
+# pcb:sch TP_A.TP x=308.8800 y=92.9800 rot=0
+# pcb:sch TP_B.TP x=321.5800 y=588.2800 rot=180
+# pcb:sch TP_DI.TP x=29.4800 y=588.2800 rot=180
+# pcb:sch TP_RO.TP x=29.4800 y=92.9800 rot=0

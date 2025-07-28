@@ -23,7 +23,7 @@ PowerOnDelay = enum("0ms", "10ms", "25ms", "50ms", "100ms")
 add_decoupling = config("decoupling", bool, default = True)
 add_bulk = config("bulk", bool, default = True)
 add_input_filter = config("input_filter", bool, default = True)
-use_external_ref = config("external_ref", bool, default = False)
+use_external_ref = config("external_ref", bool, default = True)
 add_pullup = config("dout_pullup", bool, default = True)
 power_on_delay = config("power_on_delay", PowerOnDelay, default = "10ms")
 if add_input_filter:
@@ -35,11 +35,14 @@ VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.
 AIN_P = io("AIN+", Net, default = Net("AIN+"))
 AIN_N = io("AIN-", Net, default = Net("AIN-"))
 PDRST_CTRL = io("PDRST", Net, default = Net("nPDRST"), optional = True)
-VREF_EXT = io("VREF_EXT", Net) if use_external_ref else None
+if use_external_ref:
+    REFIN_P = io("REFIN+", Net, default = Net("VREF+"))
+    REFIN_N = io("REFIN-", Net, default = Net("VREF-", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Internal nets
-_VREF = VREF_EXT if use_external_ref else VDD
+_VREF = REFIN_P if use_external_ref else VDD
+_VREF_N = REFIN_N if use_external_ref else GND
 _PDRST = PDRST_CTRL if power_on_delay != PowerOnDelay("0ms") else VDD
 
 # Filtered analog inputs (if filtering is enabled)
@@ -62,7 +65,7 @@ Component(
         "GND": GND,
         "PAD": GND,  # Exposed pad must be connected to ground
         "REFIN+": _VREF,
-        "REFIN-": GND if not use_external_ref else _VREF,  # For single-ended reference
+        "REFIN-": _VREF_N,  # For single-ended reference
         "SCK": spi.CLK,
         "VDD": VDD,
         "~{PDRST}": _PDRST,
@@ -109,8 +112,8 @@ if add_pullup:
     Resistor(name = "R_PULLUP", value = "10kohms", package = "0402", P1 = spi.MISO, P2 = VDD)
 
 # Reference decoupling (if using external reference)
-if use_external_ref and VREF_EXT:
-    Capacitor(name = "C_REF", value = "100nF", package = "0402", P1 = _VREF, P2 = GND)
+if use_external_ref:
+    Capacitor(name = "C_REF", value = "100nF", package = "0402", P1 = _VREF, P2 = _VREF_N)
 
 # Power-on delay
 if power_on_delay.value != "0ms":
@@ -147,3 +150,9 @@ if power_on_delay.value != "0ms":
 # pcb:sch GND.2 x=545.1000 y=138.7000 rot=0
 # pcb:sch VDD.1 x=550.1800 y=-77.2000 rot=0
 # pcb:sch C_REF.C x=296.1800 y=-13.7000 rot=0
+
+# pcb:sch GND.GND.1 x=24.4000 y=24.4000 rot=0
+# pcb:sch REFIN-.GND.1 x=227.6000 y=392.7000 rot=0
+# pcb:sch PAD.GND.1 x=405.4000 y=532.4000 rot=0
+# pcb:sch VREF-.1 x=214.9000 y=392.7000 rot=0
+# pcb:sch VREF-.2 x=303.8000 y=87.9000 rot=0

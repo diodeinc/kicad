@@ -1,0 +1,174 @@
+"""MPU-9250 - 9-Axis Motion Sensor with Accelerometer, Gyroscope, and Magnetometer
+
+The MPU-9250 is a multi-chip module (MCM) consisting of two dies integrated into a single QFN 
+package. One die houses the 3-Axis gyroscope and the 3-Axis accelerometer. The other die houses 
+the AK8963 3-Axis magnetometer from Asahi Kasei Microdevices Corporation. Hence, the MPU-9250 
+is a 9-axis MotionTracking device that combines a 3-axis gyroscope, 3-axis accelerometer, 
+3-axis magnetometer and a Digital Motion Processor (DMP) all in a small 3×3×1mm package.
+
+Author: @@anthropic/claude-sonnet-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+I2cAddress = enum("0x68", "0x69")
+Interface = enum("I2C", "SPI")
+
+# Configuration
+add_decoupling = config("add_decoupling", bool, default = True)
+add_regout_cap = config("add_regout_cap", bool, default = True)
+separate_vddio = config("separate_vddio", bool, default = False)
+
+interface_type = config("interface_type", Interface, default = "I2C")
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True) if interface_type == Interface("I2C") else False
+
+if interface_type == Interface("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x68")
+
+add_aux_i2c = config("add_aux_i2c", bool, default = True)
+
+if add_aux_i2c:
+    add_aux_i2c_pullups = config("add_aux_i2c_pullups", bool, default = True)
+else:
+    add_aux_i2c_pullups = False
+
+enable_interrupt = config("enable_interrupt", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+if separate_vddio:
+    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDDIO = io("VDDIO", Net, default = VDD)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Interface connections
+if interface_type == Interface("I2C"):
+    i2c = io("I2C", I2c, default = I2c("I2C"))
+    _SDA = i2c.SDA
+    _SCL = i2c.SCL
+    _CS = Net("CS_PULLUP")  # CS will be pulled high via resistor to disable SPI interface
+else:
+    spi = io("SPI", Spi, default = Spi("SPI"))
+    _SDA = spi.MOSI
+    _SCL = spi.CLK
+    _CS = spi.CS
+
+# Optional interrupt
+if enable_interrupt:
+    INT = io("INT", Net, default = Net("INT"))
+    _INT = INT
+else:
+    _INT = Net("NC_INT")
+
+# Optional auxiliary I2C interface
+if add_aux_i2c:
+    AUX_DA = io("AUX_DA", Net, default = Net("AUX_DA"))
+    AUX_CL = io("AUX_CL", Net, default = Net("AUX_CL"))
+    _AUX_DA = AUX_DA
+    _AUX_CL = AUX_CL
+else:
+    # Per datasheet: "AUX_DA and AUX_CL should be left unconnected if the Auxiliary I2C mode is not used"
+    _AUX_DA = Net("NC_AUX_DA")
+    _AUX_CL = Net("NC_AUX_CL")
+
+# Frame sync input (optional)
+FSYNC = io("FSYNC", Net, default = GND)
+
+# Internal nets
+_AD0 = GND if interface_type == Interface("I2C") and i2c_address == I2cAddress("0x68") else VDDIO
+_SDO = spi.MISO if interface_type == Interface("SPI") else _AD0
+_REGOUT = Net("REGOUT")
+
+# Reserved pins - connect as specified in datasheet
+_RESV_VDDIO = VDDIO  # Reserved, connect to VDDIO
+_RESV_GND = GND      # Reserved, connect to GND
+
+# InvenSense 9-Axis Motion Sensor, Accelerometer, Gyroscope, Magnetometer, I2C/SPI, 3x3mm
+Component(
+    name = "MPU-9250",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "MPU-9250"),
+    footprint = File("@kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod"),
+    pins = {
+        "SDA/MOSI": _SDA,        # SDA/SDI - I2C Data / SPI MOSI
+        "AD0/MISO": _SDO,        # ADO/SDO - I2C Address LSB / SPI Data Out
+        "SCL/SCLK": _SCL,        # SCL/SCLK - I2C Clock / SPI Clock
+        "~{CS}": _CS,            # nCS - Chip select (SPI mode only)
+        "FSYNC": FSYNC,          # FSYNC - Frame sync input
+        "VDDIO": VDDIO,          # VDDIO - Digital I/O supply voltage
+        "GND": GND,              # GND - Power supply ground
+        "VDD": VDD,              # VDD - Power supply
+        "INT": _INT,             # INT - Interrupt output
+        "AUX_DA": _AUX_DA,       # AUX_DA - I2C master serial data
+        "AUX_CL": _AUX_CL,       # AUX_CL - I2C Master serial clock
+        "REGOUT": _REGOUT,       # REGOUT - Regulator output
+        "RESV_VDDIO": _RESV_VDDIO,  # Reserved, connect to VDDIO
+        "RESV_GND": _RESV_GND,   # Reserved, connect to GND
+    },
+)
+
+# Power Supply Decoupling - VDD bypass capacitor (required)
+if add_decoupling:
+    # Main VDD decoupling capacitor - per datasheet BOM: 100nF, 4V
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+    # VDDIO decoupling capacitor - per datasheet BOM: 10nF, 4V
+    Capacitor(name = "C_VDDIO", value = "10nF", package = "0402", P1 = VDDIO, P2 = GND)
+
+# Regulator Filter Capacitor - Required on REGOUT pin per datasheet BOM: 100nF, 2V
+if add_regout_cap:
+    Capacitor(name = "C_REGOUT", value = "100nF", package = "0402", P1 = _REGOUT, P2 = GND)
+
+# I2C Pull-up Resistors - Required for proper I2C operation
+if add_i2c_pullups and interface_type == Interface("I2C"):
+    # Standard 4.7k pull-ups for I2C
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDDIO)
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDDIO)
+
+# Auxiliary I2C pull-ups - independent of main interface mode
+if add_aux_i2c and add_aux_i2c_pullups:
+    Resistor(name = "R_AUX_DA", value = "4.7kohms", package = "0402", P1 = _AUX_DA, P2 = VDDIO)
+    Resistor(name = "R_AUX_CL", value = "4.7kohms", package = "0402", P1 = _AUX_CL, P2 = VDDIO)
+
+# Interrupt pull-up resistor (optional but recommended)
+if enable_interrupt:
+    Resistor(name = "R_INT", value = "10kohms", package = "0402", P1 = INT, P2 = VDDIO)
+
+# SPI interface pull-up for CS (when using I2C mode to disable SPI)
+if interface_type == Interface("I2C"):
+    # Pull CS high to disable SPI interface when using I2C
+    Resistor(name = "R_CS_PULLUP", value = "10kohms", package = "0402", P1 = _CS, P2 = VDDIO)
+
+# pcb:sch C_REGOUT.C x=715.2800 y=761.0000 rot=0
+# pcb:sch C_VDD.C x=-97.5200 y=646.7000 rot=0
+# pcb:sch C_VDDIO.C x=-8.6200 y=646.7000 rot=0
+# pcb:sch MPU-9250 x=265.7000 y=430.8000 rot=0
+# pcb:sch R_AUX_CL.R x=865.1400 y=494.3000 rot=180
+# pcb:sch R_AUX_DA.R x=801.6400 y=494.3000 rot=180
+# pcb:sch R_CS_PULLUP.R x=39.6400 y=481.6000 rot=180
+# pcb:sch R_INT.R x=725.4400 y=494.3000 rot=180
+# pcb:sch R_SCL.R x=103.1400 y=481.6000 rot=180
+# pcb:sch R_SDA.R x=166.6400 y=481.6000 rot=180
+# pcb:sch GND.1 x=430.8000 y=900.7000 rot=0
+# pcb:sch VDD.1 x=461.2800 y=380.0000 rot=0
+# pcb:sch VDDIO.1 x=42.1800 y=316.5000 rot=0
+# pcb:sch R_SDA.R x=166.6400 y=481.6000 rot=180
+# pcb:sch GND.1 x=430.8000 y=900.7000 rot=0
+# pcb:sch VDD.1 x=461.2800 y=380.0000 rot=0
+# pcb:sch VDDIO.1 x=42.1800 y=316.5000 rot=0
+# pcb:sch R_SDA.R x=166.6400 y=481.6000 rot=180
+# pcb:sch GND.1 x=430.8000 y=900.7000 rot=0
+# pcb:sch VDD.1 x=461.2800 y=380.0000 rot=0
+# pcb:sch VDDIO.1 x=42.1800 y=316.5000 rot=0
+# pcb:sch R_SDA.R x=166.6400 y=481.6000 rot=180
+# pcb:sch GND.1 x=430.8000 y=900.7000 rot=0
+# pcb:sch VDD.1 x=461.2800 y=380.0000 rot=0
+# pcb:sch VDDIO.1 x=42.1800 y=316.5000 rot=0
+

@@ -1,0 +1,189 @@
+"""AP2112K-3.3 - 600mA Low Dropout Linear Regulator with Enable
+
+The AP2112K-3.3 is a CMOS process low dropout linear regulator with enable function, 
+delivering a guaranteed 600mA (min.) continuous load current. It features a fixed 3.3V 
+output with ±1.5% accuracy, low dropout voltage of 250mV typical at 600mA, and excellent 
+line/load regulation. The device includes auto-discharge functionality, connecting the 
+output to ground via 60Ω when disabled. It operates from 2.5V to 6.0V input with low 
+quiescent current of 55µA typical and ultra-low standby current of 0.01µA typical.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.diodes.com/assets/Datasheets/AP2112.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Led = Module("@stdlib/generics/Led.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+
+# Types
+EnableControl = enum("AlwaysOn", "PullUp", "PullDown", "None")
+InputFilterType = enum("None", "RC", "LC", "FerriteBead")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "10uF")
+    
+add_output_cap = config("add_output_cap", bool, default = True)
+# Output capacitor configuration - only if output cap is enabled
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "10uF")
+
+
+add_bypass_cap = config("add_bypass_cap", bool, default = False)
+if add_bypass_cap:
+    bypass_cap_value = config("bypass_cap_value", str, default = "100nF")
+
+# Enable pin configuration
+enable_control = config("enable_control", EnableControl, default = "AlwaysOn")
+if enable_control == EnableControl("PullUp"):
+    enable_pullup_value = config("enable_pullup_value", str, default = "10kohms")
+elif enable_control == EnableControl("PullDown"):
+    enable_pulldown_value = config("enable_pulldown_value", str, default = "10kohms")
+
+# Input filtering
+input_filter_type = config("input_filter_type", InputFilterType, default = "None")
+if input_filter_type == InputFilterType("RC"):
+    input_filter_r = config("input_filter_r", str, default = "10ohms")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+elif input_filter_type == InputFilterType("LC"):
+    input_filter_l = config("input_filter_l", str, default = "4.7uH")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+elif input_filter_type == InputFilterType("FerriteBead"):
+    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default = "600ohms@100MHz")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+
+    
+# Additional bulk capacitor configuration
+add_output_bulk_cap = config("add_output_bulk_cap", bool, default = False, optional = True)
+if add_output_bulk_cap:
+    output_bulk_cap_value = config("output_bulk_cap_value", str, default = "10uF")
+
+# Additional features
+add_power_good_led = config("add_power_good_led", bool, default = False, optional = True)
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+
+# External IO
+VIN = io("VIN", Power, default = Power("VIN"))
+VOUT = io("VOUT", Power, default = Power("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Enable pin handling based on configuration
+if enable_control != EnableControl("AlwaysOn"):
+    # All modes except AlwaysOn need external EN pin
+    EN = io("EN", Net)
+    _EN = EN
+
+# Internal nets
+_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN.NET
+_NC = Net("NC")  # No connect pin
+
+# Main regulator component
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AP2112K-3.3"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "VIN": _VIN_FILT,
+        "EN": _VIN_FILT if enable_control == EnableControl("AlwaysOn") else _EN,
+        "GND": GND,
+        "NC": _NC,
+        "VOUT": VOUT.NET
+    },
+)
+
+# Input filtering
+if input_filter_type == InputFilterType("RC"):
+    Resistor(name = "R_FILT", value = input_filter_r, package = "0603", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    
+elif input_filter_type == InputFilterType("LC"):
+    Inductor(name = "L_FILT", value = input_filter_l, package = "1210", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    
+elif input_filter_type == InputFilterType("FerriteBead"):
+    FerriteBead(name = "FB_IN", package = "0805", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+
+# Input capacitor (recommended minimum 1uF ceramic)
+if add_input_cap:
+    Capacitor(name = "C_IN", value = input_cap_value, package = "0603", P1 = _VIN_FILT, P2 = GND)
+    
+# Bypass capacitor for improved noise performance
+if add_bypass_cap:
+    Capacitor(name = "C_BYP", value = bypass_cap_value, package = "0402", P1 = _VIN_FILT, P2 = GND)
+
+# Output capacitor (minimum 1uF, stable with ceramic capacitors)
+if add_output_cap:
+    # Use X7R or X5R dielectric ceramic as recommended
+    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT.NET, P2 = GND)
+
+# Additional bulk output capacitor
+if add_output_bulk_cap:
+    Capacitor(name = "C_BULK", value = output_bulk_cap_value, package = "0805", P1 = VOUT.NET, P2 = GND)
+
+# Enable pin configuration
+if enable_control == EnableControl("AlwaysOn"):
+    # Already tied to VIN through _VIN_FILT in component definition
+    pass
+    
+elif enable_control == EnableControl("PullUp"):
+    # Pull-up resistor to VIN for default on state
+    Resistor(name = "R_EN_PU", value = enable_pullup_value, package = "0402", P1 = _EN, P2 = VIN.NET)
+    
+elif enable_control == EnableControl("PullDown"):
+    # Pull-down resistor for default off state
+    Resistor(name = "R_EN_PD", value = enable_pulldown_value, package = "0402", P1 = _EN, P2 = GND)
+    
+elif enable_control == EnableControl("None"):
+    # No pull-up or pull-down, enable pin is left floating
+    pass
+
+# Power good LED indicator
+if add_power_good_led:
+    _LED_K = Net("LED_K")
+    Led(
+        name = "LED_PWR",
+        color = "green",
+        package = "0603",
+        A = VOUT.NET,
+        K = _LED_K,
+    )
+    # LED current limiting resistor for 3.3V
+    # Assuming 2V LED forward voltage, 5mA current: R = (3.3-2)/0.005 = 260Ω
+    Resistor(name = "R_LED", value = "270ohms", package = "0402", P1 = _LED_K, P2 = GND)
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(name = "TP_VIN", variant = "Pad_D2.0mm", P1 = VIN.NET)
+    TestPoint(name = "TP_VOUT", variant = "Pad_D2.0mm", P1 = VOUT.NET)
+    TestPoint(name = "TP_GND", variant = "Pad_D2.0mm", P1 = GND)
+
+# pcb:sch C_BYP.C x=-21.3200 y=341.9000 rot=0
+# pcb:sch C_IN.C x=-110.2200 y=341.9000 rot=0
+# pcb:sch C_OUT.C x=308.8800 y=341.9000 rot=0
+# pcb:sch U1 x=75.2000 y=306.9750 rot=0
+# pcb:sch GND.1 x=138.7000 y=481.6000 rot=0
+# pcb:sch VIN_VCC.1 x=-97.5200 y=278.4000 rot=0
+# pcb:sch VIN_VCC.2 x=-313.4200 y=278.4000 rot=0
+# pcb:sch C_FILT.C x=-199.1200 y=367.3000 rot=0
+# pcb:sch R_FILT.R x=-265.1600 y=303.8000 rot=270
+# pcb:sch L_FILT.L x=-258.1619 y=291.1000 rot=270
+# pcb:sch FB_IN.FB x=-282.6860 y=316.5000 rot=270
+# pcb:sch R_EN_PU.R x=1.5400 y=354.6000 rot=180
+# pcb:sch R_EN_PD.R x=14.2400 y=367.3000 rot=0
+# pcb:sch LED_PWR.LED x=405.4000 y=315.2300 rot=180
+# pcb:sch R_LED.R x=484.1400 y=354.6000 rot=0
+# pcb:sch TP_GND.TP x=67.5800 y=461.2800 rot=180
+# pcb:sch TP_VIN.TP x=4.0800 y=258.0800 rot=0
+# pcb:sch TP_VOUT.TP x=270.7800 y=245.3800 rot=0
+# pcb:sch R_OUT_PROT.R x=458.7400 y=278.4000 rot=0
+# pcb:sch VOUT_VCC.1 x=321.5800 y=265.7000 rot=0
+# pcb:sch C_BULK.C x=385.0800 y=354.6000 rot=0

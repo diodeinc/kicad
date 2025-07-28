@@ -1,0 +1,580 @@
+"""nRF52840 - Multiprotocol BLE/ANT/2.4 GHz/802.15.4 Cortex-M4F SoC
+
+The nRF52840 is a high-performance wireless system-on-chip (SoC) integrating a powerful 
+ARM Cortex-M4F processor with floating-point unit running at 64 MHz. It features multiprotocol 
+2.4 GHz radio supporting Bluetooth 5, IEEE 802.15.4, ANT, and proprietary protocols. 
+The device includes 1MB Flash, 256KB RAM, USB 2.0 full-speed controller, and numerous 
+peripherals including QSPI, PDM, I2S, ADC, PWM, UART, SPI, TWI, and more. It operates 
+from 1.7V to 5.5V supply voltage with integrated DC-DC and LDO regulators.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html
+"""
+
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power")
+
+# Import modules
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
+
+# Types
+ClockSource = enum("Internal", "Crystal", "External")
+CrystalFreq = enum("32MHz")
+ResetConfiguration = enum("None", "Pullup", "Button")
+
+# Configuration
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+
+# Reset configuration
+reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+
+# Clock configuration
+hf_clock_source = config("hf_clock_source", ClockSource, default = "Crystal")
+if hf_clock_source == ClockSource("Crystal"):
+    crystal_freq = config("crystal_freq", CrystalFreq, default = "32MHz")
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "12pF")
+
+add_lf_clock = config("add_lf_clock", bool, default = True)
+if add_lf_clock:
+    lf_crystal_capacitor_value = config("lf_crystal_capacitor_value", str, default = "12pF")
+
+# Interface configuration
+add_swd_header = config("add_swd_header", bool, default = True)
+add_usb = config("add_usb", bool, default = True)
+if add_usb:
+    add_usb_c_connector = config("add_usb_c_connector", bool, default = True)
+    power_from_usb = config("power_from_usb", bool, default = True)
+else:
+    add_usb_c_connector = False
+    power_from_usb = False
+add_nfc_antenna = config("add_nfc_antenna", bool, default = True)
+add_antenna = config("add_antenna", bool, default = True)
+if add_antenna:
+    # Antenna matching network component values
+    antenna_c11_value = config("antenna_c11_value", str, default = "0.8pF", optional = True)
+    antenna_l2_value = config("antenna_l2_value", str, default = "3.9nH", optional = True)
+    antenna_c12_value = config("antenna_c12_value", str, default = "0.5pF", optional = True)
+    antenna_series_resistor_value = config("antenna_series_resistor_value", str, default = "0ohms", optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# USB IO (if enabled)
+if add_usb:
+    usb = io("USB", Usb2)
+    VUSB = io("VUSB", Net)
+
+# SWD IO (if enabled)
+if add_swd_header:
+    swd = io("SWD", Swd)
+
+# Internal nets
+_VDDH = VDD  # Connect VDDH directly to VDD
+_DEC1 = Net("DEC1")
+_DEC2 = Net("DEC2")
+_DEC3 = Net("DEC3")
+_DEC4 = Net("DEC4")  # DEC4 and DEC6 share the same net
+_DEC5 = Net("DEC5")
+_DEC6 = _DEC4  # Connect DEC6 to DEC4 net
+_DECUSB = Net("DECUSB")
+_VSS_PA = GND
+
+# Crystal nets
+if hf_clock_source == ClockSource("Crystal"):
+    _XC1 = Net("XC1")
+    _XC2 = Net("XC2")
+else:
+    _XC1 = Net("XC1")
+    _XC2 = Net("XC2")
+
+if add_lf_clock:
+    _XL1 = Net("XL1/P0.00")
+    _XL2 = Net("XL2/P0.01")
+else:
+    XL1_P0_00 = io("XL1/P0.00", Net)
+    XL2_P0_01 = io("XL2/P0.01", Net)
+    _XL1 = XL1_P0_00
+    _XL2 = XL2_P0_01
+
+# Reset pin
+if reset_configuration == ResetConfiguration("None") or reset_configuration == ResetConfiguration("Pullup"):
+    RESET = io("P0.18/RESET", Net)
+    _RESET = RESET
+else:
+    _RESET = Net("P0.18/RESET")
+
+# DCDC pins (always using DCDC mode)
+_DCC = Net("DCC")
+_DCCH = Net("DCCH")
+
+# Antenna net
+if add_antenna:
+    _ANT = Net("ANT")
+else:
+    ANT = io("ANT", Net)
+    _ANT = ANT
+
+# NFC pins
+if add_nfc_antenna:
+    _NFC1 = Net("NFC1/P0.09")
+    _NFC2 = Net("NFC2/P0.10")
+else:
+    NFC1_P0_09 = io("NFC1/P0.09", Net)
+    NFC2_P0_10 = io("NFC2/P0.10", Net)
+    _NFC1 = NFC1_P0_09
+    _NFC2 = NFC2_P0_10
+
+# USB pins
+if add_usb:
+    _USB_DM = usb.DM
+    _USB_DP = usb.DP
+else:
+    USB_DM = io("D-", Net)
+    USB_DP = io("D+", Net)
+    _USB_DM = USB_DM
+    _USB_DP = USB_DP
+
+# SWD pins
+if add_swd_header:
+    _SWDCLK = swd.SWCLK
+    _SWDIO = swd.SWDIO
+else:
+    SWDCLK = io("SWDCLK", Net)
+    SWDIO = io("SWDIO", Net)
+    _SWDCLK = SWDCLK
+    _SWDIO = SWDIO
+
+# GPIO pins - expose remaining pins
+P0_02 = io("AIN0/P0.02", Net)
+P0_03 = io("AIN1/P0.03", Net)
+P0_04 = io("AIN2/P0.04", Net)
+P0_05 = io("AIN3/P0.05", Net)
+P0_06 = io("P0.06", Net)
+P0_07 = io("TRACECLK/P0.07", Net)
+P0_08 = io("P0.08", Net)
+P0_11 = io("TRACEDATA2/P0.11", Net)
+P0_12 = io("TRACEDATA1/P0.12", Net)
+P0_13 = io("P0.13", Net)
+P0_14 = io("P0.14", Net)
+P0_15 = io("P0.15", Net)
+P0_16 = io("P0.16", Net)
+P0_17 = io("P0.17", Net)
+P0_19 = io("P0.19", Net)
+P0_20 = io("P0.20", Net)
+P0_21 = io("P0.21", Net)
+P0_22 = io("P0.22", Net)
+P0_23 = io("P0.23", Net)
+P0_24 = io("P0.24", Net)
+P0_25 = io("P0.25", Net)
+P0_26 = io("P0.26", Net)
+P0_27 = io("P0.27", Net)
+P0_28 = io("AIN4/P0.28", Net)
+P0_29 = io("AIN5/P0.29", Net)
+P0_30 = io("AIN6/P0.30", Net)
+P0_31 = io("AIN7/P0.31", Net)
+P1_00 = io("TRACEDATA0/P1.00", Net)
+P1_01 = io("P1.01", Net)
+P1_02 = io("P1.02", Net)
+P1_03 = io("P1.03", Net)
+P1_04 = io("P1.04", Net)
+P1_05 = io("P1.05", Net)
+P1_06 = io("P1.06", Net)
+P1_07 = io("P1.07", Net)
+P1_08 = io("P1.08", Net)
+P1_09 = io("TRACEDATA3/P1.09", Net)
+P1_10 = io("P1.10", Net)
+P1_11 = io("P1.11", Net)
+P1_12 = io("P1.12", Net)
+P1_13 = io("P1.13", Net)
+P1_14 = io("P1.14", Net)
+P1_15 = io("P1.15", Net)
+
+# Main component
+Component(
+    name = "nRF52840",
+    symbol = Symbol(library = "@kicad-symbols/MCU_Nordic.kicad_sym", name = "nRF52840"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/Nordic_AQFN-73-1EP_7x7mm_P0.5mm.kicad_mod"),
+    pins = {
+        "ANT": _ANT,
+        "XC1": _XC1,
+        "XC2": _XC2,
+        "P0.18/~{RESET}": _RESET,
+        "SWDCLK": _SWDCLK,
+        "SWDIO": _SWDIO,
+        "DEC1": _DEC1,
+        "DEC2": _DEC2,
+        "DEC3": _DEC3,
+        "DEC4": _DEC4,
+        "DEC5": _DEC5,
+        "DEC6": _DEC6,
+        "DECUSB": _DECUSB,
+        "VDD": VDD,
+        "VSS": GND,
+        "VDDH": _VDDH,
+        "VSS_PA": _VSS_PA,
+        "VBUS": VUSB if add_usb else Net("NC_VBUS"),
+        "DCC": _DCC,
+        "DCCH": _DCCH,
+        "XL1/P0.00": _XL1,
+        "XL2/P0.01": _XL2,
+        "AIN0/P0.02": P0_02,
+        "AIN1/P0.03": P0_03,
+        "AIN2/P0.04": P0_04,
+        "AIN3/P0.05": P0_05,
+        "P0.06": P0_06,
+        "TRACECLK/P0.07": P0_07,
+        "P0.08": P0_08,
+        "NFC1/P0.09": _NFC1,
+        "NFC2/P0.10": _NFC2,
+        "TRACEDATA2/P0.11": P0_11,
+        "TRACEDATA1/P0.12": P0_12,
+        "P0.13": P0_13,
+        "P0.14": P0_14,
+        "P0.15": P0_15,
+        "P0.16": P0_16,
+        "P0.17": P0_17,
+        "P0.19": P0_19,
+        "P0.20": P0_20,
+        "P0.21": P0_21,
+        "P0.22": P0_22,
+        "P0.23": P0_23,
+        "P0.24": P0_24,
+        "P0.25": P0_25,
+        "P0.26": P0_26,
+        "P0.27": P0_27,
+        "AIN4/P0.28": P0_28,
+        "AIN5/P0.29": P0_29,
+        "AIN6/P0.30": P0_30,
+        "AIN7/P0.31": P0_31,
+        "TRACEDATA0/P1.00": P1_00,
+        "P1.01": P1_01,
+        "P1.02": P1_02,
+        "P1.03": P1_03,
+        "P1.04": P1_04,
+        "P1.05": P1_05,
+        "P1.06": P1_06,
+        "P1.07": P1_07,
+        "P1.08": P1_08,
+        "TRACEDATA3/P1.09": P1_09,
+        "P1.10": P1_10,
+        "P1.11": P1_11,
+        "P1.12": P1_12,
+        "P1.13": P1_13,
+        "P1.14": P1_14,
+        "P1.15": P1_15,
+        "D-": _USB_DM,
+        "D+": _USB_DP
+    },
+)
+
+# Power supply decoupling capacitors
+
+# Bulk capacitors on main VDD
+if add_bulk_caps:
+    Capacitor(name = "C_BULK1", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+
+Capacitor(name = "C_VDD", value = "4.7uF", package = "0603", P1 = VDD, P2 = GND)
+
+# DEC1 - 100nF required
+Capacitor(name = "C_DEC1", value = "100nF", package = "0402", P1 = _DEC1, P2 = GND)
+
+# DEC2 - 100nF required  
+Capacitor(name = "C_DEC2", value = "100nF", package = "0402", P1 = _DEC2, P2 = GND)
+
+# DEC3 - 100pF required
+Capacitor(name = "C_DEC3", value = "100pF", package = "0402", P1 = _DEC3, P2 = GND)
+
+# DEC4 - 1uF required, connected to DEC6
+Capacitor(name = "C_DEC4", value = "1uF", package = "0402", P1 = _DEC4, P2 = GND)
+Capacitor(name = "C_DEC5", value = "820pF", package = "0402", P1 = _DEC5, P2 = GND)
+Capacitor(name = "C_DEC6", value = "47nF", package = "0402", P1 = _DEC4, P2 = GND)
+
+
+# DEC5 - Not connected (left floating)
+# Per datasheet: Not connected for build codes Fxx and later
+
+# DEC6 - Connected to DEC4, no separate capacitor needed
+
+# DECUSB - 4.7uF required if USB is used
+Capacitor(name = "C_DECUSB", value = "4.7uF", package = "0603", P1 = _DECUSB, P2 = GND)
+# High voltage mode supply
+# Capacitor(name = "C_VDDH", value = "4.7uF", package = "0603", P1 = _VDDH, P2 = GND)
+
+# DCDC components (always using DCDC mode)
+# Intermediate net between inductors
+_L_DCDC_INT = Net("L_DCDC_INT")
+
+# DCDC inductor
+Inductor(name = "L_DCDC", value = "10uH", package = "1210", P1 = _DCC, P2 = _L_DCDC_INT)
+# Series 15nH inductor to DEC4
+Inductor(name = "L_DEC4", value = "15nH", package = "0402", P1 = _L_DCDC_INT, P2 = _DEC4)
+
+
+# VSS_PA connection
+_VSS_PA = GND
+
+# Additional VDD decoupling
+if add_decoupling_caps:
+    # Place multiple 100nF capacitors near VDD pins
+    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD3", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+# High frequency crystal oscillator
+if hf_clock_source == ClockSource("Crystal"):
+    Crystal(
+        name = "Y_HF",
+        frequency = "32MHz",
+        package = "3225_4Pin",
+        XIN = _XC1,
+        XOUT = _XC2,
+        GND = GND
+    )
+    Capacitor(name = "C_XC1", value = crystal_capacitor_value, package = "0402", P1 = _XC1, P2 = GND)
+    Capacitor(name = "C_XC2", value = crystal_capacitor_value, package = "0402", P1 = _XC2, P2 = GND)
+
+# Low frequency crystal oscillator
+if add_lf_clock:
+    Crystal(
+        name = "Y_LF",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _XL1,
+        XOUT = _XL2,
+        GND = GND
+    )
+    Capacitor(name = "C_XL1", value = lf_crystal_capacitor_value, package = "0402", P1 = _XL1, P2 = GND)
+    Capacitor(name = "C_XL2", value = lf_crystal_capacitor_value, package = "0402", P1 = _XL2, P2 = GND)
+
+# Reset configuration
+if reset_configuration == ResetConfiguration("Pullup"):
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VDD)
+    
+elif reset_configuration == ResetConfiguration("Button"):
+    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VDD)
+    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _RESET, P2 = GND)
+    Component(
+        name = "SW_RESET",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _RESET,
+            "2": GND,
+        }
+    )
+
+# USB circuit
+if add_usb:
+    if add_usb_c_connector:
+        # Internal USB data nets (before series resistors)
+        _USB_DM_INT = Net("USB_DM_INT")
+        _USB_DP_INT = Net("USB_DP_INT")
+        
+        # USB-C Configuration Channel nets
+        _USB_CC1 = Net("USB_CC1")
+        _USB_CC2 = Net("USB_CC2")
+        
+        # USB-C connector (USB 2.0 only)
+        Component(
+            name = "J_USB",
+            symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
+            footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+            pins = {
+                "VBUS": VUSB,
+                "GND": GND,
+                "CC1": _USB_CC1,
+                "CC2": _USB_CC2,
+                "D+": _USB_DP_INT,
+                "D-": _USB_DM_INT,
+                "SBU1": Net("USB_SBU1"),
+                "SBU2": Net("USB_SBU2"),
+                "SHIELD": GND,
+            }
+        )
+        
+        # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
+        Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
+        Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
+        
+        # Series resistors on USB data lines connecting to nRF52840 USB pins
+        Resistor(name = "R_USB_DM", value = "27ohms", package = "0402", P1 = _USB_DM_INT, P2 = _USB_DM)
+        Resistor(name = "R_USB_DP", value = "27ohms", package = "0402", P1 = _USB_DP_INT, P2 = _USB_DP)
+        
+        # USB ESD Protection
+        Component(
+            name = "U_USB_ESD",
+            symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
+            footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+            pins = {
+                "I/O1": _USB_DM_INT,
+                "I/O2": _USB_DP_INT,
+                "VBUS": VUSB,
+                "GND": GND,
+            },
+        )
+        
+        # VBUS decoupling
+        Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
+        Capacitor(name = "C_VBUS2", value = "100nF", package = "0402", P1 = VUSB, P2 = GND)
+    else:
+        # Simple USB connection - direct to external USB interface
+        # VBUS decoupling
+        Capacitor(name = "C_VBUS", value = "4.7uF", package = "0603", P1 = VUSB, P2 = GND)
+        # Series resistors on USB data lines
+        Resistor(name = "R_USB_DP", value = "27ohms", package = "0402", P1 = _USB_DP, P2 = usb.DP)
+        Resistor(name = "R_USB_DM", value = "27ohms", package = "0402", P1 = _USB_DM, P2 = usb.DM)
+    
+    # USB Power Regulation
+    if power_from_usb and add_usb_c_connector:
+        # 3.3V LDO regulator from USB 5V to VDD
+        AP2112K_3_3(
+            name = "U_USB_REG",
+            VIN = Power(NET = VUSB),
+            VOUT = Power(NET = VDD),
+            GND = GND,
+            add_input_cap = True,
+            add_output_cap = True,
+            enable_control = "AlwaysOn",
+        )
+
+# SWD header
+if add_swd_header:
+    PinHeader(
+        name = "J_SWD",
+        pins = 5,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Horizontal",
+        Pin_1 = VDD,       # VDD
+        Pin_2 = swd.SWDIO, # SWDIO  
+        Pin_3 = swd.SWCLK, # SWCLK
+        Pin_4 = GND,       # GND
+        Pin_5 = _RESET,    # nRESET
+    )
+
+# RF antenna matching network and antenna
+if add_antenna:
+    # Internal nets for antenna connection
+    _ANT_PORT1 = _ANT  # Port 1 - near the chip
+    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and capacitors
+    _ANT_PORT2 = Net("ANT_PORT2")  # Port 2 - near the antenna
+    _ANT_FEED = Net("ANT_FEED")  # Connection to antenna after series resistor
+    
+    # Pi-network matching circuit
+    # Port 1 side - Shunt capacitor C11
+    Capacitor(name = "C_ANT_PORT1", value = antenna_c11_value, package = "0402", P1 = _ANT_PORT1, P2 = GND)
+    
+    # Series inductor L2
+    Inductor(name = "L_ANT_MATCH", value = antenna_l2_value, package = "0402", P1 = _ANT_PORT1, P2 = _ANT_MATCH)
+    
+    # Port 2 side - Shunt capacitor C12
+    Capacitor(name = "C_ANT_PORT2", value = antenna_c12_value, package = "0402", P1 = _ANT_MATCH, P2 = GND)
+    
+    # Connection from matching network to antenna
+    _ANT_PORT2 = _ANT_MATCH
+    
+    # Series resistor to antenna (0ohms default for tuning/debugging)
+    Resistor(name = "R_ANT", value = antenna_series_resistor_value, package = "0402", P1 = _ANT_PORT2, P2 = _ANT_FEED)
+    
+    # Antenna component (2-pin chip antenna)
+    # FEED: Antenna feed, PCB_Trace: Ground connection
+    Component(
+        name = "ANT1",
+        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Antenna_Chip"),
+        footprint = File("@kicad-footprints/RF_Antenna.pretty/Johanson_2450AT18x100.kicad_mod"),
+        pins = {
+            "FEED": _ANT_FEED,
+            "PCB_Trace": GND
+        }
+    )
+
+# NFC antenna circuit
+if add_nfc_antenna:
+    # NFC tuning capacitors
+    Capacitor(name = "C_NFC1", value = "100pF", package = "0402", P1 = _NFC1, P2 = GND)
+    Capacitor(name = "C_NFC2", value = "100pF", package = "0402", P1 = _NFC2, P2 = GND)
+    
+    # NFC antenna connector (2-pin header)
+    TestPoint(name = "TP_NFC1", variant = "Pad_D1.0mm", P1 = _NFC1)
+    TestPoint(name = "TP_NFC2", variant = "Pad_D1.0mm", P1 = _NFC2)
+
+# pcb:sch C_ANT_PORT1.C x=854.9800 y=3034.3000 rot=0
+# pcb:sch C_ANT_PORT2.C x=651.7800 y=3034.3000 rot=0
+# pcb:sch C_BULK1.C x=461.2800 y=2564.4000 rot=0
+# pcb:sch C_VDD.C x=1502.6800 y=2640.6000 rot=0
+# pcb:sch C_DCCH.C x=1655.0800 y=2386.6000 rot=0
+# pcb:sch C_DEC1.C x=893.0800 y=2754.9000 rot=0
+# pcb:sch C_DEC2.C x=791.4800 y=2754.9000 rot=0
+# pcb:sch C_DEC3.C x=1032.7800 y=2627.9000 rot=90
+# pcb:sch C_DEC4.C x=1439.1800 y=2424.7000 rot=270
+# pcb:sch C_DECUSB.C x=1032.7800 y=2462.8000 rot=90
+# pcb:sch C_NFC1.C x=1782.0800 y=3110.5000 rot=0
+# pcb:sch C_NFC2.C x=1870.9800 y=3110.5000 rot=0
+# pcb:sch C_RESET.C x=575.5800 y=3923.3000 rot=0
+# pcb:sch C_VBUS.C x=2671.0800 y=3948.7000 rot=0
+# pcb:sch C_VDD1.C x=537.4800 y=2564.4000 rot=0
+# pcb:sch C_VDD2.C x=613.6800 y=2564.4000 rot=0
+# pcb:sch C_VDD3.C x=702.5800 y=2564.4000 rot=0
+# pcb:sch C_VDD4.C x=677.1800 y=2437.4000 rot=0
+# pcb:sch C_VDDH.C x=1566.1800 y=2653.3000 rot=0
+# pcb:sch C_XC1.C x=626.3800 y=3542.3000 rot=0
+# pcb:sch C_XC2.C x=854.9800 y=3542.3000 rot=0
+# pcb:sch C_XL1.C x=1807.4800 y=2742.2000 rot=270
+# pcb:sch C_XL2.C x=1820.1800 y=2856.5000 rot=270
+# pcb:sch ANT1 x=500.6500 y=2834.2750 rot=0
+# pcb:sch J_NFC.PH x=1935.7500 y=3047.0000 rot=0
+# pcb:sch J_SWD.PH x=741.9500 y=3974.1000 rot=90
+# pcb:sch L_ANT_MATCH.L x=770.5381 y=2970.8000 rot=90
+# pcb:sch R_ANT.R x=547.6400 y=2970.8000 rot=90
+# pcb:sch L_DCDC.L x=1380.1381 y=2653.3000 rot=180
+# pcb:sch R_RESET.R x=585.7400 y=3796.3000 rot=180
+# pcb:sch R_USB_DM.R x=1728.7400 y=4024.9000 rot=90
+# pcb:sch R_USB_DP.R x=1728.7400 y=4075.7000 rot=90
+# pcb:sch SW_RESET x=468.9000 y=3943.6200 rot=90
+# pcb:sch Y_HF.Y x=722.9000 y=3466.1000 rot=0
+# pcb:sch Y_LF.Y x=1726.2000 y=2818.4000 rot=90
+# pcb:sch nRF52840 x=951.5000 y=2754.9000 rot=0
+# pcb:sch GND.1 x=583.2000 y=2653.3000 rot=0
+# pcb:sch VDD.1 x=588.2800 y=2500.9000 rot=0
+# pcb:sch VDD.2 x=816.8800 y=3809.0000 rot=0
+# pcb:sch VDD.3 x=588.2800 y=3758.2000 rot=0
+# pcb:sch VDD.4 x=1515.3800 y=2589.8000 rot=0
+# pcb:sch VDD.5 x=2544.0800 y=3656.6000 rot=0
+# pcb:sch GND.2 x=1281.7000 y=4202.7000 rot=0
+# pcb:sch GND.3 x=748.3000 y=3643.9000 rot=0
+# pcb:sch GND.4 x=1878.6000 y=2932.7000 rot=0
+# pcb:sch GND.5 x=2348.5000 y=4266.2000 rot=0
+# pcb:sch GND.6 x=849.9000 y=2856.5000 rot=0
+# pcb:sch GND.7 x=926.1000 y=2577.1000 rot=90
+# pcb:sch GND.8 x=583.2000 y=4075.7000 rot=0
+# pcb:sch GND.9 x=583.2000 y=2945.4000 rot=0
+# pcb:sch GND.10 x=761.0000 y=3123.2000 rot=0
+# pcb:sch GND.11 x=1510.3000 y=2742.2000 rot=0
+# pcb:sch GND.12 x=1789.7000 y=3212.1000 rot=0
+# pcb:sch GND.14 x=1548.4000 y=2488.2000 rot=270
+# pcb:sch GND.15 x=2475.5000 y=4190.0000 rot=0
+# pcb:sch GND.16 x=2424.7000 y=3834.4000 rot=0
+# pcb:sch C_VBUS2.C x=2569.4800 y=3948.7000 rot=0
+# pcb:sch J_USB x=1980.2000 y=3910.6000 rot=0
+# pcb:sch R_USB_CC1.R x=2516.1400 y=4024.9000 rot=0
+# pcb:sch R_USB_CC2.R x=2452.6400 y=4024.9000 rot=0
+# pcb:sch U_USB_ESD x=2310.4000 y=4037.6000 rot=0
+# pcb:sch GND.13 x=1878.6000 y=3212.1000 rot=0
+# pcb:sch TP_NFC1.TP x=2010.6800 y=3039.3800 rot=90
+# pcb:sch TP_NFC2.TP x=1959.8800 y=3064.7800 rot=90
+# pcb:sch L_DEC4.L x=1380.1381 y=2551.7000 rot=180
+# pcb:sch C_DEC6.C x=1439.1800 y=2500.9000 rot=270
+
+# pcb:sch C_DEC5.C x=1032.7800 y=2551.7000 rot=90
+# pcb:sch U_USB_REG.C_IN.C x=2302.7800 y=3720.1000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=2531.3800 y=3720.1000 rot=0
+# pcb:sch U_USB_REG.U1 x=2361.2000 y=3685.1750 rot=0

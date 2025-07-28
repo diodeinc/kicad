@@ -1,0 +1,47 @@
+"""WS2812B - Intelligent RGB LED with integrated controller
+
+The WS2812B is an intelligent control LED light source that integrates control circuit 
+and RGB chip in a single 5050 package. Each LED contains an intelligent digital port 
+data latch and signal reshaping amplification drive circuit, along with a precision 
+internal oscillator and programmable constant current control. The LED uses single-wire 
+NZR communication at 800 Kbps and can be cascaded with automatic signal reshaping. 
+Each pixel provides 24-bit color (8 bits per channel) for 16.7 million colors total.
+
+Key features:
+- Single-wire digital control interface
+- 5V operation (4.5-5.5V operating range)
+- 256 brightness levels per color channel
+- Cascade-able design with automatic signal reshaping
+- Built-in electric reset and power-lost reset circuits
+- Data transmission rate: 800 Kbps
+- Maximum cascade distance between LEDs: 5 meters
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+"""
+
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+DIN = io("DIN", Net)
+DOUT = io("DOUT", Net)
+
+# WS2812B LED Component
+Component(
+    name = "LED",
+    symbol = Symbol(library = "@kicad-symbols/LED.kicad_sym", name = "WS2812B"),
+    footprint = File("@kicad-footprints/LED_SMD.pretty/LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm.kicad_mod"),
+    pins = {
+        "DIN": DIN,
+        "DOUT": DOUT,
+        "VDD": VDD,
+        "VSS": GND
+    },
+)
+
+
+# pcb:sch LED x=75.2000 y=87.9000 rot=0
+# pcb:sch GND.1 x=138.7000 y=278.4000 rot=0
+# pcb:sch VDD.1 x=143.7800 y=24.4000 rot=0

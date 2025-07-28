@@ -697,3 +697,4 @@ if add_jtag_header:
 # pcb:sch L_ANT_MATCH.L x=1342.0381 y=2145.3000 rot=270
 # pcb:sch J_JTAG.PH x=1529.3500 y=1015.0000 rot=0
 # pcb:sch R_GPIO3.R x=649.2400 y=1459.5000 rot=90
+# pcb:sch TP_RESET.TP x=1477.2800 y=1921.7800 rot=0
