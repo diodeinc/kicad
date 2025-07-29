@@ -1,0 +1,171 @@
+"""MAX30102 - High-Sensitivity Pulse Oximeter and Heart-Rate Sensor for Wearable Health
+
+The MAX30102 is an integrated pulse oximetry and heart-rate monitor module designed for 
+wearable health applications. It includes internal LEDs (Red and IR), photodetectors, 
+optical elements, and low-noise electronics with ambient light rejection. The device 
+operates on a single 1.8V power supply and a separate 3.3V power supply for the internal 
+LEDs. Communication is through a standard I²C-compatible interface. The module features 
+ultra-low power operation (<1mW for heart-rate monitoring), programmable sample rates 
+up to 3200sps, 18-bit ADC resolution, and operates from -40°C to +85°C.
+
+Key features:
+- Integrated pulse oximetry and heart-rate sensor
+- Tiny 5.6mm × 3.3mm × 1.55mm 14-pin optical module
+- Integrated cover glass for optimal performance
+- Ultra-low shutdown current (0.7μA typical)
+- High SNR with robust motion artifact resilience
+- 32-sample data FIFO
+- Programmable LED current for power savings
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30102.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+PowerConfiguration = enum("Separate", "Combined")
+InterruptConfiguration = enum("None", "PullUp", "TestPoint")
+I2CPullUpConfiguration = enum("External", "Internal", "None")
+LEDCurrentRange = enum("Low", "Medium", "High", "Max")
+
+# Configuration
+power_configuration = config("power_configuration", PowerConfiguration, default = "Separate")
+add_power_decoupling = config("add_power_decoupling", bool, default = True)
+add_led_power_filtering = config("add_led_power_filtering", bool, default = True)
+add_led_bypass_caps = config("add_led_bypass_caps", bool, default = True)
+
+interrupt_configuration = config("interrupt_configuration", InterruptConfiguration, default = "PullUp")
+if interrupt_configuration == InterruptConfiguration("PullUp") or interrupt_configuration == InterruptConfiguration("TestPoint"):
+    interrupt_pullup_value = config("interrupt_pullup_value", str, default = "4.7kohms")
+
+i2c_pullup_configuration = config("i2c_pullup_configuration", I2CPullUpConfiguration, default = "External")
+if i2c_pullup_configuration == I2CPullUpConfiguration("External"):
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# LED configuration
+led_current_range = config("led_current_range", LEDCurrentRange, default = "Medium")
+add_led_test_points = config("add_led_test_points", bool, default = False, optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Power supply for LEDs - conditionally exposed based on power configuration
+if power_configuration == PowerConfiguration("Separate"):
+    VLED = io("VLED", Net, default = Net("VLED", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
+    _VLED_PLUS = VLED
+else:
+    # Combined power - use VDD for LED power
+    _VLED_PLUS = VDD
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Interrupt output - conditionally exposed based on configuration
+if interrupt_configuration == InterruptConfiguration("None"):
+    INT = io("INT", Net)
+    _INT = INT
+else:
+    _INT = Net("INT")
+
+# Internal nets
+PGND = Net("PGND")
+
+# Create NC (No Connect) net for unused pins
+NC_NET = Net("NC")
+
+# Heart Rate Sensor, 14-OLGA
+Component(
+    name = "MAX30102",
+    symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "MAX30102"),
+    footprint = File("@kicad-footprints/OptoDevice.pretty/Maxim_OLGA-14_3.3x5.6mm_P0.8mm.kicad_mod"),
+    pins = {
+        "SCL": i2c.SCL,      # Pin 2
+        "SDA": i2c.SDA,      # Pin 3
+        "NC": NC_NET,        # Multiple NC pins
+        "VDD": VDD,          # Pin 11
+        "PGND": PGND,        # Pin 4
+        "VLED+": _VLED_PLUS, # Pins 9 & 10 (connected internally)
+        "GND": GND,          # Pin 12
+        "~{INT}": _INT,      # Pin 13
+    },
+)
+
+# Connect PGND to GND - they must be at the same potential
+# Using a ferrite bead for noise isolation
+if add_led_power_filtering:
+    FerriteBead(name = "FB_PGND", package = "0603", P1 = GND, P2 = PGND)
+else:
+    # Direct connection if no filtering
+    PGND = GND
+
+# Power Supply Decoupling
+if add_power_decoupling:
+    # VDD decoupling - place close to pin 11
+    # From datasheet: 4.7μF and 0.1μF
+    Capacitor(name = "C_VDD1", value = "4.7uF", package = "0603", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+# LED Power Supply Bypass Capacitors
+if add_led_bypass_caps:
+    # VLED+ bypass capacitors - critical for LED pulse current handling
+    # Place as close as possible to pins 9/10
+    # From datasheet: at least 1μF bypass capacitance
+    Capacitor(name = "C_VLED1", value = "10uF", package = "0805", P1 = _VLED_PLUS, P2 = PGND)
+    Capacitor(name = "C_VLED2", value = "100nF", package = "0402", P1 = _VLED_PLUS, P2 = PGND)
+
+# I2C Pull-up Resistors
+if i2c_pullup_configuration == I2CPullUpConfiguration("External"):
+    # External pull-ups to VDD for I2C communication
+    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD)
+    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD)
+
+# Interrupt Configuration
+if interrupt_configuration == InterruptConfiguration("PullUp"):
+    # Pull-up resistor for open-drain interrupt output
+    Resistor(name = "R_INT", value = interrupt_pullup_value, package = "0402", P1 = _INT, P2 = VDD)
+    
+elif interrupt_configuration == InterruptConfiguration("TestPoint"):
+    # Pull-up resistor and test point
+    Resistor(name = "R_INT", value = interrupt_pullup_value, package = "0402", P1 = _INT, P2 = VDD)
+    TestPoint(name = "TP_INT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _INT)
+
+# LED Test Points (optional)
+if add_led_test_points:
+    # Test points for LED cathode monitoring (for debugging LED operation)
+    TestPoint(name = "TP_VLED", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _VLED_PLUS)
+    TestPoint(name = "TP_PGND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = PGND)
+
+# LED Current Setting
+# The LED current is controlled via I2C registers (0x0C Red LED, 0x0D IR LED)
+# Current ranges: Low (0-12.5mA), Medium (12.5-25.5mA), High (25.5-51mA), Max (51mA)
+if led_current_range == LEDCurrentRange("Max"):
+    # For maximum current (up to 51mA), ensure robust power delivery
+    # Additional bulk capacitance for high current pulses
+    if add_led_bypass_caps:
+        Capacitor(name = "C_VLED_BULK", value = "22uF", package = "1206", P1 = _VLED_PLUS, P2 = PGND)
+
+# pcb:sch C_VDD1.C x=-72.1200 y=672.1000 rot=0
+# pcb:sch C_VDD2.C x=29.4800 y=672.1000 rot=0
+# pcb:sch C_VLED1.C x=562.8800 y=710.2000 rot=0
+# pcb:sch C_VLED2.C x=664.4800 y=710.2000 rot=0
+# pcb:sch FB_PGND.FB x=149.1140 y=761.0000 rot=270
+# pcb:sch R_INT.R x=509.5400 y=608.6000 rot=180
+# pcb:sch R_SCL.R x=166.6400 y=570.5000 rot=180
+# pcb:sch R_SDA.R x=103.1400 y=583.2000 rot=180
+# pcb:sch GND.1 x=354.6000 y=875.3000 rot=0
+# pcb:sch VDD.1 x=-59.4200 y=532.4000 rot=0
+# pcb:sch VLED.1 x=677.1800 y=532.4000 rot=0
+# pcb:sch MAX30102 x=240.3000 y=583.2000 rot=0
+# pcb:sch TP_INT.TP x=512.0800 y=740.6800 rot=180
+# pcb:sch TP_PGND.TP x=308.8800 y=905.7800 rot=180
+# pcb:sch TP_VLED.TP x=334.2800 y=448.5800 rot=0
+# pcb:sch C_VLED_BULK.C x=778.7800 y=710.2000 rot=0

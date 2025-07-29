@@ -1,0 +1,293 @@
+"""EA DOGL128X-6 - 128x64 Graphic Display with ST7565R Controller
+
+The EA DOGL128X-6 is a compact 128x64 pixel graphic display featuring an ST7565R 
+controller with SPI interface. It operates from a single 3.0-3.3V supply with 
+ultra-low power consumption (typically 320µA). The display supports various LCD 
+technologies (STN/FSTN) and optional LED backlighting in multiple colors. With 
+its solderable pins and flat profile (2.8mm without backlight), it's ideal for 
+space-constrained handheld devices. Operating temperature range is -20°C to +70°C.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+PowerMode = enum("LowPower", "LowVoltage")
+
+# Backlight configuration types based on EA DOGL128X-6 datasheet:
+# The display has 3 internal LED segments (A1/C1, A2/C2, A3/C3) that can be configured:
+# - BacklightType: Color of the LED backlight module
+#   - None: No backlight
+#   - White/Blue: ~3.3V forward voltage LEDs
+#   - YellowGreen/Amber: ~2.1V forward voltage LEDs  
+#   - Red: ~2.0V forward voltage LEDs
+#   - RGB: Not directly supported - would need external RGB backlight
+# - BacklightConfig: How the 3 LED segments are connected
+#   - Series: All 3 segments in series (needs higher voltage)
+#   - Parallel: All 3 segments in parallel (needs more current)
+#   - External: Use external backlight control instead of internal segments
+BacklightType = enum("None", "White", "YellowGreen", "Blue", "Red", "Amber", "RGB")
+BacklightConfig = enum("Series", "Parallel", "External")
+
+# Configuration
+power_mode = config("power_mode", PowerMode, default = "LowVoltage")
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_reset_pullup = config("add_reset_pullup", bool, default = True)
+add_reset_cap = config("add_reset_cap", bool, default = True)
+add_cs_pullup = config("add_cs_pullup", bool, default = True)
+
+# Backlight configuration
+add_backlight = config("add_backlight", bool, default = True)
+if add_backlight:
+    backlight_type = config("backlight_type", BacklightType, default = "White")
+    backlight_config = config("backlight_config", BacklightConfig, default = "Series")
+    if backlight_config != BacklightConfig("External"):
+        backlight_current_ma = config("backlight_current_ma", int, default = 15)
+    if backlight_type == BacklightType("RGB"):
+        rgb_common_anode = config("rgb_common_anode", bool, default = True)
+
+# Test points
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# SPI Interface
+spi = io("SPI", Spi)
+
+# Control signals
+RST = io("RST", Net)
+A0 = io("A0", Net)  # Data/Command select (0=Command, 1=Data)
+
+# Power mode specific IO
+if power_mode == PowerMode("LowVoltage"):
+    # External voltage for display bias
+    V0_EXT = io("V0_EXT", Net)
+
+# Backlight IO
+if add_backlight and backlight_config == BacklightConfig("External"):
+    if backlight_type == BacklightType("RGB"):
+        LED_R = io("LED_R", Net)
+        LED_G = io("LED_G", Net)
+        LED_B = io("LED_B", Net)
+    else:
+        LED_A = io("LED_A", Net)
+        LED_K = io("LED_K", Net)
+
+# Internal nets
+
+_CAP1P = Net("CAP1P")
+_CAP1N = Net("CAP1N")
+_CAP2P = Net("CAP2P")
+_CAP2N = Net("CAP2N")
+_CAP3P = Net("CAP3P")
+
+# VOUT net - always its own net regardless of power mode
+_VOUT = Net("VOUT")
+
+# V0 net - in low power mode it's internal, in low voltage mode it connects to external V0
+if power_mode == PowerMode("LowPower"):
+    _V0 = Net("V0")
+else:  # LowVoltage mode
+    _V0 = V0_EXT
+
+_V1 = Net("V1")
+_V2 = Net("V2")
+_V3 = Net("V3")
+_V4 = Net("V4")
+
+# Backlight nets
+if add_backlight and backlight_config != BacklightConfig("External") and backlight_type != BacklightType("RGB"):
+    # For internal backlight, determine connections based on configuration
+    if backlight_config == BacklightConfig("Series"):
+        # Series connection of 3 LED segments
+        _LED_A1 = VDD
+        _LED_K1 = Net("LED_K1")  # Intermediate connection to A2
+        _LED_A2 = _LED_K1        # Connect K1 to A2
+        _LED_K2 = Net("LED_K2")  # Intermediate connection to A3  
+        _LED_A3 = _LED_K2        # Connect K2 to A3
+        _LED_K3 = Net("LED_K3")  # Final cathode to resistor
+    else:  # Parallel configuration
+        # Parallel connection of 3 LED segments
+        _LED_A1 = VDD
+        _LED_A2 = VDD
+        _LED_A3 = VDD
+        _LED_K1 = Net("LED_K1")
+        _LED_K2 = Net("LED_K2")
+        _LED_K3 = Net("LED_K3")
+else:
+    # Not using internal backlight - assign NC nets
+    _LED_A1 = Net("NC_A1")
+    _LED_A2 = Net("NC_A2")
+    _LED_A3 = Net("NC_A3")
+    _LED_K1 = Net("NC_C1")
+    _LED_K2 = Net("NC_C2")
+    _LED_K3 = Net("NC_C3")
+
+# Main display component
+Component(
+    name = "DISPLAY",
+    symbol = Symbol(library = "@kicad-symbols/Display_Graphic.kicad_sym", name = "EA_DOGL128X-6"),
+    footprint = File("@kicad-footprints/Display.pretty/EA_DOGL128-6.kicad_mod"),
+    pins = {
+        "~{RST}": RST,
+        "~{CS1B}": spi.CS,
+        "A0": A0,
+        "SI": spi.MOSI,
+        "SCL": spi.CLK,
+        "CAP1P": _CAP1P,
+        "CAP1N": _CAP1N,
+        "CAP3P": _CAP3P,
+        "CAP2N": _CAP2N,
+        "CAP2P": _CAP2P,
+        "VDD2": VDD,  # VDD2 always connects to VDD
+        "VDD": VDD,
+        "VSS": GND,
+        "A1+": _LED_A1,
+        "C1-": _LED_K1,
+        "A2+": _LED_A2,
+        "C2-": _LED_K2,
+        "A3+": _LED_A3,
+        "C3-": _LED_K3,
+        "V0": _V0,
+        "V1": _V1,
+        "V2": _V2,
+        "V3": _V3,
+        "V4": _V4,
+        "VOUT": _VOUT
+    },
+)
+
+# Power supply decoupling
+if add_decoupling_caps:
+    # Main VDD decoupling
+    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+
+# Reset circuit
+if add_reset_pullup:
+    Resistor(name = "R_RST", value = "10kohms", package = "0402", P1 = RST, P2 = VDD)
+if add_reset_cap:
+    Capacitor(name = "C_RST", value = "100nF", package = "0402", P1 = RST, P2 = GND)
+
+# CS pull-up
+if add_cs_pullup:
+    Resistor(name = "R_CS", value = "10kohms", package = "0402", P1 = spi.CS, P2 = VDD)
+
+# Power mode specific components
+if power_mode == PowerMode("LowPower"):
+    # Low Power mode - Internal voltage generator with charge pump
+    
+    # Charge pump capacitors (only needed in low power mode)
+    Capacitor(name = "C_CAP1", value = "1uF", package = "0603", P1 = _CAP1P, P2 = _CAP1N)
+    Capacitor(name = "C_CAP2", value = "1uF", package = "0603", P1 = _CAP2P, P2 = _CAP2N)
+    Capacitor(name = "C_CAP3", value = "1uF", package = "0603", P1 = _CAP3P, P2 = _CAP1N)
+
+else:  # LowVoltage mode
+    # Low Voltage mode - External voltage supply
+    # In this mode, V0_EXT is connected to VOUT through the conditional net assignment above
+    pass
+
+# Voltage divider capacitors (needed in both modes)
+Capacitor(name = "C_V0", value = "1uF", package = "0603", P1 = _V0, P2 = GND)
+Capacitor(name = "C_V1", value = "1uF", package = "0603", P1 = _V1, P2 = GND)
+Capacitor(name = "C_V2", value = "1uF", package = "0603", P1 = _V2, P2 = GND)
+Capacitor(name = "C_V3", value = "1uF", package = "0603", P1 = _V3, P2 = GND)   
+Capacitor(name = "C_V4", value = "1uF", package = "0603", P1 = _V4, P2 = GND)
+
+# VOUT decoupling capacitor
+Capacitor(name = "C_VOUT", value = "1uF", package = "0603", P1 = _VOUT, P2 = GND)
+
+# Backlight circuit
+if add_backlight and backlight_config != BacklightConfig("External") and backlight_type != BacklightType("RGB"):
+    # Monochrome backlight configuration
+    # Calculate resistor values based on backlight type
+    if backlight_type == BacklightType("White") or backlight_type == BacklightType("Blue"):
+        vf_typical = 3.3
+    elif backlight_type == BacklightType("YellowGreen"):
+        vf_typical = 2.1
+    elif backlight_type == BacklightType("Red"):
+        vf_typical = 2.0
+    elif backlight_type == BacklightType("Amber"):
+        vf_typical = 2.1
+    else:
+        vf_typical = 2.1  # Default
+    
+    if backlight_config == BacklightConfig("Series"):
+        # Single current limiting resistor for series configuration
+        # R = (VDD - 3*Vf) / I
+        # For white/blue LEDs (3x3.3V = 9.9V) with 3.3V supply, this won't work
+        # Must use external higher voltage supply or parallel configuration
+        if vf_typical >= 3.0:
+            # Cannot drive 3 white/blue LEDs in series from 3.3V
+            # Must use external LED driver or parallel configuration
+            # Adding a placeholder resistor with high value to prevent damage
+            Resistor(name = "R_LED_EXT", value = "10kohms", package = "0603", P1 = _LED_K3, P2 = GND)
+        else:
+            # Calculate resistance for lower voltage LEDs
+            r_value = int((3.3 - 3 * vf_typical) / (backlight_current_ma / 1000.0))
+            if r_value < 10:  # Minimum 10 ohms for safety
+                r_value = 10
+            Resistor(name = "R_LED", value = f"{r_value}ohms", package = "0603", P1 = _LED_K3, P2 = GND)
+            
+    else:  # Parallel configuration
+        # Individual current limiting resistors
+        # R = (VDD - Vf) / I
+        r_value = int((3.3 - vf_typical) / (backlight_current_ma / 1000.0 / 3))  # Divide current by 3
+        if r_value < 10:  # Minimum 10 ohms for safety
+            r_value = 10
+            
+        Resistor(name = "R_LED1", value = f"{r_value}ohms", package = "0402", P1 = _LED_K1, P2 = GND)
+        Resistor(name = "R_LED2", value = f"{r_value}ohms", package = "0402", P1 = _LED_K2, P2 = GND)
+        Resistor(name = "R_LED3", value = f"{r_value}ohms", package = "0402", P1 = _LED_K3, P2 = GND)
+
+# Test points
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "Pad_D1.0mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "Pad_D1.0mm", P1 = GND)
+    TestPoint(name = "TP_RST", variant = "Pad_D1.0mm", P1 = RST)
+    TestPoint(name = "TP_CS", variant = "Pad_D1.0mm", P1 = spi.CS)
+    TestPoint(name = "TP_A0", variant = "Pad_D1.0mm", P1 = A0)
+    TestPoint(name = "TP_MOSI", variant = "Pad_D1.0mm", P1 = spi.MOSI)
+    TestPoint(name = "TP_SCK", variant = "Pad_D1.0mm", P1 = spi.CLK)
+
+# pcb:sch C_CAP1.C x=372.3800 y=646.7000 rot=0
+# pcb:sch C_CAP2.C x=448.5800 y=824.5000 rot=180
+# pcb:sch C_CAP3.C x=372.3800 y=748.3000 rot=180
+# pcb:sch C_RST.C x=296.1800 y=697.5000 rot=0
+# pcb:sch C_V0.C x=1108.9800 y=684.8000 rot=0
+# pcb:sch C_V1.C x=1070.8800 y=748.3000 rot=0
+# pcb:sch C_V2.C x=1020.0800 y=710.2000 rot=0
+# pcb:sch C_V3.C x=969.2800 y=786.4000 rot=0
+# pcb:sch C_V4.C x=918.4800 y=748.3000 rot=0
+# pcb:sch C_VDD1.C x=194.5800 y=659.4000 rot=0
+# pcb:sch C_VDD2.C x=118.3800 y=659.4000 rot=0
+# pcb:sch DISPLAY x=532.4000 y=481.6000 rot=0
+# pcb:sch R_CS.R x=255.5400 y=494.3000 rot=180
+# pcb:sch R_LED.R x=738.1400 y=964.2000 rot=180
+# pcb:sch R_LED_EXT.R x=738.1400 y=964.2000 rot=180
+# pcb:sch R_LED1.R x=700.0400 y=964.2000 rot=180
+# pcb:sch R_LED2.R x=738.1400 y=964.2000 rot=180
+# pcb:sch R_LED3.R x=776.2400 y=964.2000 rot=180
+# pcb:sch R_RST.R x=306.3400 y=468.9000 rot=180
+# pcb:sch GND.1 x=672.1000 y=926.1000 rot=0
+# pcb:sch VDD.1 x=664.4800 y=430.8000 rot=0
+
+# pcb:sch GND.2 x=1027.7000 y=951.5000 rot=0
+# pcb:sch C_VOUT.C x=854.9800 y=811.8000 rot=0
+# pcb:sch TP_A0.TP x=499.3800 y=321.5800 rot=0
+# pcb:sch TP_CS.TP x=397.7800 y=346.9800 rot=0
+# pcb:sch TP_GND.TP x=308.8800 y=956.5800 rot=180
+# pcb:sch TP_MOSI.TP x=435.8800 y=321.5800 rot=0
+# pcb:sch TP_RST.TP x=359.6800 y=321.5800 rot=0
+# pcb:sch TP_SCK.TP x=473.9800 y=346.9800 rot=0
+# pcb:sch TP_VDD.TP x=131.0800 y=346.9800 rot=0

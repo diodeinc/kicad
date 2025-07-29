@@ -1,0 +1,149 @@
+"""ISL29035 - Integrated Ambient Light Sensor with I2C Interface
+
+The ISL29035 is an integrated ambient and infrared light-to-digital converter with I2C 
+(SMBus compatible) Interface. Its advanced self-calibrated photodiode array emulates 
+human eye response with excellent IR rejection. The on-chip ADC is capable of rejecting 
+50Hz and 60Hz flicker caused by artificial light sources. Features 16-bit ADC resolution, 
+wide dynamic range 1:4,200,000, programmable interrupt threshold, and operates from 
+2.25V to 3.63V supply with 57µA typical current consumption.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl29035.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Configuration options
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+add_interrupt_pullup = config("add_interrupt_pullup", bool, default = True)
+if add_interrupt_pullup:
+    interrupt_pullup_value = config("interrupt_pullup_value", str, default = "10kohms")
+
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IOs
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Interrupt output
+INT = io("INT", Net)
+
+# Internal nets
+_NC = Net("NC")
+
+# Main sensor component
+Component(
+    name = "ISL29035",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Optical.kicad_sym", name = "ISL29035"),
+    footprint = File("@kicad-footprints/OptoDevice.pretty/Renesas_DFN-6_1.5x1.6mm_P0.5mm.kicad_mod"),
+    pins = {
+        "NC": _NC,
+        "VDD": VDD,
+        "GND": GND,
+        "SDA": i2c.SDA,
+        "SCL": i2c.SCL,
+        "~INT": INT
+    },
+)
+
+# Power supply decoupling - as per datasheet recommendations (Figure 1)
+if add_bulk_cap:
+    # 1µF bulk capacitor placed close to device (ceramic type shown in typical circuit)
+    Capacitor(
+        name = "C_BULK",
+        value = "1uF",
+        voltage = "10V",
+        package = "0603",
+        P1 = VDD,
+        P2 = GND
+    )
+
+if add_decoupling_caps:
+    # 0.1µF decoupling capacitor placed close to device (as shown in typical circuit)
+    Capacitor(
+        name = "C_DECOUPLE",
+        value = "0.1uF",
+        voltage = "10V",
+        package = "0402",
+        P1 = VDD,
+        P2 = GND
+    )
+
+# I2C pull-up resistors
+# Required for proper I2C communication - typical circuit shows 4.7k pull-ups
+if add_i2c_pullups:
+    Resistor(
+        name = "R_SCL_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SDA,
+        P2 = VDD
+    )
+
+# Interrupt pull-up resistor
+# INT pin is open-drain output - typical circuit shows 4.7k pull-up
+if add_interrupt_pullup:
+    Resistor(
+        name = "R_INT_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = INT,
+        P2 = VDD
+    )
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(
+        name = "TP_SDA",
+        variant = "Pad_D1.0mm",
+        P1 = i2c.SDA
+    )
+    
+    TestPoint(
+        name = "TP_SCL",
+        variant = "Pad_D1.0mm",
+        P1 = i2c.SCL
+    )
+    
+    TestPoint(
+        name = "TP_INT",
+        variant = "Pad_D1.0mm",
+        P1 = INT
+    )
+    
+    TestPoint(
+        name = "TP_VDD",
+        variant = "Pad_D1.0mm",
+        P1 = VDD
+    )
+
+# pcb:sch C_BULK.C x=385.0800 y=227.6000 rot=0
+# pcb:sch C_DECOUPLE.C x=258.0800 y=227.6000 rot=0
+# pcb:sch ISL29035 x=519.7000 y=202.2000 rot=0
+# pcb:sch R_INT_PU.R x=941.3400 y=151.4000 rot=180
+# pcb:sch R_SCL_PU.R x=877.8400 y=151.4000 rot=180
+# pcb:sch R_SDA_PU.R x=814.3400 y=151.4000 rot=180
+# pcb:sch GND.1 x=583.2000 y=418.1000 rot=0
+# pcb:sch VDD.1 x=588.2800 y=113.3000 rot=0

@@ -1,0 +1,240 @@
+"""LM317 3-Pin Adjustable Linear Regulator in SOT-223 Package
+
+The LM317 is an adjustable three-pin, positive-voltage regulator capable of supplying 
+more than 1.5A over an output voltage range of 1.25V to 37V. The device requires only 
+two external resistors to set the output voltage. The device features a typical line 
+regulation of 0.01% and typical load regulation of 0.1%. The LM317 includes current 
+limiting, thermal overload protection, and safe operating area protection. Overload 
+protection remains functional even if the ADJUST pin is disconnected.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm317.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+OutputVoltage = enum("3.3V", "5V", "12V", "15V", "24V", "Adjustable")
+InputCapacitorType = enum("Ceramic", "Electrolytic", "Both")
+OutputCapacitorType = enum("None", "Ceramic", "Tantalum", "Electrolytic")
+
+# Configuration
+output_voltage = config("output_voltage", OutputVoltage, default = "5V")
+if output_voltage == OutputVoltage("Adjustable"):
+    target_voltage = config("target_voltage", float, default = 12.0)
+    # Validate voltage range
+    if target_voltage < 1.25 or target_voltage > 37:
+        fail("Target voltage must be between 1.25V and 37V")
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0603")
+
+# Input/Output capacitor configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_type = config("input_cap_type", InputCapacitorType, default = "Ceramic")
+    input_cap_distance = config("input_cap_distance", float, default = 6.0)  # inches from power supply
+
+add_output_cap = config("add_output_cap", bool, default = True)
+if add_output_cap:
+    output_cap_type = config("output_cap_type", OutputCapacitorType, default = "Tantalum")
+
+# Ripple rejection enhancement
+add_adjust_cap = config("add_adjust_cap", bool, default = False)
+if add_adjust_cap:
+    adjust_cap_value = config("adjust_cap_value", str, default = "10uF")
+
+# Protection diodes
+add_protection_diodes = config("add_protection_diodes", bool, default = False)
+
+# Test points
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_VI = VIN.NET
+_VO = VOUT.NET
+_ADJ = Net("ADJ")
+
+# Main LM317 Component
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LM317_SOT-223"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins = {
+        "VI": _VI,
+        "ADJ": _ADJ,
+        "VO": _VO
+    },
+)
+
+# Calculate resistor values based on output voltage
+# VOUT = 1.25V × (1 + R2/R1) + IADJ × R2
+# IADJ is typically 50µA and can be neglected for R2 < 20k
+if output_voltage == OutputVoltage("3.3V"):
+    r1_value = "240ohms"
+    r2_value = "390ohms"
+elif output_voltage == OutputVoltage("5V"):
+    r1_value = "240ohms"
+    r2_value = "720ohms"
+elif output_voltage == OutputVoltage("12V"):
+    r1_value = "240ohms"
+    r2_value = "2.2kohms"
+elif output_voltage == OutputVoltage("15V"):
+    r1_value = "240ohms"
+    r2_value = "2.8kohms"
+elif output_voltage == OutputVoltage("24V"):
+    r1_value = "240ohms"
+    r2_value = "4.5kohms"
+else:  # Adjustable
+    # Calculate R2 for given R1 = 240ohms
+    r1_value = "240ohms"
+    r2_calculated = 240 * (target_voltage / 1.25 - 1)
+    # Find nearest E24 value
+    if r2_calculated <= 100:
+        r2_value = "100ohms"
+    elif r2_calculated <= 120:
+        r2_value = "120ohms"
+    elif r2_calculated <= 150:
+        r2_value = "150ohms"
+    elif r2_calculated <= 180:
+        r2_value = "180ohms"
+    elif r2_calculated <= 220:
+        r2_value = "220ohms"
+    elif r2_calculated <= 270:
+        r2_value = "270ohms"
+    elif r2_calculated <= 330:
+        r2_value = "330ohms"
+    elif r2_calculated <= 390:
+        r2_value = "390ohms"
+    elif r2_calculated <= 470:
+        r2_value = "470ohms"
+    elif r2_calculated <= 560:
+        r2_value = "560ohms"
+    elif r2_calculated <= 680:
+        r2_value = "680ohms"
+    elif r2_calculated <= 820:
+        r2_value = "820ohms"
+    elif r2_calculated <= 1000:
+        r2_value = "1kohms"
+    elif r2_calculated <= 1200:
+        r2_value = "1.2kohms"
+    elif r2_calculated <= 1500:
+        r2_value = "1.5kohms"
+    elif r2_calculated <= 1800:
+        r2_value = "1.8kohms"
+    elif r2_calculated <= 2200:
+        r2_value = "2.2kohms"
+    elif r2_calculated <= 2700:
+        r2_value = "2.7kohms"
+    elif r2_calculated <= 3300:
+        r2_value = "3.3kohms"
+    elif r2_calculated <= 3900:
+        r2_value = "3.9kohms"
+    elif r2_calculated <= 4700:
+        r2_value = "4.7kohms"
+    elif r2_calculated <= 5600:
+        r2_value = "5.6kohms"
+    elif r2_calculated <= 6800:
+        r2_value = "6.8kohms"
+    elif r2_calculated <= 8200:
+        r2_value = "8.2kohms"
+    else:
+        r2_value = "10kohms"
+
+# Voltage setting resistors
+# R1: Between VO and ADJ (1% tolerance for accuracy)
+Resistor(name = "R1", value = r1_value, package = passives_size, P1 = _VO, P2 = _ADJ)
+
+# R2: Between ADJ and GND (1% tolerance for accuracy)
+Resistor(name = "R2", value = r2_value, package = passives_size, P1 = _ADJ, P2 = GND)
+
+# Input capacitor
+if add_input_cap:
+    if input_cap_type == InputCapacitorType("Ceramic"):
+        if input_cap_distance > 6:
+            # Use 1µF ceramic for distant supply
+            Capacitor(name = "C_IN", value = "1uF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
+        else:
+            # Use 0.1µF ceramic for close supply
+            Capacitor(name = "C_IN", value = "100nF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
+    elif input_cap_type == InputCapacitorType("Electrolytic"):
+        # Electrolytic for high current/ripple applications
+        cap_size = "1210" if passives_size == "0603" else "1206"
+        Capacitor(name = "C_IN", value = "10uF", voltage = "50V", package = cap_size, P1 = _VI, P2 = GND)
+    else:  # Both
+        Capacitor(name = "C_IN1", value = "10uF", voltage = "50V", package = "1206", P1 = _VI, P2 = GND)
+        Capacitor(name = "C_IN2", value = "100nF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
+
+# Output capacitor (improves transient response)
+if add_output_cap:
+    if output_cap_type == OutputCapacitorType("Ceramic"):
+        Capacitor(name = "C_OUT", value = "1uF", voltage = "50V", package = passives_size, P1 = _VO, P2 = GND)
+    elif output_cap_type == OutputCapacitorType("Tantalum"):
+        # Tantalum for better transient response
+        cap_size = "1210" if passives_size == "0603" else "1206"
+        Capacitor(name = "C_OUT", value = "1uF", voltage = "35V", package = cap_size, P1 = _VO, P2 = GND)
+    elif output_cap_type == OutputCapacitorType("Electrolytic"):
+        cap_size = "1210" if passives_size == "0603" else "1206"
+        Capacitor(name = "C_OUT", value = "100uF", voltage = "35V", package = cap_size, P1 = _VO, P2 = GND)
+
+# Adjust pin capacitor for improved ripple rejection
+if add_adjust_cap:
+    # Typically 10µF for 80dB ripple rejection at 120Hz
+    cap_size = "1206" if passives_size == "0603" else "0805"
+    Capacitor(name = "C_ADJ", value = adjust_cap_value, voltage = "25V", package = cap_size, P1 = _ADJ, P2 = GND)
+
+# Protection diodes
+if add_protection_diodes:
+    # D1: Protects against C_OUT discharge through regulator
+    if add_output_cap:
+        Diode(
+            name = "D1",
+            package = "SOD-323",
+            A = _VO,
+            K = _VI
+        )
+    
+    # D2: Protects against C_ADJ discharge through regulator
+    if add_adjust_cap:
+        Diode(
+            name = "D2",
+            package = "SOD-323",
+            A = _ADJ,
+            K = _VO
+        )
+
+# Test points
+if add_test_points:
+    TestPoint(name = "TP_VIN", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _VI)
+    TestPoint(name = "TP_VOUT", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _VO)
+    TestPoint(name = "TP_ADJ", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _ADJ)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = GND)
+
+# PCB Layout hints (as comments for the designer)
+# pcb:sch U1 x=49.8000 y=-10.5250 rot=0
+# pcb:sch R1.R x=255.5400 y=62.5000 rot=0
+# pcb:sch R2.R x=255.5400 y=164.1000 rot=0
+# pcb:sch C_IN.C x=-97.5200 y=75.2000 rot=0
+# pcb:sch C_OUT.C x=321.5800 y=87.9000 rot=0
+# pcb:sch D1.D x=62.5000 y=-77.2000 rot=0
+# pcb:sch GND.1 x=113.3000 y=265.7000 rot=0
+# pcb:sch VI.VCC.1 x=-84.8200 y=-77.2000 rot=0
+# pcb:sch VO.VCC.1 x=334.2800 y=-64.5000 rot=0
+# pcb:sch C_ADJ.C x=105.6800 y=151.4000 rot=0
+# pcb:sch D2.D x=176.8000 y=62.5000 rot=90
+# pcb:sch TP_ADJ.TP x=207.2800 y=270.7800 rot=180
+# pcb:sch TP_GND.TP x=29.4800 y=181.8800 rot=0
+# pcb:sch TP_VIN.TP x=-122.9200 y=-46.7200 rot=0
+# pcb:sch TP_VOUT.TP x=283.4800 y=-97.5200 rot=0

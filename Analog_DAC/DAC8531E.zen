@@ -1,0 +1,209 @@
+"""DAC8531E - Low-Power, Rail-to-Rail Output, 16-Bit Serial Input Digital-to-Analog Converter
+
+The DAC8531E is a low-power, single-channel, 16-bit buffered voltage output digital-to-analog converter (DAC). 
+It features excellent linearity, low power consumption (250µA at 5V), and operates from 2.7V to 5.5V. 
+The device uses a versatile three-wire serial interface (SPI-compatible) that operates at clock rates 
+up to 30MHz. It includes power-on reset to zero scale and supports multiple power-down modes. The DAC 
+provides rail-to-rail output operation with an on-chip precision output amplifier capable of driving 
+2kΩ loads in parallel with 1000pF.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/dac8531.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi", "Power")
+
+# Import modules
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+OutputLoad = enum("Light", "Heavy")
+ReferenceSource = enum("External", "VDD")
+
+# Configuration
+add_power_decoupling = config("add_power_decoupling", bool, default = True)
+add_bulk_capacitor = config("add_bulk_capacitor", bool, default = True)
+add_output_filtering = config("add_output_filtering", bool, default = False)
+if add_output_filtering:
+    output_load = config("output_load", OutputLoad, default = "Light")
+
+reference_source = config("reference_source", ReferenceSource, default = "External")
+
+if reference_source == ReferenceSource("External"):
+    add_reference_filtering = config("add_reference_filtering", bool, default = True)
+    add_reference_bulk_cap = config("add_reference_bulk_cap", bool, default = True)
+else:
+    add_reference_filtering = config("add_reference_filtering", bool, default = False)
+    add_reference_bulk_cap = config("add_reference_bulk_cap", bool, default = False)
+
+add_output_feedback_path = config("add_output_feedback_path", bool, default = True)
+add_test_points = config("add_test_points", bool, default = True)
+
+# External IO
+VDD = io("VDD", Power, default = Power("VDD"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# SPI interface - Note: This is SPI-compatible but uses SYNC instead of CS
+spi = io("SPI", Spi)
+
+# Reference voltage
+if reference_source == ReferenceSource("External"):
+    VREF = io("VREF", Net)
+else:
+    VREF = VDD.NET  # Use VDD as reference
+
+# Output
+VOUT = io("VOUT", Net)
+
+# Output feedback
+if add_output_feedback_path:
+    VFB = io("VFB", Net, default = VOUT)  # Default to direct connection
+else:
+    VFB = Net("VFB")  # Internal net
+
+# Internal nets
+_VOUT_INT = Net("VOUT_INT") if add_output_filtering else VOUT
+_VREF_FILT = Net("VREF_FILT") if add_reference_filtering and reference_source == ReferenceSource("External") else VREF
+
+# Main component
+Component(
+    name = "DAC8531E",
+    symbol = Symbol(library = "@kicad-symbols/Analog_DAC.kicad_sym", name = "DAC8531E"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-8_3x3mm_P0.65mm.kicad_mod"),
+    pins = {
+        "SCLK": spi.CLK,
+        "D_{IN}": spi.MOSI,
+        "~{SYNC}": spi.CS,
+        "V_{REF}": _VREF_FILT,
+        "GND": GND,
+        "V_{DD}": VDD.NET,
+        "V_{FB}": VFB,
+        "V_{OUT}": _VOUT_INT
+    },
+)
+
+# Power supply decoupling - as recommended in datasheet layout section (0.1µF)
+if add_power_decoupling:
+    # High frequency decoupling capacitor close to VDD pin
+    Capacitor(
+        name = "C_VDD",
+        value = "0.1uF",
+        package = "0402",
+        P1 = VDD.NET,
+        P2 = GND
+    )
+
+# Bulk capacitor - as recommended in datasheet (1µF to 10µF)
+if add_bulk_capacitor:
+    # Bulk capacitor for power supply
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        package = "0805",
+        P1 = VDD.NET,
+        P2 = GND
+    )
+
+# Reference voltage filtering - important for low noise operation
+if add_reference_filtering and reference_source == ReferenceSource("External"):
+    # RC filter for reference voltage
+    Resistor(
+        name = "R_REF",
+        value = "10ohms",
+        package = "0402",
+        P1 = VREF,
+        P2 = _VREF_FILT
+    )
+    
+    # High-frequency reference decoupling capacitor (100nF)
+    Capacitor(
+        name = "C_REF",
+        value = "100nF",
+        package = "0402",
+        P1 = _VREF_FILT,
+        P2 = GND
+    )
+
+# Bulk reference capacitor for low-frequency filtering
+if add_reference_bulk_cap and reference_source == ReferenceSource("External"):
+    # 1uF bulk capacitor on reference voltage
+    Capacitor(
+        name = "C_REF_BULK",
+        value = "1uF",
+        package = "0603",
+        P1 = _VREF_FILT if add_reference_filtering else VREF,
+        P2 = GND
+    )
+
+# Output filtering - optional based on application
+if add_output_filtering:
+    # RC filter for output
+    # Series resistor (small value to maintain accuracy)
+    Resistor(
+        name = "R_OUT",
+        value = "50ohms",
+        package = "0402",
+        P1 = _VOUT_INT,
+        P2 = VOUT
+    )
+    
+    # Filter capacitor
+    if output_load == OutputLoad("Light"):
+        # Light load: smaller capacitor for faster response
+        Capacitor(
+            name = "C_OUT",
+            value = "100pF",
+            package = "0402",
+            P1 = VOUT,
+            P2 = GND
+        )
+    else:  # Heavy load
+        # Heavy load: larger capacitor for better filtering
+        # Note: Max load capacitance is 1000pF for stability
+        Capacitor(
+            name = "C_OUT",
+            value = "470pF",
+            package = "0402",
+            P1 = VOUT,
+            P2 = GND
+        )
+
+# Test points
+if add_test_points:
+    # Test point on output
+    TestPoint(
+        name = "TP_VOUT",
+        variant = "Pad_D1.0mm",
+        P1 = VOUT
+    )
+    
+    # Test point on reference voltage  
+    TestPoint(
+        name = "TP_VREF",
+        variant = "Pad_D1.0mm",
+        P1 = _VREF_FILT
+    )
+    
+    # Test point on VDD
+    TestPoint(
+        name = "TP_VDD",
+        variant = "Pad_D1.0mm",
+        P1 = VDD.NET
+    )
+
+# pcb:sch C_BULK.C x=156.4800 y=405.4000 rot=0
+# pcb:sch C_REF.C x=829.5800 y=303.8000 rot=0
+# pcb:sch C_REF_BULK.C x=931.1800 y=303.8000 rot=0
+# pcb:sch C_VDD.C x=270.7800 y=405.4000 rot=0
+# pcb:sch DAC8531E x=430.8000 y=341.9000 rot=0
+# pcb:sch R_REF.R x=1055.6400 y=253.0000 rot=90
+# pcb:sch GND.1 x=164.1000 y=583.2000 rot=0
+# pcb:sch VDD_VCC.1 x=169.1800 y=278.4000 rot=0
+# pcb:sch C_OUT.C x=867.6800 y=494.3000 rot=0
+# pcb:sch R_OUT.R x=814.3400 y=430.8000 rot=270
+# pcb:sch TP_VDD.TP x=473.9800 y=207.2800 rot=0
+# pcb:sch TP_VOUT.TP x=804.1800 y=423.1800 rot=0
+# pcb:sch TP_VREF.TP x=550.1800 y=207.2800 rot=0

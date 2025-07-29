@@ -1,0 +1,202 @@
+"""LM337 - Adjustable Negative Linear Voltage Regulator (SOT-223 Package)
+
+The LM337 is an adjustable 3-terminal negative voltage regulator capable of supplying 
+1.5A or more current over an output voltage range of -1.25V to -37V. It requires only 
+two external resistors to set the output voltage and features excellent line and load 
+regulation. The device includes internal current limiting, thermal overload protection 
+and safe operating area protection. The SOT-223 package provides good thermal 
+performance in a surface mount format.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm337.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
+
+# Types
+OutputVoltage = enum("-3.3V", "-5V", "-9V", "-12V", "-15V", "-24V", "Custom")
+ProtectionDiodes = enum("None", "Input", "Output", "Full")
+
+# Configuration
+output_voltage = config("output_voltage", OutputVoltage, default = "-24V")
+if output_voltage == OutputVoltage("Custom"):
+    custom_voltage = config("custom_voltage", float, default = -5.0)
+    custom_r1 = config("custom_r1", str, default = "120ohm", optional = True)
+    custom_r2 = config("custom_r2", str, default = "360ohm", optional = True)
+
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_bypass_cap = config("add_bypass_cap", bool, default = True)
+if add_bypass_cap:
+    bypass_cap_value = config("bypass_cap_value", str, default = "10uF")
+
+add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default = "Full")
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_ADJ = Net("ADJ")
+_VI = VIN.NET
+_VO = VOUT.NET
+
+# Main component
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LM337_SOT223"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins = {
+        "VI": _VI,
+        "ADJ": _ADJ,
+        "VO": _VO
+    },
+)
+
+# Calculate resistor values based on output voltage
+# VOUT = -1.25V * (1 + R2/R1) + (-IADJ * R2)
+# Neglecting IADJ term for simplicity (typically 65uA)
+if output_voltage == OutputVoltage("-3.3V"):
+    r1_value = "120ohm"
+    r2_value = "200ohm"
+elif output_voltage == OutputVoltage("-5V"):
+    r1_value = "120ohm"
+    r2_value = "360ohm"
+elif output_voltage == OutputVoltage("-9V"):
+    r1_value = "120ohm"
+    r2_value = "720ohm"
+elif output_voltage == OutputVoltage("-12V"):
+    r1_value = "120ohm"
+    r2_value = "1kohm"
+elif output_voltage == OutputVoltage("-15V"):
+    r1_value = "120ohm"
+    r2_value = "1.3kohm"
+elif output_voltage == OutputVoltage("-24V"):
+    r1_value = "120ohm"
+    r2_value = "2.2kohm"
+else:  # Custom
+    r1_value = custom_r1
+    r2_value = custom_r2
+
+# Voltage setting resistors
+# R1 connects between VOUT and ADJ
+Resistor(
+    name = "R1",
+    value = r1_value,
+    package = "0603",
+    P1 = _VO,
+    P2 = _ADJ
+)
+
+# R2 connects between ADJ and GND
+Resistor(
+    name = "R2", 
+    value = r2_value,
+    package = "0603",
+    P1 = _ADJ,
+    P2 = GND
+)
+
+# Input capacitor (1uF tantalum or 10uF aluminum required if >4" from filter)
+if add_input_cap:
+    Capacitor(
+        name = "C_IN",
+        value = "10uF",
+        voltage = "50V",
+        package = "1206",
+        P1 = _VI,
+        P2 = GND
+    )
+
+# Output capacitor (1uF tantalum improves transient response)
+if add_output_cap:
+    Capacitor(
+        name = "C_OUT",
+        value = "10uF",
+        voltage = "35V", 
+        package = "1206",
+        P1 = _VO,
+        P2 = GND
+    )
+
+# ADJ bypass capacitor (improves ripple rejection)
+if add_bypass_cap:
+    Capacitor(
+        name = "C_ADJ",
+        value = bypass_cap_value,
+        voltage = "25V",
+        package = "0805",
+        P1 = _ADJ,
+        P2 = GND
+    )
+
+# Protection diodes
+if add_protection_diodes != ProtectionDiodes("None"):
+    # D1: Protects against input short when output cap > 20uF
+    if add_protection_diodes == ProtectionDiodes("Input") or add_protection_diodes == ProtectionDiodes("Full"):
+        Diode(
+            name = "D1",
+            variant = "Standard",
+            package = "SMB",
+            v_r = "100V",
+            i_f = "1A",
+            A = _VI,
+            K = _VO
+        )
+    
+    # D2: Protects against output short when ADJ cap > 10uF and |VOUT| > 25V
+    if add_protection_diodes == ProtectionDiodes("Output") or add_protection_diodes == ProtectionDiodes("Full"):
+        Diode(
+            name = "D2",
+            variant = "Standard",
+            package = "SMB",
+            v_r = "100V",
+            i_f = "1A",
+            A = _VO,
+            K = _ADJ,
+        )
+
+# Test points
+if add_test_points:
+    TestPoint(
+        name = "TP_VIN",
+        variant = "Pad_1.0x1.0mm",
+        P1 = _VI
+    )
+    
+    TestPoint(
+        name = "TP_VOUT",
+        variant = "Pad_1.0x1.0mm",
+        P1 = _VO
+    )
+    
+    TestPoint(
+        name = "TP_ADJ",
+        variant = "Pad_1.0x1.0mm",
+        P1 = _ADJ
+    )
+
+# pcb:sch C_ADJ.C x=105.6800 y=405.4000 rot=180
+# pcb:sch C_IN.C x=-21.3200 y=468.9000 rot=180
+# pcb:sch C_OUT.C x=372.3800 y=468.9000 rot=180
+# pcb:sch D1.D x=100.6000 y=697.5000 rot=180
+# pcb:sch D2.D x=176.8000 y=545.1000 rot=90
+# pcb:sch R1.R x=280.9400 y=532.4000 rot=180
+# pcb:sch R2.R x=280.9400 y=405.4000 rot=180
+# pcb:sch TP_ADJ.TP x=207.2800 y=461.2800 rot=0
+# pcb:sch TP_VIN.TP x=-8.6200 y=639.0800 rot=180
+# pcb:sch TP_VOUT.TP x=283.4800 y=651.7800 rot=180
+# pcb:sch U1 x=49.8000 y=535.5750 rot=0
+# pcb:sch GND.1 x=418.1000 y=418.1000 rot=0
+# pcb:sch GND.2 x=-140.7000 y=430.8000 rot=0
+# pcb:sch VI.VCC.1 x=-135.6200 y=583.2000 rot=0
+# pcb:sch VO.VCC.1 x=423.1800 y=583.2000 rot=0

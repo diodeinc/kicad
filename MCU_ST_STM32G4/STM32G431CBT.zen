@@ -1,0 +1,656 @@
+"""STM32G431CBT - ARM Cortex-M4 32-bit MCU+FPU, 170MHz, 128KB Flash, 32KB RAM
+
+The STM32G431CBT is a high-performance microcontroller based on the ARM Cortex-M4 
+32-bit RISC core with FPU operating at up to 170 MHz. It features 128KB of Flash 
+memory, 32KB of SRAM (including 10KB CCM RAM), mathematical accelerators (CORDIC 
+and FMAC), and an extensive range of enhanced I/Os and peripherals. The device 
+includes 2x 12-bit ADCs (4 Msps), 4x comparators, 3x operational amplifiers, 
+4x DAC channels, up to 14 timers, and multiple communication interfaces including 
+USB, FDCAN, I2C, SPI, and USART. It operates from 1.71V to 3.6V and includes 
+advanced power-saving modes.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/stm32g431cb.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power")
+AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+Led = Module("@stdlib/generics/Led.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+NetTie = Module("@stdlib/generics/NetTie.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+
+# Types
+ClockSource = enum("Internal", "Crystal", "External")
+CrystalFreq = enum("4MHz", "8MHz", "16MHz", "24MHz", "48MHz")
+BootConfiguration = enum("None", "Resistors", "Buttons", "Header")
+BootPull = enum("Pullup", "Pulldown")
+ResetConfiguration = enum("None", "Pullup", "TestPoint", "Button")
+
+# Configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_power_decoupling = config("add_power_decoupling", bool, default = True)
+add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
+add_vbat_ferrite_bead = config("add_vbat_ferrite_bead", bool, default = True)
+add_vref_buffer = config("add_vref_buffer", bool, default = True)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# Reset configuration
+reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+
+# Status and power LEDs
+add_status_led = config("add_status_led", bool, default = True, optional = False)
+add_power_led = config("add_power_led", bool, default = True, optional = False)
+
+# Boot configuration
+boot_configuration = config("boot_configuration", BootConfiguration, default = "Buttons")
+if boot_configuration == BootConfiguration("Resistors"):
+    boot0_pull = config("boot0_pull", BootPull, default = "Pulldown")
+elif boot_configuration == BootConfiguration("Buttons"):
+    add_boot0_led = config("add_boot0_led", bool, default = True, optional = True)
+
+# Clock configuration
+clock_source = config("clock_source", ClockSource, default = "Crystal")
+if clock_source == ClockSource("Crystal"):
+    crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "10pF")
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
+    if add_crystal_series_resistor:
+        crystal_series_resistor = config("crystal_series_resistor", str, default = "0ohm")
+
+add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
+
+# Interface configuration
+add_swd_header = config("add_swd_header", bool, default = True)
+add_usb = config("add_usb", bool, default = True, optional = True)
+if add_usb:
+    power_from_usb = config("power_from_usb", bool, default = True, optional = True)
+add_fdcan = config("add_fdcan", bool, default = True, optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# GPIO IO - Expose all available GPIO pins to the user
+# Port A pins
+PA0 = io("PA0", Net)
+PA1 = io("PA1", Net)
+PA2 = io("PA2", Net)
+PA3 = io("PA3", Net)
+PA4 = io("PA4", Net)
+PA5 = io("PA5", Net)
+PA6 = io("PA6", Net)
+PA7 = io("PA7", Net)
+PA8 = io("PA8", Net)
+PA9 = io("PA9", Net)
+PA10 = io("PA10", Net)
+PA15 = io("PA15", Net)
+
+# Port B pins
+PB0 = io("PB0", Net)
+PB1 = io("PB1", Net)
+PB3 = io("PB3", Net)
+PB4 = io("PB4", Net)
+PB5 = io("PB5", Net)
+PB6 = io("PB6", Net)
+PB7 = io("PB7", Net)
+# PB8 - BOOT0 (conditionally exposed)
+if boot_configuration == BootConfiguration("None"):
+    PB8 = io("PB8", Net)
+    _BOOT0 = PB8
+else:
+    _BOOT0 = Net("BOOT0")
+PB9 = io("PB9", Net)
+PB10 = io("PB10", Net)
+PB11 = io("PB11", Net)
+PB12 = io("PB12", Net)
+PB13 = io("PB13", Net)
+PB14 = io("PB14", Net)
+PB15 = io("PB15", Net)
+
+# Port F pins
+PF0 = io("PF0", Net)
+PF1 = io("PF1", Net)
+
+# USB IO (if enabled) - PA11 and PA12
+if add_usb:
+    usb = io("USB", Usb2)
+    VUSB = io("VUSB", Net)
+    PA11 = usb.DM
+    PA12 = usb.DP
+else:
+    PA11 = io("PA11", Net)
+    PA12 = io("PA12", Net)
+
+# SWD IO (if enabled) - PA13 and PA14
+if add_swd_header:
+    swd = io("SWD", Swd)
+    PA13 = swd.SWDIO
+    PA14 = swd.SWCLK
+else:
+    PA13 = io("PA13", Net)
+    PA14 = io("PA14", Net)
+
+# FDCAN IO (if enabled) - PB8 and PB9
+if add_fdcan:
+    fdcan = io("FDCAN", Can)
+
+# PC13 - conditionally exposed based on status LED configuration
+if add_status_led:
+    _PC13 = Net("PC13")
+else:
+    PC13 = io("PC13", Net)
+    _PC13 = PC13
+
+# Low Speed Oscillator pins - PC14 and PC15 (conditionally exposed)
+if add_low_speed_oscillator:
+    _PC14 = Net("PC14_OSC32_IN")
+    _PC15 = Net("PC15_OSC32_OUT")
+else:
+    PC14 = io("PC14", Net)
+    PC15 = io("PC15", Net)
+    _PC14 = PC14
+    _PC15 = PC15
+
+# NRST - conditionally exposed based on reset configuration
+if reset_configuration == ResetConfiguration("None") or reset_configuration == ResetConfiguration("Pullup"):
+    NRST = io("NRST", Net)
+    _NRST = NRST
+else:
+    _NRST = Net("NRST")
+
+# PG10 - NRST pin on LQFP48 package
+PG10 = _NRST
+
+# Internal nets
+_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA")) if add_analog_decoupling else VDD
+_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
+_VREF_PLUS = Net("VREF+") if add_vref_buffer else VDD
+
+# STMicroelectronics Arm Cortex-M4 MCU, 128KB flash, 32KB RAM, 170 MHz, 1.71-3.6V, 44 GPIO, LQFP48
+Component(
+    name = "STM32G431CBT",
+    symbol = Symbol(library = "@kicad-symbols/MCU_ST_STM32G4.kicad_sym", name = "STM32G431CBTx"),
+    footprint = File("@kicad-footprints/Package_QFP.pretty/LQFP-48_7x7mm_P0.5mm.kicad_mod"),
+    pins = {
+        "VREF+": _VREF_PLUS,
+        "PG10": PG10,
+        "PF0": PF0,
+        "PF1": PF1,
+        "PC13": _PC13,
+        "PC14": _PC14,
+        "PC15": _PC15,
+        "PB0": PB0,
+        "PB1": PB1,
+        "PB2": Net("PB2"),  # BOOT1 internally
+        "PB3": PB3,
+        "PB4": PB4,
+        "PB5": PB5,
+        "PB6": PB6,
+        "PB7": PB7,
+        "PB8": _BOOT0,
+        "PB9": PB9,
+        "PB10": PB10,
+        "PB11": PB11,
+        "PB12": PB12,
+        "PB13": PB13,
+        "PB14": PB14,
+        "PB15": PB15,
+        "VBAT": _VBAT,
+        "VDD": VDD,
+        "VSS": GND,
+        "VSSA": _VSSA,
+        "VDDA": _VDDA,
+        "PA0": PA0,
+        "PA1": PA1,
+        "PA2": PA2,
+        "PA3": PA3,
+        "PA4": PA4,
+        "PA5": PA5,
+        "PA6": PA6,
+        "PA7": PA7,
+        "PA8": PA8,
+        "PA9": PA9,
+        "PA10": PA10,
+        "PA11": PA11,
+        "PA12": PA12,
+        "PA13": PA13,
+        "PA14": PA14,
+        "PA15": PA15
+    }
+)
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    bulk_size = "0805" if passives_size == "0402" else passives_size
+    Capacitor(name = "C_BULK", value = "10uF", package = bulk_size, P1 = VDD, P2 = GND)
+
+# Power Supply Decoupling - One capacitor per VDD pin (2 total for LQFP48)
+if add_power_decoupling:
+    Capacitor(name = "C_VDD1", value = "100nF", package = passives_size, P1 = VDD, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "100nF", package = passives_size, P1 = VDD, P2 = GND)
+
+# Analog Power Supply Decoupling
+if add_analog_decoupling:
+    # Connect VDDA to VDD through ferrite bead for noise filtering
+    FerriteBead(name = "FB_VDDA", package = passives_size, P1 = VDD, P2 = _VDDA)
+    # Connect VSSA to GND using net tie
+    NetTie(name = "NT_VSSA", P1 = GND, P2 = _VSSA)
+    # VDDA decoupling
+    Capacitor(name = "C_VDDA", value = "100nF", package = passives_size, P1 = _VDDA, P2 = _VSSA)
+    Capacitor(name = "C_VDDA2", value = "1uF", package = passives_size, P1 = _VDDA, P2 = _VSSA)
+elif not add_analog_decoupling and add_power_decoupling:
+    # Direct connection to VDD
+    Capacitor(name = "C_VDDA", value = "100nF", package = passives_size, P1 = VDD, P2 = GND)
+    _VDDA = VDD
+    _VSSA = GND
+else:
+    # If analog decoupling is disabled, tie directly
+    _VDDA = VDD
+    _VSSA = GND
+
+# VBAT Connection
+if add_vbat_ferrite_bead:
+    # Connect to VDD through ferrite bead for noise filtering
+    FerriteBead(name = "FB_VBAT", package = passives_size, P1 = VDD, P2 = _VBAT)
+    # VBAT filtering capacitor
+    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size, P1 = _VBAT, P2 = GND)
+elif not add_vbat_ferrite_bead and add_power_decoupling:
+    # Direct connection to VDD
+    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size, P1 = VDD, P2 = GND)
+    _VBAT = VDD
+else:
+    # If analog decoupling is disabled, tie directly
+    _VBAT = VDD
+
+# Voltage Reference Buffer
+if add_vref_buffer:
+    # Connect VREF+ to VDD through ferrite bead for noise filtering
+    FerriteBead(name = "FB_VREF", package = passives_size, P1 = VDD, P2 = _VREF_PLUS)
+    # External reference decoupling
+    Capacitor(name = "C_VREF", value = "100nF", package = passives_size, P1 = _VREF_PLUS, P2 = _VSSA)
+    Capacitor(name = "C_VREF2", value = "1uF", package = passives_size, P1 = _VREF_PLUS, P2 = _VSSA)
+else:
+    # Connect VREF+ directly to VDD
+    Capacitor(name = "C_VREF", value = "100nF", package = passives_size, P1 = _VREF_PLUS, P2 = _VSSA)
+    Capacitor(name = "C_VREF2", value = "1uF", package = passives_size, P1 = _VREF_PLUS, P2 = _VSSA)
+
+# Reset Configuration
+if reset_configuration == ResetConfiguration("Pullup"):
+    # Pull-up resistor only
+    Resistor(name = "R_RESET", value = "10kohms", package = passives_size, P1 = _NRST, P2 = VDD)
+
+elif reset_configuration == ResetConfiguration("TestPoint"):
+    # Pull-up resistor, capacitor, and test point
+    Resistor(name = "R_RESET", value = "10kohms", package = passives_size, P1 = _NRST, P2 = VDD)
+    Capacitor(name = "C_RESET", value = "100nF", package = passives_size, P1 = _NRST, P2 = GND)
+    TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _NRST)
+
+elif reset_configuration == ResetConfiguration("Button"):
+    # Pull-up resistor, capacitor, and reset button
+    Resistor(name = "R_RESET", value = "10kohms", package = passives_size, P1 = _NRST, P2 = VDD)
+    Capacitor(name = "C_RESET", value = "100nF", package = passives_size, P1 = _NRST, P2 = GND)
+    Component(
+        name = "SW_RESET",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": GND,
+            "2": _NRST,
+        }
+    )
+
+# Boot Configuration
+if boot_configuration == BootConfiguration("Resistors"):
+    # BOOT0 configuration
+    if boot0_pull == BootPull("Pullup"):
+        Resistor(name = "R_BOOT0", value = "10kohms", package = passives_size, P1 = _BOOT0, P2 = VDD)
+    else:  # Pulldown
+        Resistor(name = "R_BOOT0", value = "10kohms", package = passives_size, P1 = _BOOT0, P2 = GND)
+
+elif boot_configuration == BootConfiguration("Buttons"):
+    # Pull-down resistor for normal Flash boot
+    Resistor(name = "R_BOOT0", value = "10kohms", package = passives_size, P1 = _BOOT0, P2 = GND)
+    
+    # BOOT0 Button
+    Component(
+        name = "SW_BOOT0",
+        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
+        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins = {
+            "1": _BOOT0,
+            "2": VDD,
+        }
+    )
+    
+    # Boot LED indicator
+    if add_boot0_led:
+        _LED_BOOT0_K = Net("LED_BOOT0_K")
+        Led(
+            name = "LED_BOOT0",
+            color = "yellow",
+            package = "0603",
+            A = _BOOT0,
+            K = _LED_BOOT0_K,
+        )
+        Resistor(name = "R_LED_BOOT0", value = "1kohms", package = passives_size, P1 = _LED_BOOT0_K, P2 = GND)
+
+elif boot_configuration == BootConfiguration("Header"):
+    # 2x2 header for boot configuration with series resistor
+    _BOOT0_HEADER = Net("BOOT0_HEADER")
+    
+    Resistor(name = "R_BOOT0_SERIES", value = "100kohms", package = passives_size, P1 = _BOOT0, P2 = _BOOT0_HEADER)
+    
+    # Pin layout (2 rows, 2 pins per row):
+    # Row 1 (odd pins):  1=VDD, 3=BOOT0
+    # Row 2 (even pins): 2=GND, 4=GND
+    PinHeader(
+        name = "J_BOOT",
+        pins = 2,
+        rows = 2,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = VDD,
+        Pin_2 = GND,
+        Pin_3 = _BOOT0_HEADER,
+        Pin_4 = GND,
+    )
+
+# Crystal Oscillator Circuit
+if clock_source == ClockSource("Crystal"):
+    # Crystal frequency selection
+    freq_value = crystal_freq.value
+    
+    # Determine crystal output connection
+    if add_crystal_series_resistor:
+        # Internal net for series resistor
+        _R_OSC = Net("_R_OSC")
+        crystal_out = _R_OSC
+    else:
+        # Direct connection without series resistor
+        crystal_out = PF1
+    
+    # Crystal with appropriate package
+    Crystal(
+        name = "Y_HSE",
+        frequency = freq_value,
+        package = "3225_4Pin",
+        XIN = PF0,
+        XOUT = crystal_out,
+        GND = GND
+    )
+    
+    # Load capacitors with configurable values
+    Capacitor(name = "C_OSC1", value = crystal_capacitor_value, package = passives_size, P1 = PF0, P2 = GND)
+    Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = passives_size, P1 = crystal_out, P2 = GND)
+    
+    # Series resistor for oscillator stability (if enabled)
+    if add_crystal_series_resistor:
+        Resistor(name = "R_OSC", value = crystal_series_resistor, package = passives_size, P1 = _R_OSC, P2 = PF1)
+    
+    # Feedback resistor (only add if no series resistor to avoid conflicts)
+    if not add_crystal_series_resistor:
+        Resistor(name = "R_XTAL", value = "1Mohms", package = passives_size, P1 = PF0, P2 = PF1)
+
+# Low Speed Oscillator for RTC
+if add_low_speed_oscillator:
+    Crystal(
+        name = "Y2",
+        frequency = "32.768kHz",
+        package = "3215_2Pin",
+        XIN = _PC14,
+        XOUT = _PC15,
+        GND = GND,
+    )
+    Capacitor(name = "C_OSC3", value = "12pF", voltage = "6.3V", package = passives_size, P1 = _PC14, P2 = GND)
+    Capacitor(name = "C_OSC4", value = "12pF", voltage = "6.3V", package = passives_size, P1 = _PC15, P2 = GND)
+
+# Status LED on PC13
+if add_status_led:
+    _LED_K = Net("LED_K")
+    Led(
+        name = "LED_STATUS",
+        color = "yellow",
+        package = "0603",
+        A = _PC13,
+        K = _LED_K,
+    )
+    Resistor(name = "R_LED", value = "1kohms", package = passives_size, P1 = _LED_K, P2 = GND)
+
+# Power LED on VDD
+if add_power_led:
+    _POWER_LED_K = Net("POWER_LED_K")
+    Led(
+        name = "LED_POWER",
+        color = "green",
+        package = "0603",
+        A = VDD,
+        K = _POWER_LED_K,
+    )
+    Resistor(name = "R_POWER_LED", value = "1kohms", package = passives_size, P1 = _POWER_LED_K, P2 = GND)
+
+# USB Connector and Circuitry
+if add_usb:
+    # Internal USB data nets (before series resistors)
+    _USB_DM_INT = Net("USB_DM_INT")
+    _USB_DP_INT = Net("USB_DP_INT")
+    
+    # USB-C Configuration Channel nets
+    _USB_CC1 = Net("USB_CC1")
+    _USB_CC2 = Net("USB_CC2")
+    
+    # USB-C connector (USB 2.0 only)
+    Component(
+        name = "J_USB",
+        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
+        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins = {
+            "VBUS": VUSB,
+            "D-": _USB_DM_INT,
+            "D+": _USB_DP_INT,
+            "CC1": _USB_CC1,
+            "CC2": _USB_CC2,
+            "SBU1": Net("USB_SBU1"),
+            "SBU2": Net("USB_SBU2"),
+            "GND": GND,
+            "SHIELD": GND,
+        }
+    )
+    
+    # USB-C CC (Configuration Channel) pull-down resistors
+    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = passives_size, P1 = _USB_CC1, P2 = GND)
+    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = passives_size, P1 = _USB_CC2, P2 = GND)
+    
+    # Series resistors on USB data lines (10 ohms typical for STM32)
+    Resistor(name = "R_USB_DM", value = "10ohms", package = passives_size, P1 = _USB_DM_INT, P2 = PA11)
+    Resistor(name = "R_USB_DP", value = "10ohms", package = passives_size, P1 = _USB_DP_INT, P2 = PA12)
+    
+    # USB ESD Protection
+    Component(
+        name = "U_USB_ESD",
+        symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
+        footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+        pins = {
+            "I/O1": _USB_DM_INT,
+            "GND": GND,
+            "I/O2": _USB_DP_INT,
+            "VBUS": VUSB,
+        }
+    )
+    
+    # VBUS decoupling
+    Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
+
+    # USB Power Regulation
+    if power_from_usb:
+        # Import LDO module
+        
+        # 3.3V LDO regulator from USB 5V to VDD
+        AP2112K_3_3(
+            name = "U_USB_REG",
+            VIN = Power(NET = VUSB),
+            VOUT = Power(NET = VDD),
+            GND = GND,
+            # Use default configuration for the regulator
+            add_input_cap = True,
+            add_output_cap = True,
+            enable_control = "AlwaysOn",
+        )
+
+
+# SWD Header
+if add_swd_header:
+    PinHeader(
+        name = "J_SWD",
+        pins = 4,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Horizontal",
+        Pin_1 = VDD,       # VDD
+        Pin_2 = swd.SWDIO, # SWDIO
+        Pin_3 = swd.SWCLK, # SWCLK
+        Pin_4 = GND,       # GND
+    )
+
+# FDCAN Transceiver
+if add_fdcan:
+    # CAN transceiver TJA1051 or similar
+    _CAN_S = Net("CAN_S")
+    
+    # Connect FDCAN peripheral to transceiver
+    # PA11 = FDCAN1_RX, PA12 = FDCAN1_TX (when USB not used)
+    # or PB8 = FDCAN1_RX, PB9 = FDCAN1_TX
+    
+    # Determine which pins to use for CAN based on USB configuration
+    if not add_usb:
+        # Use PA11/PA12 when USB is not used
+        _CAN_RXD = PA11
+        _CAN_TXD = PA12
+    else:
+        # Use PB8/PB9 when USB is used
+        # Note: PB8 is BOOT0 pin, so using _BOOT0 net
+        _CAN_RXD = _BOOT0
+        _CAN_TXD = PB9
+    
+    Component(
+        name = "U_CAN",
+        symbol = Symbol(library = "@kicad-symbols/Interface_CAN_LIN.kicad_sym", name = "TJA1051T-3"),
+        footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
+        pins = {
+            "TXD": _CAN_TXD,
+            "RXD": _CAN_RXD,
+            "VCC": VDD,
+            "GND": GND,
+            "VIO": VDD,
+            "CANH": fdcan.CAN_H,
+            "CANL": fdcan.CAN_L,
+            "S": _CAN_S,
+        }
+    )
+    
+    # Pull-down resistor on S pin for high-speed mode
+    Resistor(name = "R_CAN_S", value = "10kohms", package = passives_size, P1 = _CAN_S, P2 = GND)
+    
+    # CAN bus termination resistor (optional, usually at bus ends)
+    Resistor(name = "R_CAN_TERM", value = "120ohms", package = passives_size, P1 = fdcan.CAN_H, P2 = fdcan.CAN_L)
+    
+    # Decoupling for CAN transceiver
+    Capacitor(name = "C_CAN", value = "100nF", package = passives_size, P1 = VDD, P2 = GND)
+
+# pcb:sch STM32G431CBT x=583.2000 y=697.5000 rot=0
+# pcb:sch C_BULK.C x=651.7800 y=405.4000 rot=0
+# pcb:sch C_VDD1.C x=854.9800 y=405.4000 rot=0
+# pcb:sch C_VDD2.C x=753.3800 y=405.4000 rot=0
+# pcb:sch C_VDDA.C x=943.8800 y=646.7000 rot=0
+# pcb:sch C_VDDA2.C x=1032.7800 y=646.7000 rot=0
+# pcb:sch C_VBAT.C x=588.2800 y=583.2000 rot=0
+# pcb:sch C_VREF.C x=435.8800 y=684.8000 rot=0
+# pcb:sch C_VREF2.C x=512.0800 y=684.8000 rot=0
+# pcb:sch C_RESET.C x=283.4800 y=799.1000 rot=0
+# pcb:sch C_OSC1.C x=194.5800 y=1294.4000 rot=0
+# pcb:sch C_OSC2.C x=385.0800 y=1294.4000 rot=0
+# pcb:sch C_OSC3.C x=258.0800 y=900.7000 rot=90
+# pcb:sch C_OSC4.C x=258.0800 y=1002.3000 rot=90
+# pcb:sch C_VBUS.C x=1807.4800 y=1091.2000 rot=0
+# pcb:sch C_CAN.C x=1693.1800 y=532.4000 rot=0
+# pcb:sch FB_VDDA.FB x=1101.6140 y=595.9000 rot=90
+# pcb:sch FB_VBAT.FB x=504.7140 y=532.4000 rot=270
+# pcb:sch FB_VREF.FB x=377.7140 y=621.3000 rot=270
+# pcb:sch J_SWD.PH x=1148.3500 y=1065.8000 rot=0
+# pcb:sch J_USB x=1256.3000 y=1065.8000 rot=0
+# pcb:sch J_BOOT.PH x=-128.0000 y=1103.9000 rot=0
+# pcb:sch LED_STATUS.LED x=1040.4000 y=1242.3300 rot=0
+# pcb:sch LED_POWER.LED x=494.3000 y=378.7300 rot=0
+# pcb:sch LED_BOOT0.LED x=-267.7000 y=1026.4300 rot=270
+# pcb:sch NT_VSSA.NT x=862.6000 y=1510.3000 rot=180
+# pcb:sch R_RESET.R x=293.6400 y=684.8000 rot=180
+# pcb:sch R_BOOT0.R x=-138.1600 y=1040.4000 rot=0
+# pcb:sch R_BOOT0_SERIES.R x=-176.2600 y=1027.7000 rot=0
+# pcb:sch R_LED.R x=979.4400 y=1294.4000 rot=0
+# pcb:sch R_POWER_LED.R x=458.7400 y=405.4000 rot=0
+# pcb:sch R_LED_BOOT0.R x=-239.7600 y=1103.9000 rot=0
+# pcb:sch R_XTAL.R x=395.2400 y=1192.8000 rot=180
+# pcb:sch R_OSC.R x=382.5400 y=1180.1000 rot=180
+# pcb:sch R_USB_CC1.R x=1665.2400 y=1091.2000 rot=270
+# pcb:sch R_USB_CC2.R x=1665.2400 y=1142.0000 rot=270
+# pcb:sch R_USB_DM.R x=1779.5400 y=1192.8000 rot=270
+# pcb:sch R_USB_DP.R x=1779.5400 y=1243.6000 rot=270
+# pcb:sch R_CAN_S.R x=1347.7400 y=684.8000 rot=0
+# pcb:sch R_CAN_TERM.R x=1766.8400 y=608.6000 rot=0
+# pcb:sch SW_RESET x=164.1000 y=743.2200 rot=0
+# pcb:sch SW_BOOT0 x=-191.5000 y=832.1200 rot=270
+# pcb:sch TP_RESET.TP x=194.5800 y=766.0800 rot=270
+# pcb:sch U_USB_ESD x=1573.8000 y=1192.8000 rot=0
+# pcb:sch U_USB_REG.C_IN.C x=1528.0800 y=888.0000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=1832.8800 y=888.0000 rot=0
+# pcb:sch U_USB_REG.AP2112K-3.3 x=1624.6000 y=853.0750 rot=0
+# pcb:sch U_CAN x=1421.4000 y=545.1000 rot=0
+# pcb:sch Y_HSE.Y x=265.7000 y=1230.9000 rot=0
+# pcb:sch Y2.Y x=278.4000 y=964.2000 rot=90
+# pcb:sch VDD.1 x=448.5800 y=532.4000 rot=0
+# pcb:sch VDD.2 x=296.1800 y=634.0000 rot=0
+# pcb:sch VDD.3 x=-72.1200 y=735.6000 rot=0
+# pcb:sch VDD.4 x=664.4800 y=341.9000 rot=0
+# pcb:sch VDD.5 x=753.3800 y=595.9000 rot=0
+# pcb:sch VDD.6 x=1172.4800 y=595.9000 rot=0
+# pcb:sch VDD.7 x=1845.5800 y=837.2000 rot=0
+# pcb:sch VDD.8 x=1134.3800 y=1015.0000 rot=0
+# pcb:sch VDD.9 x=-72.1200 y=938.8000 rot=0
+# pcb:sch VDD.10 x=1540.7800 y=481.6000 rot=0
+# pcb:sch VDD.11 x=346.9800 y=583.2000 rot=0
+# pcb:sch VDDA.1 x=804.1800 y=595.9000 rot=0
+# pcb:sch VBAT.1 x=702.5800 y=595.9000 rot=0
+# pcb:sch VSSA.1 x=773.7000 y=1523.0000 rot=0
+# pcb:sch VSSA.2 x=1167.4000 y=735.6000 rot=0
+# pcb:sch VSSA.3 x=481.6000 y=773.7000 rot=0
+# pcb:sch GND.1 x=1688.1000 y=1015.0000 rot=0
+# pcb:sch GND.2 x=291.1000 y=1396.0000 rot=0
+# pcb:sch GND.3 x=202.2000 y=926.1000 rot=90
+# pcb:sch GND.4 x=138.7000 y=1053.1000 rot=0
+# pcb:sch GND.5 x=976.9000 y=1408.7000 rot=0
+# pcb:sch GND.6 x=-77.2000 y=1205.5000 rot=0
+# pcb:sch GND.7 x=138.7000 y=849.9000 rot=0
+# pcb:sch GND.8 x=964.2000 y=1523.0000 rot=0
+# pcb:sch GND.9 x=1116.6000 y=1192.8000 rot=0
+# pcb:sch GND.10 x=659.4000 y=519.7000 rot=0
+# pcb:sch GND.11 x=595.9000 y=672.1000 rot=0
+# pcb:sch GND.12 x=1611.9000 y=1421.4000 rot=0
+# pcb:sch GND.13 x=1307.1000 y=1484.9000 rot=0
+# pcb:sch GND.14 x=1713.5000 y=1192.8000 rot=0
+# pcb:sch GND.15 x=291.1000 y=888.0000 rot=0
+# pcb:sch GND.16 x=202.2000 y=1027.7000 rot=90
+# pcb:sch GND.17 x=1535.7000 y=773.7000 rot=0
+# pcb:sch GND.18 x=748.3000 y=1523.0000 rot=0
+# pcb:sch U_USB_REG.U1 x=1624.6000 y=853.0750 rot=0
+# pcb:sch GND.19 x=1116.6000 y=1523.0000 rot=0
+# pcb:sch GND.20 x=684.8000 y=303.8000 rot=0

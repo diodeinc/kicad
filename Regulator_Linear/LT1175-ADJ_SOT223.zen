@@ -1,0 +1,116 @@
+"""LT1175-ADJ - 500mA Negative Low Dropout Micropower Regulator, Adjustable Output Voltage, SOT-223
+
+The LT1175-ADJ is a micropower negative low dropout regulator designed for battery-powered systems. 
+It provides an adjustable negative output voltage with 500mA output current capability and low dropout 
+voltage. Features ultra-low quiescent current, reverse battery protection, thermal limiting, and stable 
+operation with minimal output capacitance. The device is ideal for battery-powered applications requiring 
+negative supply voltages, dual-supply systems, and LCD bias generation.
+
+The adjustable version allows output voltages from -1.21V to -36.5V to be set with two external resistors.
+The SOT-223 package provides good thermal performance in a compact surface-mount form factor.
+
+Author: @anthropic/claude-3.5-sonnet
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1175ff.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen") 
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Configuration options
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "1uF", optional = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "2.2uF")
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+
+# External IOs
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_VIN = VIN.NET
+_VOUT = VOUT.NET
+_ADJ = Net("ADJ")
+
+# Main component - 500mA Negative Low dropout regulator, Adjustable Output Voltage, SOT-223
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LT1175-ADJ_SOT223"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins = {
+        "IN": _VIN,
+        "GND": GND,
+        "OUT": _VOUT
+    },
+)
+
+# Voltage setting resistors (must be added externally to set output voltage)
+# VOUT = -1.21V * (1 + R2/R1) - IADJ * R2
+# Typical values: R1 = 120Ω to 1kΩ, R2 calculated based on desired VOUT
+
+# Input capacitor (recommended to ensure stability)
+# For negative regulators, capacitor polarity is important
+if add_input_cap:
+    Capacitor(
+        name = "C_IN",
+        value = input_cap_value,
+        package = "0805",
+        P1 = GND,
+        P2 = _VIN
+    )
+
+# Output capacitor (required for stability - minimum 2.2μF with low ESR)
+# Tantalum or ceramic recommended for low ESR
+if add_output_cap:
+    Capacitor(
+        name = "C_OUT",
+        value = output_cap_value,
+        package = "0805",
+        P1 = _VOUT,
+        P2 = GND
+    )
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(
+        name = "TP_VIN",
+        variant = "Pad_D1.0mm",
+        P1 = _VIN
+    )
+    
+    TestPoint(
+        name = "TP_VOUT", 
+        variant = "Pad_D1.0mm",
+        P1 = _VOUT  
+    )
+    
+    TestPoint(
+        name = "TP_GND",
+        variant = "Pad_D1.0mm",
+        P1 = GND
+    )
+
+# PCB placement hints for thermal management
+# Keep large copper area connected to GND pin (tab) for heat dissipation
+# Power dissipation: P = (|VIN| - |VOUT|) × IOUT + |VIN| × IGND
+# Max junction temp: 125°C
+# Note: For negative regulators, ensure proper capacitor polarity
+
+# pcb:sch U1 x=1002.3000 y=1005.4750 rot=0
+# pcb:sch C_IN.C x=918.4800 y=1040.4000 rot=180
+# pcb:sch C_OUT.C x=1197.8800 y=1040.4000 rot=0
+# pcb:sch GND.1 x=1065.8000 y=1129.3000 rot=0
+# pcb:sch IN.VCC.1 x=931.1800 y=976.9000 rot=0
+# pcb:sch OUT.VCC.1 x=1210.5800 y=976.9000 rot=0
+
+# pcb:sch TP_GND.TP x=1007.3800 y=1159.7800 rot=180
+# pcb:sch TP_VIN.TP x=956.5800 y=956.5800 rot=0
+# pcb:sch TP_VOUT.TP x=1172.4800 y=956.5800 rot=0

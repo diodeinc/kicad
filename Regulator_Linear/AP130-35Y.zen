@@ -1,0 +1,155 @@
+"""AP130-35Y - 300mA Low Dropout Linear Regulator, 3.5V Fixed Output
+
+The AP130-35Y is a 300mA fixed output voltage (3.5V) low dropout linear regulator 
+featuring ultra-low dropout voltage (400mV at 300mA) and low quiescent current 
+(50μA typical). It includes internal current limiting, thermal shutdown, and 
+short circuit protection with current fold-back. The device operates from 2.7V 
+to 5.5V input voltage range, making it ideal for battery-powered applications.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: http://www.diodes.com/datasheets/AP130.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Led = Module("@stdlib/generics/Led.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+
+# Types
+EnableControl = enum("AlwaysOn", "PullUp", "PullDown", "None")
+InputFilterType = enum("None", "RC", "LC", "FerriteBead")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "1uF")
+    
+add_output_cap = config("add_output_cap", bool, default = True)
+# Output capacitor configuration - only if output cap is enabled
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "10uF")
+
+
+add_bypass_cap = config("add_bypass_cap", bool, default = False)
+if add_bypass_cap:
+    bypass_cap_value = config("bypass_cap_value", str, default = "100nF")
+
+# Input filtering
+input_filter_type = config("input_filter_type", InputFilterType, default = "None")
+if input_filter_type == InputFilterType("RC"):
+    input_filter_r = config("input_filter_r", str, default = "10ohms")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+elif input_filter_type == InputFilterType("LC"):
+    input_filter_l = config("input_filter_l", str, default = "4.7uH")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+elif input_filter_type == InputFilterType("FerriteBead"):
+    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default = "600ohms@100MHz")
+    input_filter_c = config("input_filter_c", str, default = "10uF")
+
+    
+# Additional bulk capacitor configuration
+add_output_bulk_cap = config("add_output_bulk_cap", bool, default = False, optional = True)
+if add_output_bulk_cap:
+    output_bulk_cap_value = config("output_bulk_cap_value", str, default = "10uF")
+
+# Additional features
+add_power_good_led = config("add_power_good_led", bool, default = False, optional = True)
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+
+# External IO
+VIN = io("VIN", Power, default = Power("VIN"))
+VOUT = io("VOUT", Power, default = Power("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Internal nets
+_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN.NET
+
+# Main regulator component - AP130-35Y has only 3 pins (VI, GND, VO)
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AP130-35Y"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-3.kicad_mod"),
+    pins = {
+        "VI": _VIN_FILT,    # Input
+        "GND": GND,         # Ground
+        "VO": VOUT.NET      # Output
+    },
+)
+
+# Input filtering
+if input_filter_type == InputFilterType("RC"):
+    Resistor(name = "R_FILT", value = input_filter_r, package = "0603", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    
+elif input_filter_type == InputFilterType("LC"):
+    Inductor(name = "L_FILT", value = input_filter_l, package = "1210", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    
+elif input_filter_type == InputFilterType("FerriteBead"):
+    FerriteBead(name = "FB_IN", package = "0805", P1 = VIN.NET, P2 = _VIN_FILT)
+    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+
+# Input capacitor (datasheet recommends 1uF minimum)
+if add_input_cap:
+    Capacitor(name = "C_IN", value = input_cap_value, package = "0603", P1 = _VIN_FILT, P2 = GND)
+    
+# Bypass capacitor for improved noise performance
+if add_bypass_cap:
+    Capacitor(name = "C_BYP", value = bypass_cap_value, package = "0402", P1 = _VIN_FILT, P2 = GND)
+
+# Output capacitor (datasheet specifies 10uF minimum for stability)
+if add_output_cap:
+    # Use X7R or X5R dielectric ceramic as recommended
+    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT.NET, P2 = GND)
+
+# Additional bulk output capacitor
+if add_output_bulk_cap:
+    Capacitor(name = "C_BULK", value = output_bulk_cap_value, package = "0805", P1 = VOUT.NET, P2 = GND)
+
+# Power good LED indicator
+if add_power_good_led:
+    _LED_K = Net("LED_K")
+    Led(
+        name = "LED_PWR",
+        color = "green",
+        package = "0603",
+        A = VOUT.NET,
+        K = _LED_K,
+    )
+    # LED current limiting resistor for 3.5V
+    # Assuming 2V LED forward voltage, 5mA current: R = (3.5-2)/0.005 = 300Ω
+    Resistor(name = "R_LED", value = "330ohms", package = "0402", P1 = _LED_K, P2 = GND)
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(name = "TP_VIN", variant = "Pad_D2.0mm", P1 = VIN.NET)
+    TestPoint(name = "TP_VOUT", variant = "Pad_D2.0mm", P1 = VOUT.NET)
+    TestPoint(name = "TP_GND", variant = "Pad_D2.0mm", P1 = GND)
+
+# pcb:sch C_BYP.C x=-21.3200 y=341.9000 rot=0
+# pcb:sch C_IN.C x=-110.2200 y=341.9000 rot=0
+# pcb:sch C_OUT.C x=308.8800 y=341.9000 rot=0
+# pcb:sch U1 x=75.2000 y=306.9750 rot=0
+# pcb:sch GND.1 x=138.7000 y=481.6000 rot=0
+# pcb:sch VIN_VCC.1 x=-97.5200 y=278.4000 rot=0
+# pcb:sch VIN_VCC.2 x=-313.4200 y=278.4000 rot=0
+# pcb:sch C_FILT.C x=-186.4200 y=354.6000 rot=0
+# pcb:sch R_FILT.R x=-252.4600 y=291.1000 rot=270
+# pcb:sch L_FILT.L x=-258.1619 y=291.1000 rot=270
+# pcb:sch FB_IN.FB x=-282.6860 y=316.5000 rot=270
+# pcb:sch R_EN_PU.R x=1.5400 y=354.6000 rot=180
+# pcb:sch R_EN_PD.R x=14.2400 y=367.3000 rot=0
+# pcb:sch LED_PWR.LED x=405.4000 y=315.2300 rot=180
+# pcb:sch R_LED.R x=484.1400 y=354.6000 rot=0
+# pcb:sch TP_GND.TP x=67.5800 y=461.2800 rot=180
+# pcb:sch TP_VIN.TP x=4.0800 y=258.0800 rot=0
+# pcb:sch TP_VOUT.TP x=270.7800 y=245.3800 rot=0
+# pcb:sch R_OUT_PROT.R x=458.7400 y=278.4000 rot=0
+# pcb:sch VOUT_VCC.1 x=321.5800 y=278.4000 rot=0
+# pcb:sch C_BULK.C x=410.4800 y=341.9000 rot=0
