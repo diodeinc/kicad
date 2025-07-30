@@ -360,7 +360,7 @@ description = "600mA Low Dropout Linear Regulator with Enable"
 datasheet = "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
 
 
-[[workspace.LM317_3_Pin_Adjustable_Linear_Regulator_in_SOT_223_Package]]
+[[workspace.LM317_3]]
 name = "LM317 3-Pin Adjustable Linear Regulator in SOT-223 Package"
 path = "Regulator_Linear/LM317_SOT-223.zen"
 category = "Regulator_Linear"
