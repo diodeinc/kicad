@@ -1,5 +1,21 @@
 [workspace]
 
+[[workspace.PGA112]]
+name = "PGA112"
+path = "Analog/PGA112.zen"
+category = "Analog"
+description = "Zero-Drift Programmable Gain Amplifier With MUX"
+datasheet = "https://www.ti.com/lit/ds/symlink/pga112.pdf"
+
+
+[[workspace.PGA113]]
+name = "PGA113"
+path = "Analog/PGA113.zen"
+category = "Analog"
+description = "Zero-Drift Programmable Gain Amplifier with 2-Channel Mux"
+datasheet = "https://www.ti.com/lit/ds/symlink/pga113.pdf"
+
+
 [[workspace.AD7171]]
 name = "AD7171"
 path = "Analog_ADC/AD7171.zen"
@@ -128,6 +144,14 @@ description = "High Efficiency USB Power Manager + Triple Step-Down DC/DC"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3555fc.pdf"
 
 
+[[workspace.EA_T123X_I2C]]
+name = "EA T123X-I2C"
+path = "Display_Character/EA_T123X-I2C.zen"
+category = "Display_Character"
+description = "3x12 Character LCD Display with I²C Interface"
+datasheet = "https://www.lcd-module.de/eng/pdf/doma/t123-i2c.pdf"
+
+
 [[workspace.EA_DOGL128X_6]]
 name = "EA DOGL128X-6"
 path = "Display_Graphic/EA_DOGL128X-6.zen"
@@ -248,6 +272,14 @@ description = "ARM Cortex-M4 32-bit MCU+FPU, 170MHz, 128KB Flash, 32KB RAM"
 datasheet = "https://www.st.com/resource/en/datasheet/stm32g431cb.pdf"
 
 
+[[workspace.W25Q128JVE]]
+name = "W25Q128JVE"
+path = "Memory_Flash/W25Q128JVE.zen"
+category = "Memory_Flash"
+description = "128Mbit Serial Flash Memory with Dual/Quad SPI"
+datasheet = "https://www.winbond.com/resource-files/w25q128jv%20revf%2003272018%20plus.pdf"
+
+
 [[workspace.W25Q128JVS]]
 name = "W25Q128JVS"
 path = "Memory_Flash/W25Q128JVS.zen"
@@ -278,6 +310,14 @@ path = "Memory_Flash/W25X40CLSN.zen"
 category = "Memory_Flash"
 description = "4Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
 datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
+[[workspace.SAM_M8Q]]
+name = "SAM-M8Q"
+path = "RF_GPS/SAM-M8Q.zen"
+category = "RF_GPS"
+description = "Easy-to-use u-blox M8 GNSS antenna module"
+datasheet = "https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-16012619.pdf"
 
 
 [[workspace.LM4125IM5_2_5]]
@@ -360,8 +400,8 @@ description = "600mA Low Dropout Linear Regulator with Enable"
 datasheet = "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
 
 
-[[workspace.LM317_3]]
-name = "LM317 3-Pin Adjustable Linear Regulator in SOT-223 Package"
+[[workspace.LM317]]
+name = "LM317"
 path = "Regulator_Linear/LM317_SOT-223.zen"
 category = "Regulator_Linear"
 datasheet = "https://www.ti.com/lit/ds/symlink/lm317.pdf"
@@ -413,6 +453,22 @@ path = "Regulator_Linear/LT1175-ADJ_SOT223.zen"
 category = "Regulator_Linear"
 description = "500mA Negative Low Dropout Micropower Regulator, Adjustable Output Voltage, SOT-223"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1175ff.pdf"
+
+
+[[workspace.LT1962_3]]
+name = "LT1962-3"
+path = "Regulator_Linear/LT1962-3.zen"
+category = "Regulator_Linear"
+description = "3.0V, 300mA, Low Noise, Micropower LDO Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1962fb.pdf"
+
+
+[[workspace.LT1964_5]]
+name = "LT1964-5"
+path = "Regulator_Linear/LT1964-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low Noise, Low Dropout Negative Micropower Regulator, Fixed -5V Output"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1964fb.pdf"
 
 
 [[workspace.MCP1804]]
@@ -543,12 +599,92 @@ description = "Coin Cell Battery Life Booster with Adaptive Power Optimization"
 datasheet = "https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html"
 
 
+[[workspace.TPS562200]]
+name = "TPS562200"
+path = "Regulator_Switching/TPS562200.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562200.pdf"
+
+
+[[workspace.TPS562202]]
+name = "TPS562202"
+path = "Regulator_Switching/TPS562202.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562202.pdf"
+
+
+[[workspace.TPS562202S]]
+name = "TPS562202S"
+path = "Regulator_Switching/TPS562202S.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562202s.pdf"
+
+
+[[workspace.TPS562203]]
+name = "TPS562203"
+path = "Regulator_Switching/TPS562203.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562203.pdf"
+
+
+[[workspace.TPS562206]]
+name = "TPS562206"
+path = "Regulator_Switching/TPS562206.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator with FCCM"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562206.pdf"
+
+
+[[workspace.TPS563200]]
+name = "TPS563200"
+path = "Regulator_Switching/TPS563200.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563200.pdf"
+
+
+[[workspace.TPS563202S]]
+name = "TPS563202S"
+path = "Regulator_Switching/TPS563202S.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563202s.pdf"
+
+
+[[workspace.TPS563203]]
+name = "TPS563203"
+path = "Regulator_Switching/TPS563203.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563203.pdf"
+
+
+[[workspace.TPS563206]]
+name = "TPS563206"
+path = "Regulator_Switching/TPS563206.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator with FCCM"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563206.pdf"
+
+
 [[workspace.BME280]]
 name = "BME280"
 path = "Sensor/BME280.zen"
 category = "Sensor"
 description = "Combined humidity, pressure and temperature sensor with I²C/SPI interface"
 datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf"
+
+
+[[workspace.BME680]]
+name = "BME680"
+path = "Sensor/BME680.zen"
+category = "Sensor"
+description = "Low power gas, pressure, temperature & humidity sensor"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf"
 
 
 [[workspace.MAX30102]]
@@ -559,12 +695,52 @@ description = "High-Sensitivity Pulse Oximeter and Heart-Rate Sensor for Wearabl
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30102.pdf"
 
 
+[[workspace.VL53L0X]]
+name = "VL53L0X"
+path = "Sensor_Distance/VL53L0CXV0DH1.zen"
+category = "Sensor_Distance"
+description = "Time-of-Flight (ToF) ranging sensor with 2m range capability"
+datasheet = "https://www.st.com/resource/en/datasheet/vl53l0x.pdf"
+
+
 [[workspace.INA219A]]
 name = "INA219A"
 path = "Sensor_Energy/INA219A.zen"
 category = "Sensor_Energy"
 description = "Zero-Drift, Bidirectional Current/Power Monitor With I²C Interface"
 datasheet = "https://www.ti.com/lit/ds/symlink/ina219.pdf"
+
+
+[[workspace.SHT4x]]
+name = "SHT4x"
+path = "Sensor_Humidity/SHT4x.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±1%RH, ±0.1°C, I2C, 1.08-3.6V, 16bit, DFN-4"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT4x_Datasheet.pdf"
+
+
+[[workspace.LIS3MDL]]
+name = "LIS3MDL"
+path = "Sensor_Magnetic/LIS3MDL.zen"
+category = "Sensor_Magnetic"
+description = "Ultra-low-power, high-performance 3-axis digital output magnetometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis3mdl.pdf"
+
+
+[[workspace.TLV493D]]
+name = "TLV493D"
+path = "Sensor_Magnetic/TLV493D.zen"
+category = "Sensor_Magnetic"
+description = "Low Power 3D Magnetic Sensor with I²C Interface"
+datasheet = "http://www.infineon.com/dgdl/Infineon-TLV493D-A1B6-DS-v01_00-EN.pdf?fileId=5546d462525dbac40152a6b85c760e80"
+
+
+[[workspace.BMI160]]
+name = "BMI160"
+path = "Sensor_Motion/BMI160.zen"
+category = "Sensor_Motion"
+description = "Small, low power inertial measurement unit"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi160-ds000.pdf"
 
 
 [[workspace.BNO055]]
@@ -575,12 +751,52 @@ description = "Intelligent 9-axis absolute orientation sensor"
 datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf"
 
 
+[[workspace.ICM_20602]]
+name = "ICM-20602"
+path = "Sensor_Motion/ICM-20602.zen"
+category = "Sensor_Motion"
+description = "High Performance 6-Axis MEMS MotionTracking Device"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-20602-v1.0.pdf"
+
+
+[[workspace.ICM_20948]]
+name = "ICM-20948"
+path = "Sensor_Motion/ICM-20948.zen"
+category = "Sensor_Motion"
+description = "World's Lowest Power 9-Axis MEMS MotionTracking Device"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-20948-v1.3.pdf"
+
+
 [[workspace.ISM330DHCX]]
 name = "ISM330DHCX"
 path = "Sensor_Motion/ISM330DHCX.zen"
 category = "Sensor_Motion"
 description = "iNEMO inertial module with embedded Machine Learning Core"
 datasheet = "https://www.st.com/resource/en/datasheet/ism330dhcx.pdf"
+
+
+[[workspace.LIS331HH]]
+name = "LIS331HH"
+path = "Sensor_Motion/LIS331HH.zen"
+category = "Sensor_Motion"
+description = "MEMS digital output motion sensor ultra low-power high full-scale 3-axes \"nano\" accelerometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis331hh.pdf"
+
+
+[[workspace.LIS3DH]]
+name = "LIS3DH"
+path = "Sensor_Motion/LIS3DH.zen"
+category = "Sensor_Motion"
+description = "MEMS digital output motion sensor: ultra-low-power high-performance 3-axis \"nano\" accelerometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis3dh.pdf"
+
+
+[[workspace.LSM303C]]
+name = "LSM303C"
+path = "Sensor_Motion/LSM303C.zen"
+category = "Sensor_Motion"
+description = "Ultra-compact high-performance eCompass module: 3D accelerometer and 3D magnetometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lsm303c.pdf"
 
 
 [[workspace.MPU_6050]]
