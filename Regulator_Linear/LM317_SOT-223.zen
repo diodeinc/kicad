@@ -1,5 +1,4 @@
-"""LM317 
-
+"""LM317 - 3-Pin Adjustable Linear Regulator in SOT-223 Package
 
 The LM317 is an adjustable three-pin, positive-voltage regulator capable of supplying 
 more than 1.5A over an output voltage range of 1.25V to 37V. The device requires only 
@@ -30,6 +29,7 @@ OutputCapacitorType = enum("None", "Ceramic", "Tantalum", "Electrolytic")
 output_voltage = config("output_voltage", OutputVoltage, default = "5V")
 if output_voltage == OutputVoltage("Adjustable"):
     target_voltage = config("target_voltage", float, default = 12.0)
+
     # Validate voltage range
     if target_voltage < 1.25 or target_voltage > 37:
         fail("Target voltage must be between 1.25V and 37V")
@@ -75,7 +75,7 @@ Component(
     pins = {
         "VI": _VI,
         "ADJ": _ADJ,
-        "VO": _VO
+        "VO": _VO,
     },
 )
 
@@ -101,6 +101,7 @@ else:  # Adjustable
     # Calculate R2 for given R1 = 240ohms
     r1_value = "240ohms"
     r2_calculated = 240 * (target_voltage / 1.25 - 1)
+
     # Find nearest E24 value
     if r2_calculated <= 100:
         r2_value = "100ohms"
@@ -199,16 +200,16 @@ if add_protection_diodes:
             name = "D1",
             package = "SOD-323",
             A = _VO,
-            K = _VI
+            K = _VI,
         )
-    
+
     # D2: Protects against C_ADJ discharge through regulator
     if add_adjust_cap:
         Diode(
             name = "D2",
             package = "SOD-323",
             A = _ADJ,
-            K = _VO
+            K = _VO,
         )
 
 # Test points
@@ -219,7 +220,7 @@ if add_test_points:
     TestPoint(name = "TP_GND", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = GND)
 
 # PCB Layout hints (as comments for the designer)
-# pcb:sch U1 x=49.8000 y=-10.5250 rot=0
+# pcb:sch U1 x=49.8000 y=-7.3500 rot=0
 # pcb:sch R1.R x=255.5400 y=62.5000 rot=0
 # pcb:sch R2.R x=255.5400 y=164.1000 rot=0
 # pcb:sch C_IN.C x=-97.5200 y=75.2000 rot=0
@@ -234,3 +235,5 @@ if add_test_points:
 # pcb:sch TP_GND.TP x=29.4800 y=181.8800 rot=0
 # pcb:sch TP_VIN.TP x=-122.9200 y=-46.7200 rot=0
 # pcb:sch TP_VOUT.TP x=283.4800 y=-97.5200 rot=0
+# pcb:sch C_IN1.C x=-249.9200 y=87.9000 rot=0
+# pcb:sch C_IN2.C x=-97.5200 y=87.9000 rot=0
