@@ -1,0 +1,166 @@
+"""LT1964-5 - 200mA Low Noise, Low Dropout Negative Micropower Regulator, Fixed -5V Output
+
+The LT1964-5 is a micropower low noise, low dropout negative regulator capable of 
+supplying 200mA of output current with a dropout voltage of 340mV. It features 
+ultra-low quiescent current (30µA operating, 3µA in shutdown), making it ideal 
+for battery-powered applications. The device provides excellent output noise 
+performance (30µVrms from 10Hz to 100kHz with bypass capacitor) and is stable 
+with output capacitors as low as 1µF, including small ceramic capacitors without 
+additional ESR requirements. The fixed -5V output version includes internal 
+protection features such as reverse output protection, current limiting, and 
+thermal limiting.
+
+SHDN Pin Operation:
+- The SHDN pin is referenced to GND (not VIN) for regulator control
+- Output is OFF when SHDN is within ±0.8V of GND
+- Output is ON when SHDN is < -1.9V or > +1.6V relative to GND
+- If unused, SHDN must be connected to VIN (automatically done in AlwaysOn mode)
+- Device shuts down if SHDN is left open circuit
+- A parasitic diode exists between SHDN and VIN - SHDN cannot be more negative than VIN
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1964fb.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Import required modules
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Led = Module("@stdlib/generics/Led.zen")
+
+# Types
+ShutdownLogic = enum("Positive", "Negative", "AlwaysOn")
+
+# Configuration options
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "10uF")
+    input_cap_voltage = config("input_cap_voltage", str, default = "16V")
+
+add_output_cap = config("add_output_cap", bool, default = True)  
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "10uF")
+    output_cap_voltage = config("output_cap_voltage", str, default = "10V")
+
+add_bypass_cap = config("add_bypass_cap", bool, default = True)
+if add_bypass_cap:
+    bypass_cap_value = config("bypass_cap_value", str, default = "0.01uF")
+
+shutdown_logic = config("shutdown_logic", ShutdownLogic, default = "AlwaysOn")
+if shutdown_logic != ShutdownLogic("AlwaysOn"):
+    add_shutdown_pullup = config("add_shutdown_pullup", bool, default = True, optional = True)
+    if add_shutdown_pullup:
+        shutdown_pullup_value = config("shutdown_pullup_value", str, default = "100kohms")
+
+# External IOs
+VIN = io("VIN", Power, default = Power())
+VOUT = io("VOUT", Power, default = Power())
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Shutdown control
+if shutdown_logic == ShutdownLogic("Positive"):
+    SHDN = io("SHDN", Net)
+    _SHDN = SHDN
+elif shutdown_logic == ShutdownLogic("Negative"):
+    nSHDN = io("~SHDN", Net)
+    _SHDN = nSHDN
+else:  # AlwaysOn
+    # For always-on operation, SHDN must be connected to VIN per datasheet
+    _SHDN = VIN.NET
+
+# Internal nets
+_BYP = Net("BYP")
+
+# Main LT1964-5 Component
+Component(
+    name = "LT1964-5",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LT1964-5"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-5.kicad_mod"),
+    pins = {
+        "~{SHDN}": _SHDN,
+        "VIN": VIN.NET,
+        "GND": GND,
+        "BYP": _BYP,
+        "VOUT": VOUT.NET
+    }
+)
+
+# Input capacitor 
+if add_input_cap:
+    Capacitor(
+        name = "C_IN",
+        value = input_cap_value,
+        voltage = input_cap_voltage,
+        package = "0805",
+        P1 = VIN.NET,
+        P2 = GND
+    )
+
+# Output capacitor
+if add_output_cap:
+    Capacitor(
+        name = "C_OUT",
+        value = output_cap_value,
+        voltage = output_cap_voltage,
+        package = "0805",
+        P1 = VOUT.NET,
+        P2 = GND
+    )
+
+# Bypass capacitor for noise reduction
+if add_bypass_cap:
+    Capacitor(
+        name = "C_BYP",
+        value = bypass_cap_value,
+        voltage = "10V",
+        package = "0603",
+        P1 = VOUT.NET,
+        P2 = _BYP
+    )
+
+# Shutdown control circuit
+if shutdown_logic == ShutdownLogic("AlwaysOn"):
+
+    pass
+elif shutdown_logic == ShutdownLogic("Positive"):
+    # Positive logic: SHDN > +1.6V (relative to GND) = ON, SHDN within ±0.8V of GND = OFF
+    # Device shuts down if SHDN is open circuit
+    if add_shutdown_pullup:
+        # Add pull-up to positive voltage for default-on behavior
+        # Note: Pull-up must be to a positive supply relative to GND
+        VDD_POS = io("VDD_POS", Net, default = Net("VDD_POS", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+        Resistor(
+            name = "R_SHDN_PU",
+            value = shutdown_pullup_value,
+            package = "0603",
+            P1 = _SHDN,
+            P2 = VDD_POS
+        )
+elif shutdown_logic == ShutdownLogic("Negative"):
+    # Negative logic: SHDN < -1.9V (relative to GND) = ON, SHDN within ±0.8V of GND = OFF
+    # Device shuts down if SHDN is open circuit
+    # Note: SHDN cannot be more negative than VIN due to parasitic diode
+    if add_shutdown_pullup:
+        # Add pull-down to VIN for default-on behavior
+        Resistor(
+            name = "R_SHDN_PD", 
+            value = shutdown_pullup_value,
+            package = "0603",
+            P1 = _SHDN,
+            P2 = VIN.NET
+        )
+
+# pcb:sch C_BYP.C x=397.7800 y=202.2000 rot=180
+# pcb:sch C_IN.C x=-59.4200 y=189.5000 rot=180
+# pcb:sch C_OUT.C x=524.7800 y=189.5000 rot=180
+# pcb:sch LT1964-5 x=164.1000 y=189.5000 rot=0
+# pcb:sch GND.1 x=253.0000 y=100.6000 rot=180
+# pcb:sch VOUT.VCC.1 x=537.4800 y=303.8000 rot=180
+# pcb:sch ~{SHDN}.VCC.1 x=-46.7200 y=291.1000 rot=180
+# pcb:sch VIN.VCC.1 x=-46.7200 y=291.1000 rot=180
+# pcb:sch R_SHDN_PU.R x=90.4400 y=189.5000 rot=0
+# pcb:sch VDD_POS.1 x=92.9800 y=303.8000 rot=180
+# pcb:sch R_SHDN_PD.R x=90.4400 y=189.5000 rot=0

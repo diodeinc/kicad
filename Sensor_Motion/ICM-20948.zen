@@ -1,0 +1,249 @@
+"""ICM-20948 - World's Lowest Power 9-Axis MEMS MotionTracking Device
+
+The ICM-20948 is a 9-axis MotionTracking device that combines a 3-axis gyroscope,
+3-axis accelerometer, 3-axis magnetometer, and a Digital Motion Processor (DMP)
+in a small 3mm x 3mm x 1mm (24-pin QFN) package. It features ultra-low power
+consumption (2.5mW), programmable full-scale ranges, on-chip 16-bit ADCs,
+512-byte FIFO, and programmable interrupts. The device supports both I²C
+(up to 400 kHz) and SPI (up to 7 MHz) interfaces and operates from 1.71V to 3.6V.
+
+Key features:
+- 3-axis gyroscope with programmable FSR: ±250/±500/±1000/±2000 dps
+- 3-axis accelerometer with programmable FSR: ±2g/±4g/±8g/±16g
+- 3-axis magnetometer with ±4900µT range
+- Digital Motion Processor (DMP) for offloading computation
+- Auxiliary I²C master interface for external sensors
+- Wake-on-motion interrupt for low power operation
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-20948-v1.3.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI")
+I2cAddress = enum("0x68", "0x69")
+GyroFullScale = enum("250dps", "500dps", "1000dps", "2000dps")
+AccelFullScale = enum("2g", "4g", "8g", "16g")
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x68")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# Power configuration
+add_regout_cap = config("add_regout_cap", bool, default = True)
+add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default = True)
+
+seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+
+if seperate_vdd_vddio:
+    add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default = True)
+    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    add_vddio_bypass_cap = False
+    VDDIO = VDD
+
+
+# Interrupt configuration
+use_interrupt = config("use_interrupt", bool, default = True)
+
+# FSYNC configuration
+use_fsync = config("use_fsync", bool, default = False)
+
+# Auxiliary I2C configuration
+use_aux_i2c = config("use_aux_i2c", bool, default = True)
+if use_aux_i2c:
+    add_aux_i2c_pullups = config("add_aux_i2c_pullups", bool, default = True)
+    aux_i2c_pullup_value = config("aux_i2c_pullup_value", str, default = "4.7kohms")
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+else:  # SPI mode
+    spi = io("SPI", Spi)
+
+# Interrupt IO
+if use_interrupt:
+    INT1 = io("INT1", Net)
+
+# FSYNC IO
+if use_fsync:
+    FSYNC = io("FSYNC", Net)
+
+# Auxiliary I2C IO
+if use_aux_i2c:
+    aux_i2c = io("AUX_I2C", I2c)
+
+# Internal nets
+_REGOUT = Net("REGOUT")
+_NC = Net("NC")
+_RESV_19 = Net("RESV_19")
+_RESV_20 = Net("RESV_20")
+_ADO_SDO = Net("ADO_SDO")
+_CS = Net("CS")
+
+# Interface Mode Configuration
+if interface_mode == InterfaceMode("I2C"):
+    # I2C mode: CS must be tied to VDDIO
+    _CS = VDDIO
+    
+    # Set I2C address using ADO pin
+    if i2c_address == I2cAddress("0x68"):
+        _ADO_SDO = GND  # ADO = 0 for address 0x68
+    else:  # 0x69
+        _ADO_SDO = VDDIO  # ADO = 1 for address 0x69
+    
+    # Interface pins for I2C mode
+    _SDA_SDI = i2c.SDA
+    _SCL_SCLK = i2c.SCL
+    
+else:  # SPI mode
+    # SPI mode: CS is connected to chip select
+    _CS = spi.CS
+    # ADO becomes SDO (MISO) in SPI mode
+    _ADO_SDO = spi.MISO
+
+    # Interface pins for SPI mode
+    _SDA_SDI = spi.MOSI
+    _SCL_SCLK = spi.CLK
+
+# Auxiliary I2C Configuration
+if use_aux_i2c:
+    _AUX_CL = aux_i2c.SCL
+    _AUX_DA = aux_i2c.SDA
+else:
+    _AUX_CL = Net("AUX_CL")
+    _AUX_DA = Net("AUX_DA")
+
+# Optional pins
+if use_interrupt:
+    _INT1_PIN = INT1
+else:
+    _INT1_PIN = Net("INT1")
+
+if use_fsync:
+    _FSYNC_PIN = FSYNC
+else:
+    _FSYNC_PIN = GND  # Connect to GND if unused per datasheet
+
+# Reserved pins
+# Pin 19 (RESV) - Do not connect per datasheet
+# Pin 20 (RESV) - Connect to GND per datasheet# Connect RESV pin 20 to GND as per datasheet
+_RESV_20 = GND
+
+# ICM-20948 Component
+Component(
+    name = "ICM-20948",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "ICM-20948"),
+    footprint = File("@kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod"),
+    pins = {
+        "NC": _NC,
+        "AUX_CL": _AUX_CL,
+        "VDDIO": VDDIO,
+        "SDO/AD0": _ADO_SDO,
+        "REGOUT": _REGOUT,
+        "FSYNC": _FSYNC_PIN,
+        "INT1": _INT1_PIN,
+        "VDD": VDD,
+        "GND": GND,
+        "RESV": _RESV_20,  # Pin 20 - Connect to GND
+        "AUX_DA": _AUX_DA,
+        "~{CS}": _CS,
+        "SCL/SCLK": _SCL_SCLK,
+        "SDA/SDI": _SDA_SDI,
+    }
+)
+
+# REGOUT Capacitor - Required for internal LDO
+if add_regout_cap:
+    Capacitor(
+        name = "C_REGOUT",
+        value = "100nF",
+        voltage = "2V",
+        package = "0402",
+        P1 = _REGOUT,
+        P2 = GND
+    )
+
+# VDD Bypass Capacitor
+if add_vdd_bypass_cap:
+    Capacitor(
+        name = "C_VDD",
+        value = "100nF",
+        voltage = "4V",
+        package = "0402",
+        P1 = VDD,
+        P2 = GND
+    )
+
+# VDDIO Bypass Capacitor
+if add_vddio_bypass_cap:
+    Capacitor(
+        name = "C_VDDIO",
+        value = "100nF",
+        voltage = "4V",
+        package = "0402",
+        P1 = VDDIO,
+        P2 = GND
+    )
+
+# I2C Pull-up Resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(
+        name = "R_SCL_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SCL,
+        P2 = VDDIO
+    )
+    Resistor(
+        name = "R_SDA_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SDA,
+        P2 = VDDIO
+    )
+
+# Auxiliary I2C Pull-up Resistors
+if use_aux_i2c and add_aux_i2c_pullups:
+    Resistor(
+        name = "R_AUX_CL_PU",
+        value = aux_i2c_pullup_value,
+        package = "0402",
+        P1 = _AUX_CL,
+        P2 = VDDIO
+    )
+    Resistor(
+        name = "R_AUX_DA_PU",
+        value = aux_i2c_pullup_value,
+        package = "0402",
+        P1 = _AUX_DA,
+        P2 = VDDIO
+    )
+
+# pcb:sch C_REGOUT.C x=499.3800 y=481.6000 rot=0
+# pcb:sch C_VDD.C x=-173.7200 y=354.6000 rot=0
+# pcb:sch C_VDDIO.C x=-46.7200 y=367.3000 rot=0
+# pcb:sch ICM-20948 x=202.2000 y=214.9000 rot=0
+# pcb:sch R_SCL_PU.R x=52.3400 y=227.6000 rot=180
+# pcb:sch R_SDA_PU.R x=115.8400 y=227.6000 rot=180
+# pcb:sch GND.1 x=316.5000 y=621.3000 rot=0
+# pcb:sch VDD.1 x=346.9800 y=164.1000 rot=0
+# pcb:sch VDDIO.1 x=296.1800 y=100.6000 rot=0
+# pcb:sch R_AUX_CL_PU.R x=623.8400 y=265.7000 rot=180
+# pcb:sch R_AUX_DA_PU.R x=560.3400 y=265.7000 rot=180

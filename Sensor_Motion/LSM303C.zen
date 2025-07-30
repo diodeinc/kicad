@@ -1,0 +1,146 @@
+"""LSM303C - Ultra-compact high-performance eCompass module: 3D accelerometer and 3D magnetometer
+
+The LSM303C is a system-in-package featuring a 3D digital linear acceleration sensor and a 
+3D digital magnetic sensor. It has linear acceleration full scales of ±2g/±4g/±8g and a 
+magnetic field full scale of ±16 gauss. The LSM303C includes an I²C serial bus interface 
+that supports standard and fast mode (100 kHz and 400 kHz) and an SPI serial standard 
+interface. The system can be configured to generate interrupt signals for free-fall, 
+motion detection and magnetic field detection. The magnetic and accelerometer blocks can 
+be enabled or put into power-down mode separately. The device operates from 1.9V to 3.6V 
+supply voltage with separate I/O voltage from 1.71V to Vdd+0.1V.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/lsm303c.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI")
+AccelFullScale = enum("2g", "4g", "8g")
+SpiMode = enum("4Wire", "3Wire")
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+accel_full_scale = config("accel_full_scale", AccelFullScale, default = "2g")
+add_decoupling = config("add_decoupling", bool, default = True)
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default = True)
+
+if interface_mode == InterfaceMode("I2C"):
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+else:  # SPI mode
+    spi_mode = config("spi_mode", SpiMode, default = "4Wire")
+
+# Interrupt configuration
+enable_int_xl = config("enable_int_xl", bool, default = True)
+enable_int_mag = config("enable_int_mag", bool, default = True)
+enable_drdy_mag = config("enable_drdy_mag", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+if seperate_vdd_vddio:
+    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDD_IO = VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+    _SCL_SPC = i2c.SCL
+    _SDA_SDI_SDO = i2c.SDA
+else:  # SPI mode
+    spi = io("SPI", Spi)
+    _SCL_SPC = spi.CLK
+    _SDA_SDI_SDO = spi.MOSI
+    if spi_mode == SpiMode("4Wire"):
+        # Note: In 4-wire mode, SDO is a separate output (not implemented in standard SPI interface)
+        # The datasheet shows SDO as part of the same pin in 3-wire mode only
+        pass
+
+# CS pins for SPI mode
+if interface_mode == InterfaceMode("SPI"):
+    CS_XL = io("CS_XL", Net)
+    CS_MAG = io("CS_MAG", Net)
+    _CS_XL = CS_XL
+    _CS_MAG = CS_MAG
+else:  # I2C mode - CS pins tied high
+    _CS_XL = VDD_IO
+    _CS_MAG = VDD_IO
+
+# Interrupt outputs
+if enable_int_xl:
+    INT_XL = io("INT_XL", Net)
+else:
+    INT_XL = Net("INT_XL_NC")
+
+if enable_int_mag:
+    INT_MAG = io("INT_MAG", Net)
+else:
+    INT_MAG = Net("INT_MAG_NC")
+
+if enable_drdy_mag:
+    DRDY_MAG = io("DRDY_MAG", Net)
+else:
+    DRDY_MAG = Net("DRDY_MAG_NC")
+
+# Internal nets
+_C1 = Net("C1")
+
+# Main component
+Component(
+    name = "LSM303C",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "LSM303C"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
+    pins = {
+        "SCL/SPC": _SCL_SPC,
+        "SDA/SDI/SDO": _SDA_SDI_SDO,
+        "CS_XL": _CS_XL,
+        "CS_MAG": _CS_MAG,
+        "VDDIO": VDD_IO,
+        "GND": GND,
+        "DRDY_MAG": DRDY_MAG,
+        "INT_MAG": INT_MAG,
+        "INT_XL": INT_XL,
+        "C1": _C1,
+        "VDD": VDD,
+    },
+)
+
+# C1 capacitor (required for internal regulator - per datasheet pin description)
+Capacitor(name = "C1", value = "100nF", package = "0402", P1 = _C1, P2 = GND)
+
+# Power supply decoupling (as shown in Figure 8 - LSM303C electrical connections)
+if add_decoupling:
+    # Decoupling capacitor near pin 9 (Vdd)
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    if seperate_vdd_vddio:
+        Capacitor(name = "C_VDD_IO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+
+# Bulk capacitors (as shown in Figure 8 - LSM303C electrical connections)  
+if add_bulk_caps:
+    # Bulk capacitor (aluminum electrolytic as mentioned in application hints)
+    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+
+# I2C pull-up resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(name = "R_SCL_PU", value = i2c_pullup_value, package = "0402", P1 = _SCL_SPC, P2 = VDD_IO)
+    Resistor(name = "R_SDA_PU", value = i2c_pullup_value, package = "0402", P1 = _SDA_SDI_SDO, P2 = VDD_IO)
+
+# pcb:sch C1.C x=613.6800 y=456.2000 rot=0
+# pcb:sch C_BULK.C x=-161.0200 y=354.6000 rot=0
+# pcb:sch C_VDD.C x=29.4800 y=354.6000 rot=0
+# pcb:sch C_VDD_IO.C x=-72.1200 y=354.6000 rot=0
+# pcb:sch LSM303C x=227.6000 y=240.3000 rot=0
+# pcb:sch R_SCL_PU.R x=153.9400 y=240.3000 rot=180
+# pcb:sch R_SDA_PU.R x=90.4400 y=240.3000 rot=180
+# pcb:sch GND.1 x=392.7000 y=583.2000 rot=0
+# pcb:sch VDD.1 x=423.1800 y=189.5000 rot=0
+# pcb:sch VDD_IO.1 x=397.7800 y=126.0000 rot=0

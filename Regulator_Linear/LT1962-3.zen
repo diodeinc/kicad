@@ -1,0 +1,124 @@
+"""LT1962-3 - 3.0V, 300mA, Low Noise, Micropower LDO Regulator
+
+The LT1962-3 is a micropower, low noise, low dropout linear regulator capable of 
+supplying 300mA of output current with a dropout voltage of 270mV. It features
+ultra-low quiescent current of 30μA, making it ideal for battery-powered applications.
+The device provides excellent noise performance of 20μVRMS (10Hz to 100kHz) with an 
+external bypass capacitor. It includes reverse battery protection, current limiting,
+thermal limiting, and reverse current protection. The regulator is stable with 
+output capacitors as low as 3.3μF and supports both ceramic and tantalum capacitors.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1962fb.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Configuration options
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "1uF")
+
+add_output_cap = config("add_output_cap", bool, default = True)
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "10uF")
+
+add_bypass_cap = config("add_bypass_cap", bool, default = True)
+if add_bypass_cap:
+    bypass_cap_value = config("bypass_cap_value", str, default = "0.01uF")
+
+enable_control = config("enable_control", bool, default = True)
+if enable_control:
+    add_enable_pullup = config("add_enable_pullup", bool, default = True)
+    enable_pullup_value = config("enable_pullup_value", str, default = "100kohms")
+
+enable_sense_connection = config("connect_sense_to_output", bool, default = True)
+
+# External IO
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power) 
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Enable pin - conditionally exposed based on enable_control
+if enable_control:
+    SHDN = io("SHDN", Net)
+else:
+    _SHDN = Net("SHDN")
+
+# Internal nets
+_BYP = Net("BYP")
+_NC = Net("NC")
+_SENSE = VOUT.NET if enable_sense_connection else Net("SENSE")
+
+# Main LT1962-3 component
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LT1962-3"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-8_3x3mm_P0.65mm.kicad_mod"),
+    pins = {
+        "IN": VIN.NET,
+        "~{SHDN}": SHDN if enable_control else VIN.NET,
+        "GND": GND,
+        "NC": _NC,
+        "OUT": VOUT.NET,
+        "SENSE": _SENSE,
+        "BYP": _BYP
+    },
+)
+
+# Input capacitor
+if add_input_cap:
+    Capacitor(name = "C_IN", value = input_cap_value, package = "0805", P1 = VIN.NET, P2 = GND)
+
+# Output capacitor
+if add_output_cap:
+    # Select package based on capacitor value (ceramic only)
+    if output_cap_value in ["3.3uF", "4.7uF", "6.8uF"]:
+        out_cap_package = "0805"
+    else:
+        out_cap_package = "1206"
+    
+    Capacitor(
+        name = "C_OUT",
+        value = output_cap_value,
+        package = out_cap_package,
+        P1 = VOUT.NET,
+        P2 = GND
+    )
+
+# Bypass capacitor for low noise operation
+if add_bypass_cap:
+    Capacitor(
+        name = "C_BYP",
+        value = bypass_cap_value,
+        package = "0402",
+        P1 = VOUT.NET,
+        P2 = _BYP
+    )
+
+# Enable control
+if enable_control and add_enable_pullup:
+    Resistor(
+        name = "R_EN",
+        value = enable_pullup_value,
+        package = "0402",
+        P1 = SHDN,
+        P2 = VIN.NET
+    )
+
+# pcb:sch C_BYP.C x=385.0800 y=202.2000 rot=0
+# pcb:sch C_IN.C x=-84.8200 y=202.2000 rot=0
+# pcb:sch C_OUT.C x=550.1800 y=202.2000 rot=0
+# pcb:sch R_EN.R x=52.3400 y=214.9000 rot=180
+# pcb:sch U1 x=151.4000 y=151.4000 rot=0
+# pcb:sch GND.1 x=240.3000 y=354.6000 rot=0
+# pcb:sch IN.VCC.1 x=-72.1200 y=100.6000 rot=0
+# pcb:sch OUT.VCC.1 x=562.8800 y=100.6000 rot=0
+# pcb:sch SENSE.VCC.1 x=562.8800 y=100.6000 rot=0
+# pcb:sch TP_VOUT.TP x=549.1800 y=202.2000 rot=0

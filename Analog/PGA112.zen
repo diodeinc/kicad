@@ -1,0 +1,202 @@
+"""PGA112 - Zero-Drift Programmable Gain Amplifier With MUX
+
+The PGA112 is a zero-drift programmable gain amplifier with a 2-channel input 
+multiplexer and SPI interface. It offers binary gain selections of 1, 2, 4, 8, 
+16, 32, 64, and 128 V/V. The device features rail-to-rail input and output, 
+ultra-low offset voltage (25µV typical), low noise (12nV/√Hz), and excellent 
+gain accuracy (0.1% max for G≤32). It includes four internal calibration 
+channels for system-level calibration. The PGA112 operates from 2.2V to 5.5V 
+supplies with separate analog (AVDD) and digital (DVDD) supplies for mixed-
+voltage systems.
+
+Key features:
+- Binary gains: 1, 2, 4, 8, 16, 32, 64, 128
+- 2-channel input MUX plus 4 calibration channels
+- Offset: 25µV typical, 100µV maximum
+- Zero drift: 0.35µV/°C typical
+- Input bias current: ±5nA maximum at 25°C
+- SPI interface (10MHz)
+- Software shutdown mode
+- VSSOP-10 package
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/pga112.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+
+# Types
+VrefConfiguration = enum("Ground", "MidSupply", "External")
+
+# Configuration
+vref_config = config("vref_config", VrefConfiguration, default = "MidSupply")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+add_ferrite_beads = config("add_ferrite_beads", bool, default = False)
+split_supplies = config("split_supplies", bool, default = True)
+
+# Output configuration
+add_output_series_resistor = config("add_output_series_resistor", bool, default = True)
+if add_output_series_resistor:
+    output_series_resistor_value = config("output_series_resistor_value", str, default = "100ohms")
+
+# SPI configuration
+add_spi_pullup = config("add_spi_pullup", bool, default = True)
+
+# Test points
+add_test_points = config("add_test_points", bool, default = True)
+
+# External IO
+AVDD = io("AVDD", Power, default = Power("AVDD"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Digital supply - separate or tied to AVDD
+if split_supplies:
+    DVDD = io("DVDD", Power, default = Power("DVDD"))
+else:
+    DVDD = AVDD
+
+# SPI Interface
+spi = io("SPI", Spi)
+
+# VREF input/output based on configuration
+if vref_config == VrefConfiguration("External"):
+    VREF = io("VREF", Net)
+elif vref_config == VrefConfiguration("MidSupply"):
+    VREF = io("VREF", Net)  # Will be generated internally
+else:  # Ground
+    VREF = GND
+
+# Analog inputs
+CH0 = io("CH0", Net)
+CH1 = io("CH1", Net)
+
+# Analog output
+VOUT = io("VOUT", Net)
+
+# Internal nets
+_AVDD = Net("_AVDD")  # Filtered analog supply
+_DVDD = Net("_DVDD")  # Filtered digital supply
+_VREF = Net("_VREF")  # Internal VREF net
+_VOUT_INT = Net("_VOUT_INT")  # Internal output before series resistor
+_DIO = Net("_DIO")  # SPI data I/O
+
+# Power filtering
+if add_ferrite_beads:
+    # Analog supply filtering
+    FerriteBead(name = "FB_AVDD", package = "0603", P1 = AVDD.NET, P2 = _AVDD)
+    # Digital supply filtering (if separate)
+    if split_supplies:
+        FerriteBead(name = "FB_DVDD", package = "0603", P1 = DVDD.NET, P2 = _DVDD)
+    else:
+        _DVDD = _AVDD
+else:
+    _AVDD = AVDD.NET
+    _DVDD = DVDD.NET
+
+# Bulk capacitors
+if add_bulk_cap:
+    Capacitor(name = "C_BULK_AVDD", value = "10uF", voltage = "10V", package = "0805", P1 = _AVDD, P2 = GND)
+    if split_supplies:
+        Capacitor(name = "C_BULK_DVDD", value = "10uF", voltage = "10V", package = "0805", P1 = _DVDD, P2 = GND)
+
+# Decoupling capacitors
+if add_decoupling:
+    Capacitor(name = "C_AVDD", value = "100nF", voltage = "10V", package = "0402", P1 = _AVDD, P2 = GND)
+    Capacitor(name = "C_DVDD", value = "100nF", voltage = "10V", package = "0402", P1 = _DVDD, P2 = GND)
+
+# VREF configuration
+if vref_config == VrefConfiguration("MidSupply"):
+    # Generate mid-supply reference
+    Resistor(name = "R_VREF1", value = "10kohms", package = "0402", P1 = _AVDD, P2 = _VREF)
+    Resistor(name = "R_VREF2", value = "10kohms", package = "0402", P1 = _VREF, P2 = GND)
+    Capacitor(name = "C_VREF", value = "1uF", voltage = "10V", package = "0603", P1 = _VREF, P2 = GND)
+    VREF = _VREF
+elif vref_config == VrefConfiguration("External"):
+    _VREF = VREF
+else:  # Ground
+    _VREF = GND
+
+# Main component
+Component(
+    name = "PGA112",
+    symbol = Symbol(library = "@kicad-symbols/Analog.kicad_sym", name = "PGA112"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/VSSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins = {
+        "AV_{DD}": _AVDD,
+        "CH1": CH1,
+        "CH0/V_{CAL}": CH0,
+        "V_{REF}": _VREF,
+        "V_{OUT}": _VOUT_INT,
+        "GND": GND,
+        "SCLK": spi.CLK,
+        "DIO": _DIO,
+        "~{CS}": spi.CS,
+        "DV_{DD}": _DVDD
+    }
+)
+
+# Output circuit
+if add_output_series_resistor:
+    Resistor(name = "R_OUT", value = output_series_resistor_value, package = "0402", P1 = _VOUT_INT, P2 = VOUT)
+else:
+    VOUT = _VOUT_INT
+
+# SPI interface configuration
+_DIO = spi.MOSI  # For write operations
+# Note: PGA112 uses DIO pin for both input and output
+# The actual bidirectional behavior is handled by the IC
+
+# SPI pull-up resistor on CS
+if add_spi_pullup:
+    Resistor(name = "R_CS_PU", value = "10kohms", package = "0402", P1 = spi.CS, P2 = _DVDD)
+
+# Test points
+if add_test_points:
+    TestPoint(name = "TP_VOUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VOUT)
+    TestPoint(name = "TP_VREF", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _VREF)
+    TestPoint(name = "TP_VCAL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CH0)
+    TestPoint(name = "TP_CH0", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CH1)
+
+# pcb:sch C_AVDD.C x=334.2800 y=1027.7000 rot=0
+# pcb:sch C_BULK_AVDD.C x=207.2800 y=1027.7000 rot=0
+# pcb:sch C_BULK_DVDD.C x=651.7800 y=1040.4000 rot=0
+# pcb:sch C_CH0_FILT.C x=207.2800 y=1319.8000 rot=0
+# pcb:sch C_CH1_FILT.C x=334.2800 y=1319.8000 rot=0
+# pcb:sch C_DVDD.C x=512.0800 y=1040.4000 rot=0
+# pcb:sch FB_AVDD.FB x=136.4140 y=976.9000 rot=270
+# pcb:sch FB_DVDD.FB x=733.3140 y=989.6000 rot=90
+# pcb:sch R_VREF.R x=204.7400 y=1319.8000 rot=0
+# pcb:sch PGA112 x=367.3000 y=1142.0000 rot=0
+
+# pcb:sch R_CS_PU.R x=712.7400 y=1205.5000 rot=270
+# pcb:sch R_OUT.R x=649.2400 y=1256.3000 rot=270
+
+# pcb:sch AVDD_VCC.1 x=105.6800 y=926.1000 rot=0
+# pcb:sch DVDD_VCC.1 x=804.1800 y=964.2000 rot=0
+# pcb:sch DVDD_VCC.2 x=854.9800 y=1116.6000 rot=0
+# pcb:sch GND.1 x=481.6000 y=1396.0000 rot=0
+# pcb:sch GND.2 x=100.6000 y=1142.0000 rot=0
+# pcb:sch GND.3 x=773.7000 y=1142.0000 rot=0
+# pcb:sch GND.4 x=240.3000 y=1446.8000 rot=0
+# pcb:sch TP_VOUT.TP x=702.5800 y=1304.5600 rot=180
+# pcb:sch TP_VREF.TP x=80.2800 y=1253.7600 rot=270
+# pcb:sch TP_VCAL.TP x=296.1800 y=1380.7600 rot=180
+# pcb:sch TP_CH0.TP x=346.9800 y=1406.1600 rot=180
+
+# pcb:sch C_VREF.C x=232.6800 y=1307.1000 rot=0
+# pcb:sch R_VREF1.R x=141.2400 y=1205.5000 rot=0
+# pcb:sch R_VREF2.R x=141.2400 y=1319.8000 rot=0
+
+# pcb:sch R_SCLK.R x=674.6400 y=1154.7000 rot=270
+# pcb:sch R_CS.R x=839.7400 y=1154.7000 rot=180
+# pcb:sch R_DIO.R x=763.5400 y=1319.8000 rot=270

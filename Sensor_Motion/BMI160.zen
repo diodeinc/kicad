@@ -1,0 +1,189 @@
+"""BMI160 - Small, low power inertial measurement unit
+
+The BMI160 is a highly integrated, low power inertial measurement unit (IMU) that 
+provides precise acceleration and angular rate (gyroscopic) measurement. It integrates 
+a 16-bit digital triaxial accelerometer and a 16-bit digital triaxial gyroscope. The 
+device features very low power consumption (typ. 925 µA with both sensors active), 
+Android Lollipop compatible motion detection, built-in 1024 byte FIFO buffer, and 
+flexible digital interfaces (I²C/SPI). It operates from 1.71V to 3.6V supply with 
+separate I/O voltage from 1.2V to 3.6V.
+
+Author: @anthropic/claude-opus-4  
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi160-ds000.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI3Wire", "SPI4Wire")
+I2cAddress = enum("0x68", "0x69")
+AuxiliaryMode = enum("None", "I2C", "SPI3Wire", "SPI4Wire")
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x68")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+elif interface_mode == InterfaceMode("SPI3Wire") or interface_mode == InterfaceMode("SPI4Wire"):
+    add_spi_cs_pullups = config("add_spi_cs_pullups", bool, default = True)
+
+# Auxiliary interface configuration (magnetometer or OIS)
+auxiliary_mode = config("auxiliary_mode", AuxiliaryMode, default = "SPI3Wire")
+if auxiliary_mode == AuxiliaryMode("I2C"):
+    add_aux_i2c_pullups = config("add_aux_i2c_pullups", bool, default = True)
+
+# Simplified interrupt configuration
+add_interrupt_pullups = config("add_interrupt_pullups", bool, default = False)
+
+# Decoupling configuration
+add_vdd_decoupling = config("add_vdd_decoupling", bool, default = True)
+add_vddio_decoupling = config("add_vddio_decoupling", bool, default = True)
+
+# Power and ground connection configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+# VDDIO - can be same as VDD or separate
+if separate_vddio:
+    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDDIO = VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# GNDIO
+GNDIO = GND
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+    _SCx = i2c.SCL
+    _SDx = i2c.SDA
+    _SDO = GNDIO if i2c_address == I2cAddress("0x68") else VDDIO  # I2C address selection
+    _CSB = VDDIO  # Always high for I2C mode
+elif interface_mode == InterfaceMode("SPI3Wire") or interface_mode == InterfaceMode("SPI4Wire"):
+    spi = io("SPI", Spi)
+    _SCx = spi.CLK
+    _CSB = spi.CS
+    if interface_mode == InterfaceMode("SPI3Wire"):
+        # 3-wire SPI uses bidirectional data
+        _SDx = spi.MOSI  # Bidirectional in 3-wire mode
+        _SDO = Net("NC_SDO")  # Not connected in 3-wire mode
+    else:  # 4-wire SPI
+        _SDx = spi.MOSI
+        _SDO = spi.MISO
+
+# Interrupt pins (always exposed)
+INT1 = io("INT1", Net, default = Net("INT1"))
+INT2 = io("INT2", Net, default = Net("INT2"))
+
+# Auxiliary interface configuration
+if auxiliary_mode == AuxiliaryMode("None"):
+    # No auxiliary interface - tie unused pins appropriately
+    _ASDx = Net("NC_ASDx")
+    _ASCx = Net("NC_ASCx")
+    _OCSB = Net("NC_OCSB")
+    _OSDO = Net("NC_OSDO")
+elif auxiliary_mode == AuxiliaryMode("I2C"):
+    # I2C auxiliary interface for magnetometer
+    aux_i2c = io("AUX_I2C", I2c)
+    _ASDx = aux_i2c.SDA
+    _ASCx = aux_i2c.SCL
+    _OCSB = Net("NC_OCSB")
+    _OSDO = Net("NC_OSDO")
+elif auxiliary_mode == AuxiliaryMode("SPI3Wire"):
+    # 3-wire SPI auxiliary interface for OIS (bidirectional data)
+    OIS_CLK = io("OIS_CLK", Net, default = Net("OIS_CLK"))
+    OIS_CS = io("OIS_CS", Net, default = Net("OIS_CS"))
+    OIS_SISO = io("OIS_SISO", Net, default = Net("OIS_SISO"))  # Serial In/Serial Out - bidirectional
+    _ASCx = OIS_CLK
+    _OCSB = OIS_CS
+    _ASDx = OIS_SISO
+    _OSDO = OIS_SISO  # Same line for 3-wire bidirectional
+elif auxiliary_mode == AuxiliaryMode("SPI4Wire"):
+    # 4-wire SPI auxiliary interface for OIS
+    aux_spi = io("AUX_SPI", Spi)
+    _ASCx = aux_spi.CLK
+    _OCSB = aux_spi.CS
+    _ASDx = aux_spi.MOSI
+    _OSDO = aux_spi.MISO
+
+# Small, low power inertial measurement unit, LGA-14
+Component(
+    name = "BMI160",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "BMI160"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/Bosch_LGA-14_3x2.5mm_P0.5mm.kicad_mod"),
+    pins = {
+        "SDO": _SDO,
+        "SDx": _SDx,
+        "SCx": _SCx,
+        "CSB": _CSB,
+        "INT1": INT1,
+        "INT2": INT2,
+        "VDDIO": VDDIO,
+        "GNDIO": GNDIO,
+        "VDD": VDD,
+        "GND": GND,
+        "ASDx": _ASDx,
+        "ASCx": _ASCx,
+        "OCSB": _OCSB,
+        "OSDO": _OSDO
+    },
+)
+
+# I2C Address Selection is handled by direct net connection above
+
+# I2C Pull-up Resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCx, P2 = VDDIO)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDx, P2 = VDDIO)
+
+# Auxiliary I2C Pull-up Resistors (for magnetometer interface)
+if auxiliary_mode == AuxiliaryMode("I2C") and add_aux_i2c_pullups:
+    Resistor(name = "R_AUX_SCL", value = "4.7kohms", package = "0402", P1 = _ASCx, P2 = VDDIO)
+    Resistor(name = "R_AUX_SDA", value = "4.7kohms", package = "0402", P1 = _ASDx, P2 = VDDIO)
+
+# Power Supply Decoupling
+if add_vdd_decoupling:
+    # VDD decoupling - close to pin
+    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    # Additional bulk capacitor
+    Capacitor(name = "C_VDD2", value = "2.2uF", package = "0603", P1 = VDD, P2 = GND)
+
+if add_vddio_decoupling and separate_vddio:
+    # VDDIO decoupling - close to pin (only when VDDIO is separate)
+    Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO, P2 = GNDIO)
+
+# Ground connection is handled by conditional net assignment above
+
+# Interrupt pull-up resistors (optional, depends on host configuration)
+if add_interrupt_pullups:
+    Resistor(name = "R_INT1_PU", value = "10kohms", package = "0402", P1 = INT1, P2 = VDDIO)
+    Resistor(name = "R_INT2_PU", value = "10kohms", package = "0402", P1 = INT2, P2 = VDDIO)
+
+# SPI Mode Selection (if using SPI)
+if interface_mode == InterfaceMode("SPI3Wire") or interface_mode == InterfaceMode("SPI4Wire"):
+    if add_spi_cs_pullups:
+        # For SPI mode, CSB must have a pull-up resistor
+        Resistor(name = "R_CSB_PU", value = "10kohms", package = "0402", P1 = _CSB, P2 = VDDIO)
+
+# pcb:sch BMI160 x=595.9000 y=405.4000 rot=0
+# pcb:sch C_VDD1.C x=169.1800 y=468.9000 rot=0
+# pcb:sch C_VDD2.C x=258.0800 y=468.9000 rot=0
+# pcb:sch C_VDDIO.C x=346.9800 y=468.9000 rot=0
+# pcb:sch R_SCL.R x=420.6400 y=367.3000 rot=180
+# pcb:sch R_SDA.R x=484.1400 y=367.3000 rot=180
+# pcb:sch GND.1 x=710.2000 y=684.8000 rot=0
+# pcb:sch VDD.1 x=715.2800 y=316.5000 rot=0
+# pcb:sch VDD.2 x=816.8800 y=316.5000 rot=0
+# pcb:sch VDDIO.1 x=689.8800 y=265.7000 rot=0
+# pcb:sch R_INT1_PU.R x=446.0400 y=519.7000 rot=90
+# pcb:sch R_INT2_PU.R x=446.0400 y=583.2000 rot=90
+# pcb:sch R_AUX_SCL.R x=992.1400 y=354.6000 rot=180
+# pcb:sch R_AUX_SDA.R x=928.6400 y=354.6000 rot=180
+# pcb:sch R_CSB_PU.R x=446.0400 y=443.5000 rot=180

@@ -1,0 +1,172 @@
+"""TPS562202S - 2A Synchronous Step-Down Voltage Regulator
+
+The TPS562202S is a 2A synchronous step-down (buck) converter in a 6-pin SOT-563 package.
+It features D-CAP2™ control topology for fast transient response, operates from 4.3V to 17V
+input voltage, and provides 0.804V to 7V output voltage at 580kHz switching frequency. The
+device includes ECO-mode for high efficiency at light loads, integrated 140mΩ/84mΩ
+FETs, and comprehensive protection features including OCP, UVP, UVLO, and thermal shutdown.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tps562202s.pdf
+"""
+
+# Dependencies
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+
+# Types
+OutputVoltage = enum("0.804V", "0.85V", "0.9V", "1.0V", "1.05V", "1.2V", "1.5V", "1.8V", "2.5V", "3.3V", "5.0V", "6.5V", "7.0V")
+InductorValue = enum("1.5uH", "2.2uH", "3.3uH", "4.7uH")
+OutputCapacitorConfig = enum("2x22uF", "3x22uF", "2x33uF", "3x33uF")
+BootstrapCapValue = enum("100nF")
+InputCapConfig = enum("Basic", "Enhanced")
+EnableConfig = enum("AlwaysOn", "External", "Pullup")
+
+# Configuration
+output_voltage = config("output_voltage", OutputVoltage, default = "3.3V")
+inductor_value = config("inductor_value", InductorValue, default = "3.3uH")
+output_cap_config = config("output_cap_config", OutputCapacitorConfig, default = "2x22uF")
+bootstrap_cap = config("bootstrap_cap", BootstrapCapValue, default = "100nF")
+input_cap_config = config("input_cap_config", InputCapConfig, default = "Enhanced")
+enable_config = config("enable_config", EnableConfig, default = "AlwaysOn")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN"))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Enable pin configuration
+if enable_config == EnableConfig("External"):
+    EN = io("EN", Net, default = Net("EN"))
+else:
+    EN = Net("EN")
+
+# Internal nets
+_SW = Net("SW")
+_VBST = Net("VBST")
+_VFB = Net("VFB")
+
+# Enable pin configuration
+if enable_config == EnableConfig("AlwaysOn"):
+    # Direct connection to VIN for always-on operation
+    EN = VIN
+elif enable_config == EnableConfig("Pullup"):
+    # Pull-up resistor to VIN with external control capability
+    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN, P2 = VIN)
+
+# Main component - 2A Synchronous Step-Down Voltage Regulator
+Component(
+    name = "TPS562202S",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "TPS562202S"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-563.kicad_mod"),
+    pins = {
+        "GND": GND,
+        "SW": _SW,
+        "VIN": VIN,
+        "VFB": _VFB,
+        "EN": EN,
+        "VBST": _VBST
+    },
+)
+
+
+# Feedback resistor divider - values based on output voltage selection
+if output_voltage == OutputVoltage("0.804V"):
+    r_top = "0ohms"  # Direct connection for minimum output voltage
+elif output_voltage == OutputVoltage("0.85V"):
+    r_top = "0.549kohms"
+elif output_voltage == OutputVoltage("0.9V"):
+    r_top = "1.2kohms"
+elif output_voltage == OutputVoltage("1.0V"):
+    r_top = "2.4kohms"
+elif output_voltage == OutputVoltage("1.05V"):
+    r_top = "3.0kohms"
+elif output_voltage == OutputVoltage("1.2V"):
+    r_top = "4.87kohms"
+elif output_voltage == OutputVoltage("1.5V"):
+    r_top = "8.66kohms"
+elif output_voltage == OutputVoltage("1.8V"):
+    r_top = "12.4kohms"
+elif output_voltage == OutputVoltage("2.5V"):
+    r_top = "21.0kohms"
+elif output_voltage == OutputVoltage("3.3V"):
+    r_top = "30.9kohms"
+elif output_voltage == OutputVoltage("5.0V"):
+    r_top = "52.3kohms"
+elif output_voltage == OutputVoltage("6.5V"):
+    r_top = "70.5kohms"
+else:  # 7.0V
+    r_top = "82.5kohms"
+
+# Feedback resistors (1% tolerance recommended)
+if output_voltage != OutputVoltage("0.804V"):
+    Resistor(name = "R_TOP", value = r_top, package = "0402", P1 = VOUT, P2 = _VFB)
+    Resistor(name = "R_BOT", value = "10kohms", package = "0402", P1 = _VFB, P2 = GND)
+else:
+    # Direct connection for 0.804V output
+    _VFB = VOUT
+
+# Bootstrap capacitor (required)
+Capacitor(name = "C_BST", value = bootstrap_cap.value, voltage = "10V", package = "0402", P1 = _VBST, P2 = _SW)
+
+# Input capacitors
+if input_cap_config == InputCapConfig("Basic"):
+    # Minimum recommended input capacitance
+    Capacitor(name = "C_IN1", value = "10uF", voltage = "25V", package = "0805", P1 = VIN, P2 = GND)
+    Capacitor(name = "C_IN2", value = "100nF", voltage = "25V", package = "0402", P1 = VIN, P2 = GND)
+else:  # Enhanced
+    # Enhanced input capacitance for lower input ripple
+    Capacitor(name = "C_IN1", value = "22uF", voltage = "25V", package = "1206", P1 = VIN, P2 = GND)
+    Capacitor(name = "C_IN2", value = "10uF", voltage = "25V", package = "0805", P1 = VIN, P2 = GND)
+    Capacitor(name = "C_IN3", value = "100nF", voltage = "25V", package = "0402", P1 = VIN, P2 = GND)
+
+# Output inductor - select appropriate value based on output voltage
+if output_voltage in [OutputVoltage("0.804V"), OutputVoltage("0.85V"), OutputVoltage("0.9V")]:
+    default_ind = "1.5uH"
+elif output_voltage in [OutputVoltage("1.0V"), OutputVoltage("1.05V"), OutputVoltage("1.2V"), 
+                      OutputVoltage("1.5V"), OutputVoltage("1.8V")]:
+    default_ind = "2.2uH"
+elif output_voltage in [OutputVoltage("2.5V"), OutputVoltage("3.3V")]:
+    default_ind = "3.3uH"
+else:  # 5.0V, 6.5V, 7.0V
+    default_ind = "4.7uH"
+
+# Use configured value if it's appropriate, otherwise use default
+if inductor_value.value == default_ind:
+    ind_val = inductor_value.value
+else:
+    ind_val = default_ind
+
+Inductor(name = "L_OUT", value = ind_val, package = "1210", P1 = _SW, P2 = VOUT)
+
+# Output capacitors - configuration based on selection
+if output_cap_config == OutputCapacitorConfig("2x22uF"):
+    Capacitor(name = "C_OUT1", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT2", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+elif output_cap_config == OutputCapacitorConfig("3x22uF"):
+    Capacitor(name = "C_OUT1", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT2", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT3", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+elif output_cap_config == OutputCapacitorConfig("2x33uF"):
+    Capacitor(name = "C_OUT1", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT2", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+else:  # 3x33uF
+    Capacitor(name = "C_OUT1", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT2", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT3", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+
+# pcb:sch C_BST.C x=359.6800 y=1611.9000 rot=270
+# pcb:sch C_IN1.C x=-313.4200 y=1573.8000 rot=0
+# pcb:sch C_IN2.C x=-186.4200 y=1573.8000 rot=0
+# pcb:sch C_OUT1.C x=550.1800 y=1548.4000 rot=0
+# pcb:sch C_OUT2.C x=677.1800 y=1548.4000 rot=0
+# pcb:sch C_OUT3.C x=804.1800 y=1548.4000 rot=0
+# pcb:sch L_OUT.L x=379.9991 y=1459.5000 rot=270
+# pcb:sch R_BOT.R x=484.1400 y=1599.2000 rot=0
+# pcb:sch R_TOP.R x=484.1400 y=1497.6000 rot=0
+# pcb:sch TPS562202S x=87.9000 y=1510.3000 rot=0
+# pcb:sch GND.1 x=176.8000 y=1713.5000 rot=0
+# pcb:sch C_IN3.C x=-59.4200 y=1573.8000 rot=0
+# pcb:sch R_EN.R x=26.9400 y=1599.2000 rot=180

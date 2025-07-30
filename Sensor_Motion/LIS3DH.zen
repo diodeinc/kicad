@@ -1,0 +1,191 @@
+"""LIS3DH - MEMS digital output motion sensor: ultra-low-power high-performance 3-axis "nano" accelerometer
+
+The LIS3DH is an ultra-low-power high-performance three-axis linear accelerometer 
+with digital I²C/SPI serial interface. The device features ultra-low-power 
+operational modes (down to 2µA), dynamically user-selectable full scales of 
+±2g/±4g/±8g/±16g, and output data rates from 1 Hz to 5.3 kHz. It includes 
+2 independent programmable interrupt generators, embedded temperature sensor, 
+auxiliary 10-bit ADC with 3 inputs, and a 32-level FIFO buffer.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/lis3dh.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI_4Wire", "SPI_3Wire")
+FullScale = enum("2g", "4g", "8g", "16g")
+PowerMode = enum("Normal", "LowPower", "HighResolution")
+I2cAddress = enum("0x18", "0x19")  # SA0 = 0 or 1
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+full_scale = config("full_scale", FullScale, default = "2g")
+power_mode = config("power_mode", PowerMode, default = "Normal")
+
+# I2C specific configuration
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x18")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+
+# Interrupt configuration
+enable_interrupts = config("enable_interrupts", bool, default = True)
+if enable_interrupts:
+    add_interrupt_pullups = config("add_interrupt_pullups", bool, default = True)
+
+# ADC configuration
+enable_adc = config("enable_adc", bool, default = True)
+
+# Power configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+
+if separate_vddio:
+    add_vddio_decoupling = config("add_vddio_decoupling", bool, default = True)
+else:
+    add_vddio_decoupling = False
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# VDD_IO - can be same as VDD or separate
+if separate_vddio:
+    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDD_IO = VDD
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+    _SCL = i2c.SCL
+    _SDA = i2c.SDA
+    _CS = VDD_IO  # CS must be tied high for I2C mode
+    if i2c_address == I2cAddress("0x18"):
+        _SDO_SA0 = GND
+    else:  # 0x19
+        _SDO_SA0 = VDD_IO
+else:  # SPI modes
+    spi = io("SPI", Spi)
+    _CS = spi.CS
+    _SCL = spi.CLK
+    if interface_mode == InterfaceMode("SPI_4Wire"):
+        _SDA = spi.MOSI
+        _SDO_SA0 = spi.MISO
+    else:  # SPI_3Wire
+        # In 3-wire mode, SDA is bidirectional
+        _SDA = spi.MOSI  # Also used for MISO in 3-wire mode
+        _SDO_SA0 = Net("NC_SDO")  # Not connected in 3-wire mode
+
+# Interrupt pins
+if enable_interrupts:
+    INT1 = io("INT1", Net, default = Net("INT1"))
+    INT2 = io("INT2", Net, default = Net("INT2"))
+else:
+    INT1 = Net("NC_INT1")
+    INT2 = Net("NC_INT2")
+
+# ADC pins
+if enable_adc:
+    ADC1 = io("ADC1", Net, default = Net("ADC1"))
+    ADC2 = io("ADC2", Net, default = Net("ADC2"))
+    ADC3 = io("ADC3", Net, default = Net("ADC3"))
+else:
+    ADC1 = Net("NC_ADC1")
+    ADC2 = Net("NC_ADC2")
+    ADC3 = Net("NC_ADC3")
+
+# Internal nets
+_RES = Net("RES")  # Reserved pin, must be connected to GND
+
+# Main component
+Component(
+    name = "LIS3DH",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "LIS3DH"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y.kicad_mod"),
+    pins = {
+        "VDD_IO": VDD_IO,
+        "SPC": _SCL,
+        "SDI": _SDA,
+        "SDO": _SDO_SA0,
+        "CS": _CS,
+        "INT1": INT1,
+        "INT2": INT2,
+        "VDD": VDD,
+        "GND": GND,
+        "NC": Net("NC_INTERNAL"),
+        "ADC1": ADC1,
+        "ADC2": ADC2,
+        "ADC3": ADC3,
+    }
+)
+
+# Connect RES pin to GND (required)
+_RES = GND
+
+# Power supply decoupling
+if add_decoupling:
+    # VDD decoupling
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+    # VDD_IO decoupling (if separate supply)
+    if separate_vddio and add_vddio_decoupling:
+        Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+
+# Bulk capacitor
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+
+# I2C pull-up resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDD_IO)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDD_IO)
+
+# Interrupt pull-up resistors (optional, depends on host configuration)
+if enable_interrupts and add_interrupt_pullups:
+    Resistor(name = "R_INT1", value = "10kohms", package = "0402", P1 = INT1, P2 = VDD_IO)
+    Resistor(name = "R_INT2", value = "10kohms", package = "0402", P1 = INT2, P2 = VDD_IO)
+
+# ADC input protection (optional)
+if enable_adc:
+    # Create intermediate nets for ADC filtering
+    _ADC1_INT = Net("ADC1_INT")
+    _ADC2_INT = Net("ADC2_INT")
+    _ADC3_INT = Net("ADC3_INT")
+    
+    # Add series resistors for ADC input protection
+    Resistor(name = "R_ADC1", value = "1kohms", package = "0402", P1 = ADC1, P2 = _ADC1_INT)
+    Resistor(name = "R_ADC2", value = "1kohms", package = "0402", P1 = ADC2, P2 = _ADC2_INT)
+    Resistor(name = "R_ADC3", value = "1kohms", package = "0402", P1 = ADC3, P2 = _ADC3_INT)
+    
+    # Add filtering capacitors for ADC inputs
+    Capacitor(name = "C_ADC1", value = "10nF", package = "0402", P1 = _ADC1_INT, P2 = GND)
+    Capacitor(name = "C_ADC2", value = "10nF", package = "0402", P1 = _ADC2_INT, P2 = GND)
+    Capacitor(name = "C_ADC3", value = "10nF", package = "0402", P1 = _ADC3_INT, P2 = GND)
+
+
+
+# pcb:sch LIS3DH x=227.6000 y=214.9000 rot=0
+# pcb:sch C_VDD.C x=-135.6200 y=316.5000 rot=0
+# pcb:sch C_VDDIO.C x=-46.7200 y=430.8000 rot=0
+# pcb:sch C_BULK.C x=-237.2200 y=316.5000 rot=0
+# pcb:sch GND.1 x=341.9000 y=532.4000 rot=0
+# pcb:sch VDD.1 x=372.3800 y=151.4000 rot=0
+# pcb:sch VDD_IO.1 x=-34.0200 y=126.0000 rot=0
+# pcb:sch R_SCL.R x=-11.1600 y=202.2000 rot=180
+# pcb:sch R_SDA.R x=52.3400 y=202.2000 rot=180
+# pcb:sch R_INT1.R x=179.3400 y=202.2000 rot=180
+# pcb:sch R_INT2.R x=115.8400 y=202.2000 rot=180
+# pcb:sch R_ADC1.R x=534.9400 y=253.0000 rot=270
+# pcb:sch R_ADC2.R x=534.9400 y=303.8000 rot=270
+# pcb:sch R_ADC3.R x=534.9400 y=354.6000 rot=270
+# pcb:sch C_ADC1.C x=791.4800 y=405.4000 rot=0
+# pcb:sch C_ADC2.C x=702.5800 y=405.4000 rot=0
+# pcb:sch C_ADC3.C x=600.9800 y=405.4000 rot=0

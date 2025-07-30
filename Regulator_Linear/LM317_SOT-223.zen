@@ -1,4 +1,5 @@
-"""LM317 3-Pin Adjustable Linear Regulator in SOT-223 Package
+"""LM317 
+
 
 The LM317 is an adjustable three-pin, positive-voltage regulator capable of supplying 
 more than 1.5A over an output voltage range of 1.25V to 37V. The device requires only 
@@ -40,7 +41,6 @@ passives_size = config("passives_size", str, default = "0603")
 add_input_cap = config("add_input_cap", bool, default = True)
 if add_input_cap:
     input_cap_type = config("input_cap_type", InputCapacitorType, default = "Ceramic")
-    input_cap_distance = config("input_cap_distance", float, default = 6.0)  # inches from power supply
 
 add_output_cap = config("add_output_cap", bool, default = True)
 if add_output_cap:
@@ -163,12 +163,8 @@ Resistor(name = "R2", value = r2_value, package = passives_size, P1 = _ADJ, P2 =
 # Input capacitor
 if add_input_cap:
     if input_cap_type == InputCapacitorType("Ceramic"):
-        if input_cap_distance > 6:
-            # Use 1µF ceramic for distant supply
-            Capacitor(name = "C_IN", value = "1uF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
-        else:
-            # Use 0.1µF ceramic for close supply
-            Capacitor(name = "C_IN", value = "100nF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
+        # Use 0.1µF ceramic capacitor
+        Capacitor(name = "C_IN", value = "10uF", voltage = "50V", package = passives_size, P1 = _VI, P2 = GND)
     elif input_cap_type == InputCapacitorType("Electrolytic"):
         # Electrolytic for high current/ripple applications
         cap_size = "1210" if passives_size == "0603" else "1206"

@@ -1,0 +1,167 @@
+"""LIS3MDL - Ultra-low-power, high-performance 3-axis digital output magnetometer
+
+The LIS3MDL is an ultra-low-power high-performance 3-axis magnetic sensor with 
+user-selectable full scales of ±4/±8/±12/±16 gauss. The device features both 
+I²C and SPI digital interfaces, continuous and single-conversion modes, 16-bit 
+data output, and an interrupt generator. It includes self-test capability and 
+operates from 1.9V to 3.6V supply voltage with independent IO supply (1.71V to Vdd+0.1V).
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/lis3mdl.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI_4Wire", "SPI_3Wire")
+I2cAddress = enum("0x1C", "0x1E")  # SA1 = 0 or 1
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+
+# I2C specific configuration
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x1C")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+
+# Interrupt configuration
+enable_interrupt = config("enable_interrupt", bool, default = True)
+enable_data_ready = config("enable_data_ready", bool, default = True)
+
+# Power configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# VDD_IO - can be same as VDD or separate
+if separate_vddio:
+    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDD_IO = VDD
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+    _SCL = i2c.SCL
+    _SDA = i2c.SDA
+    _CS = VDD_IO  # CS must be tied high for I2C mode
+    if i2c_address == I2cAddress("0x1C"):
+        _SDO_SA1 = GND
+    else:  # 0x1E
+        _SDO_SA1 = VDD_IO
+else:  # SPI modes
+    spi = io("SPI", Spi)
+    _CS = spi.CS
+    _SCL = spi.CLK
+    if interface_mode == InterfaceMode("SPI_4Wire"):
+        _SDA = spi.MOSI
+        _SDO_SA1 = spi.MISO
+    else:  # SPI_3Wire
+        # In 3-wire mode, SDA is bidirectional
+        _SDA = spi.MOSI  # Also used for MISO in 3-wire mode
+        _SDO_SA1 = GND  # Must be connected to GND or VDD_IO in 3-wire mode
+
+# Interrupt pins
+if enable_interrupt:
+    INT = io("INT", Net, default = Net("INT"))
+else:
+    INT = Net("NC_INT")
+
+if enable_data_ready:
+    DRDY = io("DRDY", Net, default = Net("DRDY"))
+else:
+    DRDY = Net("NC_DRDY")
+
+# Internal nets
+_C1 = Net("C1")  # External capacitor connection
+
+# Main component
+Component(
+    name = "LIS3MDL",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Magnetic.kicad_sym", name = "LIS3MDL"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
+    pins = {
+        "~{CS}": _CS,
+        "SCL/SPC": _SCL,
+        "SDA/SDI/SDO": _SDA,
+        "SDO/SA1": _SDO_SA1,
+        "Vdd": VDD,
+        "GND": GND,
+        "Vdd_IO": VDD_IO,
+        "DRDY": DRDY,
+        "INT": INT,
+        "C1": _C1,
+    },
+)
+
+# Required external capacitor C1 (100nF) between pin 4 and GND
+Capacitor(name = "C1", value = "100nF", package = "0402", P1 = _C1, P2 = GND)
+
+# Power supply decoupling
+if add_decoupling:
+    # VDD decoupling (C3 per datasheet)
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    
+    # VDD_IO decoupling (if separate supply)
+    if separate_vddio:
+        Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+
+# Bulk capacitor (C2 per datasheet)
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+
+# I2C pull-up resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDD_IO)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDD_IO)
+
+# Interrupt pull-up resistor (optional, depends on host configuration)
+if enable_interrupt:
+    # INT pin has configurable polarity (active high or low)
+    # Default is active low, so pull-up is typically needed
+    Resistor(name = "R_INT", value = "10kohms", package = "0402", P1 = INT, P2 = VDD_IO)
+
+# Data ready pull-up resistor (optional, depends on host configuration)
+if enable_data_ready:
+    # DRDY is push-pull output, so pull-up is optional
+    # Add if needed for specific host requirements
+    # Resistor(name = "R_DRDY", value = "10kohms", package = "0402", P1 = DRDY, P2 = VDD_IO)
+    pass
+
+# Test points for debugging (optional)
+if add_test_points and interface_mode == InterfaceMode("I2C"):
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+
+if add_test_points and enable_interrupt:
+    TestPoint(name = "TP_INT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = INT)
+
+if add_test_points and enable_data_ready:
+    TestPoint(name = "TP_DRDY", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = DRDY)
+
+# pcb:sch C1.C x=499.3800 y=557.8000 rot=0
+# pcb:sch C_BULK.C x=-148.3200 y=456.2000 rot=0
+# pcb:sch C_VDD.C x=-59.4200 y=456.2000 rot=0
+# pcb:sch C_VDDIO.C x=651.7800 y=481.6000 rot=0
+# pcb:sch LIS3MDL x=240.3000 y=392.7000 rot=0
+# pcb:sch R_INT.R x=585.7400 y=405.4000 rot=180
+# pcb:sch R_SCL.R x=128.5400 y=405.4000 rot=180
+# pcb:sch R_SDA.R x=65.0400 y=405.4000 rot=180
+# pcb:sch TP_DRDY.TP x=499.3800 y=301.2600 rot=0
+# pcb:sch TP_INT.TP x=550.1800 y=301.2600 rot=0
+# pcb:sch TP_SCL.TP x=105.6800 y=225.0600 rot=0
+# pcb:sch TP_SDA.TP x=42.1800 y=225.0600 rot=0
+# pcb:sch GND.1 x=354.6000 y=672.1000 rot=0
+# pcb:sch VDD.1 x=359.6800 y=316.5000 rot=0
+# pcb:sch VDD_IO.1 x=29.4800 y=303.8000 rot=0

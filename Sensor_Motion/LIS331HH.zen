@@ -1,0 +1,146 @@
+"""LIS331HH - MEMS digital output motion sensor ultra low-power high full-scale 3-axes "nano" accelerometer
+
+The LIS331HH is an ultra low-power high performance three axes linear accelerometer 
+with digital I²C/SPI serial interface. The device features ultra low-power operational 
+modes (down to 10µA), dynamically user selectable full scales of ±6g/±12g/±24g, output 
+data rates from 0.5 Hz to 1 kHz, and two independent programmable interrupt engines. 
+It includes self-test capability, 6D orientation detection, sleep to wake-up function, 
+and 10000g high shock survivability. The device operates from 2.16V to 3.6V supply 
+voltage with 1.8V compatible IOs.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.st.com/resource/en/datasheet/lis331hh.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+NetTie = Module("@stdlib/generics/NetTie.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI_4Wire", "SPI_3Wire")
+PowerMode = enum("Normal", "LowPower")
+FullScale = enum("6g", "12g", "24g")
+I2cAddress = enum("0x18", "0x19")  # SA0 = 0 or 1
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+power_mode = config("power_mode", PowerMode, default = "Normal")
+full_scale = config("full_scale", FullScale, default = "6g")
+
+# I2C specific configuration
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x18")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+
+# Simplified interrupt configuration
+enable_interrupts = config("enable_interrupts", bool, default = True)
+if enable_interrupts:
+    add_interrupt_pullups = config("add_interrupt_pullups", bool, default = True)
+
+# Decoupling configuration
+add_vdd_decoupling = config("add_vdd_decoupling", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+
+# Power configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+
+if separate_vddio:
+    add_vddio_decoupling = config("add_vddio_decoupling", bool, default = True)
+else:
+    add_vddio_decoupling = False
+    
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+# VDD_IO - can be same as VDD or separate
+if separate_vddio:
+    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDD_IO = VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+    _SCL = i2c.SCL
+    _SDA = i2c.SDA
+    _CS = VDD_IO
+    if i2c_address == I2cAddress("0x18"):
+        _SDO_SA0 = GND
+    else:  # 0x19
+        _SDO_SA0 = VDD_IO
+else:  # SPI modes
+    spi = io("SPI", Spi)
+    CS = io("CS", Net)
+    _CS = spi.CS
+    _SCL = spi.CLK
+    if interface_mode == InterfaceMode("SPI_4Wire"):
+        _SDA = spi.MOSI
+        _SDO_SA0 = spi.MISO
+    else:  # SPI_3Wire
+        # In 3-wire mode, SDA is bidirectional
+        _SDA = spi.MOSI  # Also used for MISO in 3-wire mode
+        _SDO_SA0 = Net("NC_SDO")  # Not connected in 3-wire mode
+
+# Interrupt pins
+if enable_interrupts:
+    INT1 = io("INT1", Net, default = Net("INT1"))
+    INT2 = io("INT2", Net, default = Net("INT2"))
+else:
+    INT1 = Net("NC_INT1")
+    INT2 = Net("NC_INT2")
+
+# Main component
+Component(
+    name = "LIS331HH",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "LIS331HH"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y.kicad_mod"),
+    pins = {
+        "Vdd_IO": VDD_IO,
+        "SCL/SPC": _SCL,
+        "SDA/SDI": _SDA,
+        "SA0/SDO": _SDO_SA0,
+        "~{CS}": _CS,
+        "INT1": INT1,
+        "INT2": INT2,
+        "Vdd": VDD,
+        "GND": GND,
+        "NC": Net("NC_INTERNAL"),
+    }
+)
+
+# Power supply decoupling
+if add_vdd_decoupling:
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+
+if add_vddio_decoupling and separate_vddio:
+    Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+
+# I2C pull-up resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDD_IO)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDD_IO)
+
+# Interrupt pull-up resistors (optional, depends on host configuration)
+if enable_interrupts and add_interrupt_pullups:
+    Resistor(name = "R_INT1", value = "10kohms", package = "0402", P1 = INT1, P2 = VDD_IO)
+    Resistor(name = "R_INT2", value = "10kohms", package = "0402", P1 = INT2, P2 = VDD_IO)
+
+# pcb:sch LIS331HH x=291.1000 y=291.1000 rot=0
+# pcb:sch C_VDD.C x=651.7800 y=367.3000 rot=0
+# pcb:sch C_VDDIO.C x=16.7800 y=405.4000 rot=0
+# pcb:sch C_BULK.C x=753.3800 y=367.3000 rot=0
+# pcb:sch GND.1 x=380.0000 y=608.6000 rot=0
+# pcb:sch VDD.1 x=766.0800 y=240.3000 rot=0
+# pcb:sch VDD_IO.1 x=29.4800 y=214.9000 rot=0
+# pcb:sch R_SCL.R x=128.5400 y=291.1000 rot=180
+# pcb:sch R_SDA.R x=192.0400 y=291.1000 rot=180
+# pcb:sch R_INT1.R x=547.6400 y=303.8000 rot=180
+# pcb:sch R_INT2.R x=611.1400 y=303.8000 rot=180

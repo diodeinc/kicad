@@ -1,0 +1,148 @@
+"""SHT4x - Digital Humidity and Temperature Sensor, ±1%RH, ±0.1°C, I2C, 1.08-3.6V, 16bit, DFN-4
+
+The SHT4x is a 4th generation digital sensor platform for measuring relative humidity and 
+temperature with high accuracy. It features ±1.0%RH and ±0.1°C accuracies (SHT45), ultra-low 
+power consumption (0.4µW average), I2C Fast Mode Plus interface with multiple addresses, and 
+operates from 1.08V to 3.6V. The sensor includes an integrated heater for operation in demanding 
+environments and is fully functional in condensing conditions. Available in a compact 1.5x1.5mm 
+DFN-4 package with optional PTFE membrane or removable protective cover.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT4x_Datasheet.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+NetTie = Module("@stdlib/generics/NetTie.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+
+# Types
+DeviceVariant = enum("SHT40", "SHT41", "SHT43", "SHT45")
+I2cAddress = enum("0x44", "0x45", "0x46")
+I2cSpeed = enum("Standard", "Fast", "FastModePlus")
+
+# Configuration
+device_variant = config("device_variant", DeviceVariant, default = "SHT45")
+i2c_address = config("i2c_address", I2cAddress, default = "0x44")
+
+# I2C configuration
+i2c_speed = config("i2c_speed", I2cSpeed, default = "FastModePlus")
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "2.2kohms")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+power = io("power", Power, default = Power())
+VDD = Net("VDD")
+GND = Net("GND")
+
+# I2C interface
+i2c = io("i2c", I2c)
+
+# Internal nets
+_SCL = i2c.SCL
+_SDA = i2c.SDA
+
+
+# Digital Humidity and Temperature Sensor, ±1%RH, ±0.1°C, I2C, 1.08-3.6V, 16bit, DFN-4
+Component(
+    name = "SHT4x",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Humidity.kicad_sym", name = "SHT4x"),
+    footprint = File("@kicad-footprints/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod"),
+    pins = {
+        "SCL": _SCL,
+        "SDA": _SDA,
+        "VDD": VDD,
+        "VSS": GND
+    },
+)
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    bulk_size = "0805" if passives_size == "0402" else passives_size
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        voltage = "6.3V",
+        package = bulk_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# Power Supply Decoupling Capacitor - close to sensor
+if add_decoupling_cap:
+    Capacitor(
+        name = "C_VDD",
+        value = "100nF",
+        voltage = "6.3V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+
+# I2C Pull-up Resistors
+if add_i2c_pullups:
+    # Determine pull-up value based on VDD voltage and I2C speed
+    # For VDD < 1.62V, use higher value resistors (820 ohms minimum)
+    # For VDD >= 1.62V, use 390 ohms minimum for fast mode plus
+    
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SDA,
+        P2 = VDD
+    )
+
+# Test Points (optional)
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+
+
+
+# pcb:sch SHT4x x=240.3000 y=595.9000 rot=0
+# pcb:sch C_BULK.C x=410.4800 y=608.6000 rot=0
+# pcb:sch C_VDD.C x=537.4800 y=608.6000 rot=0
+# pcb:sch R_SCL.R x=90.4400 y=557.8000 rot=180
+# pcb:sch R_SDA.R x=26.9400 y=557.8000 rot=180
+# pcb:sch FB_VDD.FB x=47.5140 y=418.1000 rot=0
+# pcb:sch C_FILTER.C x=715.2800 y=659.4000 rot=0
+# pcb:sch J_DEBUG.PH x=900.0000 y=700.0000 rot=0
+# pcb:sch VDD.1 x=500.0000 y=550.0000 rot=0
+# pcb:sch GND.1 x=500.0000 y=650.0000 rot=0
+# pcb:sch GND.2 x=650.0000 y=740.0000 rot=0
+# pcb:sch NT_VDD.NT x=100.6000 y=951.5000 rot=0
+# pcb:sch R_VDD_BOT.R x=725.4400 y=532.4000 rot=0
+# pcb:sch R_VDD_TOP.R x=611.1400 y=532.4000 rot=270
+# pcb:sch TP_GND.TP x=334.2800 y=771.1600 rot=180
+# pcb:sch TP_SCL.TP x=92.9800 y=694.9600 rot=180
+# pcb:sch TP_SDA.TP x=29.4800 y=694.9600 rot=180
+# pcb:sch TP_VDD.TP x=334.2800 y=466.3600 rot=0

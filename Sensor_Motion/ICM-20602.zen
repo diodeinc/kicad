@@ -1,0 +1,179 @@
+"""ICM-20602 - High Performance 6-Axis MEMS MotionTracking Device
+
+The ICM-20602 is a 6-axis MotionTracking device that combines a 3-axis gyroscope 
+and 3-axis accelerometer in a small 3mm x 3mm x 0.75mm (16-pin LGA) package. 
+It features high performance specs including gyroscope sensitivity error of ±1%, 
+gyroscope noise of ±4 mdps/√Hz, and accelerometer noise of 100 µg/√Hz. The device 
+includes a 1KB FIFO, on-chip 16-bit ADCs, programmable digital filters, an embedded 
+temperature sensor, and programmable interrupts. It supports both I²C (up to 400 kHz) 
+and SPI (up to 10 MHz) interfaces and operates from 1.71V to 3.45V.
+
+Key features:
+- 3-axis gyroscope with programmable FSR: ±250/±500/±1000/±2000 dps
+- 3-axis accelerometer with programmable FSR: ±2g/±4g/±8g/±16g
+- 1KB FIFO buffer for burst reading
+- Digital-output temperature sensor
+- Wake-on-motion interrupt for low power operation
+- EIS FSYNC support
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-20602-v1.0.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+InterfaceMode = enum("I2C", "SPI")
+I2cAddress = enum("0x68", "0x69")
+GyroFullScale = enum("250dps", "500dps", "1000dps", "2000dps")
+AccelFullScale = enum("2g", "4g", "8g", "16g")
+
+# Configuration
+interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x68")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+add_regout_cap = config("add_regout_cap", bool, default = True)
+add_vdd_bulk_cap = config("add_vdd_bulk_cap", bool, default = True)
+add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default = True)
+add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default = True)
+
+# Power configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+
+# Interrupt configuration
+use_interrupt = config("use_interrupt", bool, default = True)
+if use_interrupt:
+    add_interrupt_pullup = config("add_interrupt_pullup", bool, default = True)
+
+# FSYNC configuration
+use_fsync = config("use_fsync", bool, default = False)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+# VDDIO - can be same as VDD or separate
+if separate_vddio:
+    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDDIO = VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Interface IO
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+else:  # SPI mode
+    spi = io("SPI", Spi)
+
+# Interrupt IO
+if use_interrupt:
+    INT = io("INT", Net)
+
+# FSYNC IO
+if use_fsync:
+    FSYNC = io("FSYNC", Net)
+else:
+    _FSYNC = GND  # Connect to GND if unused
+
+# Internal nets
+_REGOUT = Net("REGOUT")
+_SAO_SD0 = Net("SAO_SD0")
+_CS = Net("CS")
+
+# Interface Mode Configuration
+if interface_mode == InterfaceMode("I2C"):
+    # I2C mode: CS must be tied to VDDIO
+    _CS = VDDIO
+    
+    # Set I2C address using SAO pin
+    if i2c_address == I2cAddress("0x68"):
+        _SAO_SD0 = GND  # SAO = 0 for address 0x68
+    else:  # 0x69
+        _SAO_SD0 = VDDIO  # SAO = 1 for address 0x69
+    
+    # Interface pins for I2C mode
+    _SDA_SDI = i2c.SDA
+    _SCL_SPC = i2c.SCL
+    
+    # I2C pull-up resistors (if enabled)
+    if add_i2c_pullups:
+        Resistor(name = "R_SCL_PU", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDDIO)
+        Resistor(name = "R_SDA_PU", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDDIO)
+
+else:  # SPI mode
+    # SPI mode: CS is connected to chip select
+    _CS = spi.CS
+    # SAO becomes SD0 (MISO) in SPI mode
+    _SAO_SD0 = spi.MISO
+    
+    # Interface pins for SPI mode
+    _SDA_SDI = spi.MOSI
+    _SCL_SPC = spi.CLK
+
+if use_interrupt:
+    _INT_PIN = INT
+    Resistor(name = "R_INT_PU", value = "10kohms", package = "0402", P1 = INT, P2 = VDDIO)
+else:
+    _INT_PIN = INT
+
+if use_fsync:
+    _FSYNC_PIN = FSYNC
+else:
+    _FSYNC_PIN = _FSYNC
+
+# High performance 6-Axis MEMS motion tracking, SPI/I2C interface, LGA-16
+Component(
+    name = "ICM-20602",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "ICM-20602"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y.kicad_mod"),
+    pins = {
+        "SAO/SD0": _SAO_SD0,
+        "SDA/SDI": _SDA_SDI,
+        "SCL/SPC": _SCL_SPC,
+        "~{CS}": _CS,
+        "RESV": GND,
+        "VDD": VDD,
+        "GND": GND,
+        "VDDIO": VDDIO,
+        "INT": _INT_PIN,
+        "FSYNC": _FSYNC_PIN,
+        "REGOUT": _REGOUT,
+    }
+)
+
+# REGOUT Capacitor - Required for internal LDO
+if add_regout_cap:
+    Capacitor(name = "C_REGOUT", value = "100nF", voltage = "6.3V", package = "0402", P1 = _REGOUT, P2 = GND)
+
+# VDD Power Supply Capacitors
+if add_vdd_bulk_cap:
+    Capacitor(name = "C_VDD_BULK", value = "2.2uF", voltage = "6.3V", package = "0603", P1 = VDD, P2 = GND)
+
+if add_vdd_bypass_cap:
+    Capacitor(name = "C_VDD_BYPASS", value = "100nF", voltage = "6.3V", package = "0402", P1 = VDD, P2 = GND)
+
+# VDDIO Bypass Capacitor (only when VDDIO is separate)
+if add_vddio_bypass_cap and separate_vddio:
+    Capacitor(name = "C_VDDIO", value = "10nF", voltage = "6.3V", package = "0402", P1 = VDDIO, P2 = GND)
+
+# Interrupt Pull-up (for open-drain configuration)
+if use_interrupt and add_interrupt_pullup:
+    Resistor(name = "R_INT_PU", value = "10kohms", package = "0402", P1 = INT, P2 = VDDIO)
+
+# pcb:sch C_REGOUT.C x=524.7800 y=507.0000 rot=0
+# pcb:sch C_VDDIO.C x=4.0800 y=532.4000 rot=0
+# pcb:sch C_VDD_BULK.C x=639.0800 y=405.4000 rot=0
+# pcb:sch C_VDD_BYPASS.C x=778.7800 y=405.4000 rot=0
+# pcb:sch ICM-20602 x=202.2000 y=341.9000 rot=0
+# pcb:sch R_SCL_PU.R x=52.3400 y=367.3000 rot=180
+# pcb:sch R_SDA_PU.R x=115.8400 y=367.3000 rot=180
+# pcb:sch GND.1 x=316.5000 y=634.0000 rot=0
+# pcb:sch VDD.1 x=321.5800 y=227.6000 rot=0
+# pcb:sch VDDIO.1 x=16.7800 y=240.3000 rot=0
+# pcb:sch R_INT_PU.R x=484.1400 y=354.6000 rot=180
