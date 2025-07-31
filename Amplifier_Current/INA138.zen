@@ -1,0 +1,241 @@
+"""INA138 - High-Side Measurement Current Shunt Monitor
+
+The INA138 is a high-side, unipolar, current shunt monitor with wide input common-mode 
+voltage range from 2.7V to 36V. It features a complete current measurement circuit with 
+low quiescent current (25µA typical) and converts differential input voltage to current 
+output with gain set by a single external resistor. The device operates from a single 
+2.7V to 36V supply and provides temperature range of -40°C to +125°C in a tiny SOT-23-5 
+package.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/ina138.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+GainSetting = enum("1", "10", "20", "50", "100", "200")
+ShuntResistance = enum("10mohms", "25mohms", "50mohms", "100mohms", "200mohms", "500mohms")
+OutputVoltage = enum("1V", "2.5V", "3.3V", "5V", "10V")
+
+# Configuration
+add_decoupling = config("add_decoupling", bool, default = True)
+add_input_filtering = config("add_input_filtering", bool, default = True)
+add_output_filtering = config("add_output_filtering", bool, default = False)
+add_test_points = config("add_test_points", bool, default = False)
+add_external_shunt = config("add_external_shunt", bool, default = True)
+
+# Gain and shunt configuration
+gain_setting = config("gain_setting", GainSetting, default = "20")
+if add_external_shunt:
+    shunt_resistance = config("shunt_resistance", ShuntResistance, default = "100mohms")
+output_voltage_fs = config("output_voltage_fs", OutputVoltage, default = "5V")
+
+# Input filter configuration
+if add_input_filtering:
+    input_filter_r = config("input_filter_r", str, default = "10ohms")
+    input_filter_c = config("input_filter_c", str, default = "100nF")
+
+# Output filter configuration  
+if add_output_filtering:
+    output_filter_c = config("output_filter_c", str, default = "100nF")
+
+# Calculate load resistor value based on gain setting
+# Transconductance gm = 200µA/V, so RL = Gain / (200µA/V)
+gain_map = {
+    GainSetting("1"): "5kohms",
+    GainSetting("10"): "50kohms", 
+    GainSetting("20"): "100kohms",
+    GainSetting("50"): "250kohms",
+    GainSetting("100"): "500kohms",
+    GainSetting("200"): "1Mohms",
+}
+load_resistor_value = gain_map[gain_setting]
+
+# External IO
+V_PLUS = io("V+", Power)  # Power supply (2.7-36V)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Current sensing inputs
+IN_PLUS = io("IN+", Net)   # Positive voltage input (connects to high-side of shunt)
+IN_MINUS = io("IN-", Net)  # Negative voltage input (connects to load-side of shunt)
+
+# Output
+OUT = io("OUT", Net)  # Current output (converted to voltage by RL)
+
+# Internal nets
+_IN_PLUS_FILT = Net("IN_PLUS_FILT") if add_input_filtering else IN_PLUS
+_IN_MINUS_FILT = Net("IN_MINUS_FILT") if add_input_filtering else IN_MINUS
+_OUT_INT = Net("OUT_INT")  # Internal output net before load resistor
+
+# Main component
+Component(
+    name = "INA138",
+    symbol = Symbol(library = "@kicad-symbols/Amplifier_Current.kicad_sym", name = "INA138"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "1": _OUT_INT,      # Output current
+        "GND": GND,         # Ground
+        "+": _IN_PLUS_FILT, # V+ input
+        "-": _IN_MINUS_FILT,# V- input  
+        "V+": V_PLUS.NET    # Power supply
+    },
+)
+
+# Power supply decoupling
+if add_decoupling:
+    # Local ceramic capacitor close to V+ pin
+    Capacitor(
+        name = "C_VDD",
+        value = "100nF",
+        voltage = "50V", 
+        package = "0402",
+        P1 = V_PLUS.NET,
+        P2 = GND
+    )
+    
+    # Bulk capacitor for power supply
+    Capacitor(
+        name = "C_BULK",
+        value = "1uF",
+        voltage = "50V",
+        package = "0603", 
+        P1 = V_PLUS.NET,
+        P2 = GND
+    )
+
+# Input filtering for noise reduction and protection
+if add_input_filtering:
+    # Series resistors for input protection
+    Resistor(
+        name = "R_IN_PLUS",
+        value = input_filter_r,
+        package = "0402",
+        P1 = IN_PLUS,
+        P2 = _IN_PLUS_FILT
+    )
+    
+    Resistor(
+        name = "R_IN_MINUS", 
+        value = input_filter_r,
+        package = "0402",
+        P1 = IN_MINUS,
+        P2 = _IN_MINUS_FILT
+    )
+    
+    # Filter capacitors
+    Capacitor(
+        name = "C_IN_PLUS",
+        value = input_filter_c,
+        voltage = "50V",
+        package = "0402",
+        P1 = _IN_PLUS_FILT,
+        P2 = GND
+    )
+    
+    Capacitor(
+        name = "C_IN_MINUS",
+        value = input_filter_c, 
+        voltage = "50V",
+        package = "0402",
+        P1 = _IN_MINUS_FILT,
+        P2 = GND
+    )
+
+# Load resistor to convert output current to voltage
+# Gain = RL * gm where gm = 200µA/V
+Resistor(
+    name = "R_LOAD",
+    value = load_resistor_value,
+    package = "0603",
+    P1 = _OUT_INT,
+    P2 = GND
+)
+
+# Connect internal output to external output
+OUT = _OUT_INT
+
+# Output filtering (optional)
+if add_output_filtering:
+    # Filter capacitor in parallel with load resistor
+    Capacitor(
+        name = "C_OUT",
+        value = output_filter_c,
+        voltage = "16V",
+        package = "0402", 
+        P1 = OUT,
+        P2 = GND
+    )
+
+# External shunt resistor (optional)
+if add_external_shunt:
+    # Map shunt resistance enum to valid resistance strings
+    shunt_value_map = {
+        ShuntResistance("10mohms"): "0.01ohms",
+        ShuntResistance("25mohms"): "0.025ohms",
+        ShuntResistance("50mohms"): "0.05ohms",
+        ShuntResistance("100mohms"): "0.1ohms",
+        ShuntResistance("200mohms"): "0.2ohms",
+        ShuntResistance("500mohms"): "0.5ohms"
+    }
+    
+    # High-power shunt resistor
+    shunt_package = "2512" if shunt_resistance in [ShuntResistance("10mohms"), ShuntResistance("25mohms"), ShuntResistance("50mohms")] else "2010"
+    
+    Resistor(
+        name = "R_SHUNT",
+        value = shunt_value_map[shunt_resistance],
+        package = shunt_package,
+        P1 = IN_PLUS,
+        P2 = IN_MINUS
+    )
+
+# Test points
+if add_test_points:
+    TestPoint(
+        name = "TP_IN_PLUS",
+        variant = "Pad_D1.5mm",
+        P1 = IN_PLUS
+    )
+    
+    TestPoint(
+        name = "TP_IN_MINUS", 
+        variant = "Pad_D1.5mm",
+        P1 = IN_MINUS
+    )
+    
+    TestPoint(
+        name = "TP_OUT",
+        variant = "Pad_D1.5mm",
+        P1 = OUT
+    )
+    
+    TestPoint(
+        name = "TP_V_PLUS",
+        variant = "Pad_D1.5mm", 
+        P1 = V_PLUS.NET
+    )
+
+# pcb:sch C_BULK.C x=600.9800 y=354.6000 rot=0
+# pcb:sch C_IN_MINUS.C x=4.0800 y=468.9000 rot=0
+# pcb:sch C_IN_PLUS.C x=4.0800 y=265.7000 rot=180
+# pcb:sch C_VDD.C x=727.9800 y=354.6000 rot=0
+# pcb:sch INA138 x=176.8000 y=303.8000 rot=0
+# pcb:sch R_IN_MINUS.R x=-36.5600 y=418.1000 rot=270
+# pcb:sch R_IN_PLUS.R x=-36.5600 y=316.5000 rot=270
+# pcb:sch R_LOAD.R x=395.2400 y=392.7000 rot=0
+# pcb:sch R_SHUNT.R x=-112.7600 y=367.3000 rot=0
+# pcb:sch GND.1 x=214.9000 y=570.5000 rot=0
+# pcb:sch V+.1 x=270.7800 y=176.8000 rot=0
+# pcb:sch VCC.1 x=219.9800 y=202.2000 rot=0
+# pcb:sch TP_IN_PLUS.TP x=-173.7200 y=301.2600 rot=0
+# pcb:sch TP_IN_MINUS.TP x=-173.7200 y=415.5600 rot=0
+# pcb:sch TP_OUT.TP x=524.7800 y=326.6600 rot=0
+# pcb:sch TP_V_PLUS.TP x=270.7800 y=98.0600 rot=0
+# pcb:sch C_OUT.C x=486.6800 y=405.4000 rot=0

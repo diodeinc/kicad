@@ -1,0 +1,182 @@
+"""TMP119AIYBGR - Ultra-High Accuracy, Low-Power, Digital Temperature Sensor with I2C Interface
+
+The TMP119 is an ultra-high accuracy digital temperature sensor designed to meet ASTM E1112 
+and ISO 80601 requirements for electronic patient thermometers. It features ±0.08°C accuracy 
+from 0°C to 45°C, ±0.15°C from -55°C to 125°C, and ±0.2°C from -55°C to 150°C. With 16-bit 
+resolution (0.0078125°C LSB), ultra-low power consumption (3.5µA at 1Hz), and I2C interface 
+up to 400kHz, it operates from 1.7V to 5.5V. The device includes programmable high/low limits, 
+temperature alerts, selectable averaging, digital offset correction, 48-bit general-purpose 
+EEPROM, and is NIST traceable. Available in an ultra-small 0.95x1.488mm DSBGA-6 package.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tmp119.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+DeviceAddress = enum("0x48", "0x49", "0x4A", "0x4B")
+I2cSpeed = enum("Standard", "Fast")
+
+# Configuration
+# Device address selection (determines I2C address via ADD0 pin connection)
+device_address = config("device_address", DeviceAddress, default = "0x48")
+
+# I2C configuration
+i2c_speed = config("i2c_speed", I2cSpeed, default = "Fast")
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+
+# Alert functionality
+use_alert = config("use_alert", bool, default = False)
+if use_alert:
+    add_alert_pullup = config("add_alert_pullup", bool, default = True)
+    alert_pullup_value = config("alert_pullup_value", str, default = "10kohms")
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = False)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+power = io("power", Power, default = Power())
+VDD = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))
+GND = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))
+
+# I2C interface
+i2c = io("i2c", I2c)
+
+# Alert output (optional)
+if use_alert:
+    ALERT = io("ALERT", Net)
+    _ALERT = ALERT
+else:
+    _ALERT = Net("NC_ALERT")
+
+# Internal nets
+_SCL = i2c.SCL
+_SDA = i2c.SDA
+
+# Address mapping: device address -> ADD0 pin connection
+# ADD0 | Address
+#  GND | 0x48
+#  VDD | 0x49
+#  SDA | 0x4A
+#  SCL | 0x4B
+address_map = {
+    DeviceAddress("0x48"): GND,
+    DeviceAddress("0x49"): VDD,
+    DeviceAddress("0x4A"): _SDA,
+    DeviceAddress("0x4B"): _SCL
+}
+
+# Connect ADD0 pin based on selected address
+_ADD0 = address_map[device_address]
+
+
+# Ultra-High Accuracy, Low-Power, Digital Temperature Sensor With SMBus and I2C-Compatible Interface, DSBGA-6
+Component(
+    name = "TMP119AIYBGR",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Temperature.kicad_sym", name = "TMP119AIYBGR"),
+    footprint = File("@kicad-footprints/Package_BGA.pretty/Texas_DSBGA-6_0.95x1.488mm_Layout2x3_P0.4mm.kicad_mod"),
+    pins = {
+        "SDA": _SDA,      # A1 - Serial data I/O (open-drain, requires pull-up)
+        "SCL": _SCL,      # A2 - Serial clock input
+        "V+": VDD,        # B1 - Supply voltage (1.7V to 5.5V)
+        "GND": GND,       # B2 - Ground
+        "ADD0": _ADD0,    # C1 - Address select
+        "ALERT": _ALERT   # C2 - Overtemperature alert/data-ready (open-drain)
+    },
+)
+
+
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    bulk_size = "0603" if passives_size == "0402" else "0805"
+    Capacitor(
+        name = "C_BULK",
+        value = "1uF",
+        voltage = "10V",
+        package = bulk_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# Power Supply Decoupling Capacitor - must be placed close to V+ pin
+if add_decoupling_cap:
+    Capacitor(
+        name = "C_VDD",
+        value = "0.1uF",
+        voltage = "10V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# I2C Pull-up Resistors
+if add_i2c_pullups:
+    # Pull-ups are required for proper I2C communication
+    # Typical values: 2.2kΩ to 10kΩ depending on bus capacitance and speed
+    # 5kΩ recommended for most applications
+    
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SDA,
+        P2 = VDD
+    )
+
+# Alert Pull-up Resistor (ALERT is open-drain output)
+if use_alert and add_alert_pullup:
+    Resistor(
+        name = "R_ALERT",
+        value = alert_pullup_value,
+        package = passives_size,
+        P1 = _ALERT,
+        P2 = VDD
+    )
+
+# Test Points (optional)
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+    if use_alert:
+        TestPoint(name = "TP_ALERT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _ALERT)
+
+
+# pcb:sch TMP119AIYBGR x=240.3000 y=595.9000 rot=0
+# pcb:sch C_BULK.C x=537.4800 y=634.0000 rot=0
+# pcb:sch C_VDD.C x=651.7800 y=634.0000 rot=0
+# pcb:sch R_SCL.R x=90.4400 y=557.8000 rot=180
+# pcb:sch R_SDA.R x=26.9400 y=557.8000 rot=180
+# pcb:sch R_ALERT.R x=154.9400 y=557.8000 rot=180
+# pcb:sch VDD.1 x=334.2800 y=494.3000 rot=0
+# pcb:sch GND.1 x=329.2000 y=837.2000 rot=0
+# pcb:sch TP_GND.TP x=372.3800 y=796.5600 rot=180
+# pcb:sch TP_SCL.TP x=92.9800 y=694.9600 rot=180
+# pcb:sch TP_SDA.TP x=29.4800 y=694.9600 rot=180
+# pcb:sch TP_VDD.TP x=372.3800 y=466.3600 rot=0

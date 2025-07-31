@@ -1,0 +1,158 @@
+"""SCD41-D-R2 - Photoacoustic CO2 sensor, 40,000 ppm, I2C, 2.4-5.5V, High accuracy 400-5000 ppm
+
+The SCD41-D-R2 is a high-accuracy photoacoustic NDIR CO2 sensor with integrated temperature 
+and humidity measurement. It features ±(40 ppm + 5%) accuracy for CO2 measurements from 
+400-5000 ppm, operates from 2.4V to 5.5V, and communicates via I2C interface. The sensor 
+includes automatic self-calibration (ASC) and forced recalibration (FRC) features for 
+long-term stability. It supports periodic measurement, low power periodic measurement, 
+and single-shot measurement modes. The compact 10.1x10.1x6.5mm package makes it ideal 
+for indoor air quality monitoring and HVAC applications.
+
+Note: VDD and VDDH are internally connected in the sensor but require separate decoupling
+capacitors for proper high-frequency noise suppression.
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SCD4x_Datasheet.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+MeasurementMode = enum("Periodic", "LowPowerPeriodic", "SingleShot")
+I2cSpeed = enum("Standard", "Fast")
+
+# Configuration
+measurement_mode = config("measurement_mode", MeasurementMode, default = "Periodic")
+i2c_speed = config("i2c_speed", I2cSpeed, default = "Standard")
+
+# I2C configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "10kohms")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+power = io("power", Power)
+VDD = power.NET
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("i2c", I2c)
+
+# Internal nets
+_SCL = i2c.SCL
+_SDA = i2c.SDA
+
+# Photoacoustic CO2 sensor, 40,000 ppm, I2C, 2.4-5.5V, High accuracy 400-5000 ppm
+Component(
+    name = "SCD41",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Gas.kicad_sym", name = "SCD41-D-R2"),
+    footprint = File("@kicad-footprints/Sensor.pretty/Sensirion_SCD4x-1EP_10.1x10.1mm_P1.25mm_EP4.8x4.8mm.kicad_mod"),
+    pins = {
+        "VDD": VDD,
+        "GND": GND,
+        "SCL": _SCL,
+        "SDA": _SDA,
+    },
+)
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    bulk_size = "0805" if passives_size == "0402" else passives_size
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        voltage = "6.3V",
+        package = bulk_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# Power Supply Decoupling Capacitors - close to sensor
+if add_decoupling_caps:
+    # Decoupling for VDD pin
+    Capacitor(
+        name = "C_VDD1",
+        value = "100nF",
+        voltage = "6.3V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+    
+    # Additional decoupling for VDDH pin (VDD and VDDH are internally connected)
+    # Still need separate cap for proper high-frequency decoupling
+    Capacitor(
+        name = "C_VDDH",
+        value = "100nF",
+        voltage = "6.3V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+    
+    # Additional bulk decoupling for better transient response
+    # Required due to peak current of up to 205mA @ 3.3V
+    Capacitor(
+        name = "C_VDD2",
+        value = "1uF",
+        voltage = "6.3V",
+        package = "0603" if passives_size == "0402" else passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# I2C Pull-up Resistors
+if add_i2c_pullups:
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SDA,
+        P2 = VDD
+    )
+
+# Test Points (optional)
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+
+# pcb:sch SCD41 x=240.3000 y=608.6000 rot=0
+# pcb:sch C_BULK.C x=562.8800 y=621.3000 rot=0
+# pcb:sch C_VDD1.C x=689.8800 y=621.3000 rot=0
+# pcb:sch C_VDDH.C x=829.5800 y=621.3000 rot=0
+# pcb:sch C_VDD2.C x=969.2800 y=621.3000 rot=0
+# pcb:sch R_SCL.R x=522.2400 y=570.5000 rot=180
+# pcb:sch R_SDA.R x=458.7400 y=570.5000 rot=180
+# pcb:sch VDD.1 x=500.0000 y=550.0000 rot=0
+# pcb:sch GND.1 x=303.8000 y=824.5000 rot=0
+# pcb:sch TP_GND.TP x=245.3800 y=771.1600 rot=180
+# pcb:sch TP_SCL.TP x=486.6800 y=479.0600 rot=0
+# pcb:sch TP_SDA.TP x=435.8800 y=479.0600 rot=0
+# pcb:sch TP_VDD.TP x=232.6800 y=504.4600 rot=0
+# pcb:sch VCC.1 x=308.8800 y=507.0000 rot=0

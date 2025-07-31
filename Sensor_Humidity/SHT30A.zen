@@ -1,0 +1,208 @@
+"""SHT30A - Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8
+
+The SHT30A is a digital humidity and temperature sensor featuring a calibrated, linearized 
+sensor signal in digital I2C format. It provides typical accuracy of ±2%RH and ±0.2°C with 
+excellent long-term stability. The sensor operates from 2.15V to 5.5V and supports I2C 
+communication up to 1MHz with two selectable addresses. It includes an integrated heater for 
+operation in harsh environments and features an ALERT output for threshold monitoring. The 
+device comes in a compact 2.5x2.5mm DFN-8 package.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+I2cAddress = enum("0x44", "0x45")
+
+# Configuration
+# I2C address selection (0x44 when ADDR=L, 0x45 when ADDR=H)
+i2c_address = config("i2c_address", I2cAddress, default = "0x44")
+
+# I2C configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "10kohms")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+
+# Alert pin configuration
+use_alert_pin = config("use_alert_pin", bool, default = True)
+if use_alert_pin:
+    add_alert_pullup = config("add_alert_pullup", bool, default = True)
+    alert_pullup_value = config("alert_pullup_value", str, default = "10kohms")
+
+# Reset pin configuration
+use_reset_pin = config("use_reset_pin", bool, default = True)
+if use_reset_pin:
+    add_reset_pullup = config("add_reset_pullup", bool, default = True)
+    reset_pullup_value = config("reset_pullup_value", str, default = "10kohms")
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+power = io("power", Power, default = Power())
+VDD = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))
+GND = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))
+
+# I2C interface
+i2c = io("i2c", I2c)
+
+# Optional pins
+if use_alert_pin:
+    ALERT = io("ALERT", Net)
+    _ALERT = ALERT
+else:
+    _ALERT = Net("NC_ALERT")
+
+if use_reset_pin:
+    nRESET = io("nRESET", Net)
+    _nRESET = nRESET
+else:
+    _nRESET = Net("NC_nRESET")
+
+# Internal nets
+_SCL = i2c.SCL
+_SDA = i2c.SDA
+
+# Address mapping: I2C address -> ADDR pin connection
+# ADDR | Address
+#  GND | 0x44
+#  VDD | 0x45
+address_map = {
+    I2cAddress("0x44"): GND,
+    I2cAddress("0x45"): VDD
+}
+
+# Connect ADDR pin based on selected address
+_ADDR = address_map[i2c_address]
+
+
+# Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8
+Component(
+    name = "SHT30A",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Humidity.kicad_sym", name = "SHT30A-DIS"),
+    footprint = File("@kicad-footprints/Sensor_Humidity.pretty/Sensirion_DFN-8-1EP_2.5x2.5mm_P0.5mm_EP1.1x1.7mm.kicad_mod"),
+    pins = {
+        "SDA": _SDA,        # Pin 1 - I2C data
+        "ADDR": _ADDR,      # Pin 2 - Address selection
+        "ALERT": _ALERT,    # Pin 3 - Alert output
+        "SCL": _SCL,        # Pin 4 - I2C clock
+        "VDD": VDD,         # Pin 5 - Power supply
+        "~{RESET}": _nRESET, # Pin 6 - Reset input (active low)
+        "R": GND,           # Pin 7 - Reserved, connect to VSS
+        "VSS": GND          # Pin 8 - Ground
+    },
+)
+
+
+# Bulk Power Supply Capacitor - not required per datasheet
+if add_bulk_cap:
+    bulk_size = "0603" if passives_size == "0402" else "0805"
+    Capacitor(
+        name = "C_BULK",
+        value = "1uF",
+        voltage = "10V",
+        package = bulk_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# Power Supply Decoupling Capacitor - close to sensor
+if add_decoupling_cap:
+    Capacitor(
+        name = "C_VDD",
+        value = "100nF",
+        voltage = "10V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+# I2C Pull-up Resistors
+if add_i2c_pullups:
+    # I2C pull-ups are required for proper communication
+    # Value depends on bus capacitance and speed
+    # Typical values: 2.2kΩ to 10kΩ for up to 1MHz operation
+    
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SDA,
+        P2 = VDD
+    )
+
+# Alert Pin Pull-up (if used)
+# ALERT is an open-drain output, but per section 3.5, if not used, must be left floating
+if use_alert_pin and add_alert_pullup:
+    Resistor(
+        name = "R_ALERT",
+        value = alert_pullup_value,
+        package = passives_size,
+        P1 = _ALERT,
+        P2 = VDD
+    )
+
+# Reset Pin Pull-up (recommended if reset pin is used)
+if use_reset_pin and add_reset_pullup:
+    # Internal pull-up is 50kΩ typical, external can be added for robustness
+    Resistor(
+        name = "R_nRESET",
+        value = reset_pullup_value,
+        package = passives_size,
+        P1 = _nRESET,
+        P2 = VDD
+    )
+
+# Test Points (optional)
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+    
+    if use_alert_pin:
+        TestPoint(name = "TP_ALERT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _ALERT)
+    
+    if use_reset_pin:
+        TestPoint(name = "TP_nRESET", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _nRESET)
+
+
+# pcb:sch SHT30A x=240.3000 y=595.9000 rot=0
+# pcb:sch C_BULK.C x=677.1800 y=634.0000 rot=0
+# pcb:sch C_VDD.C x=791.4800 y=634.0000 rot=0
+# pcb:sch R_SCL.R x=547.6400 y=557.8000 rot=180
+# pcb:sch R_SDA.R x=484.1400 y=557.8000 rot=180
+# pcb:sch VDD.1 x=334.2800 y=494.3000 rot=0
+# pcb:sch GND.1 x=329.2000 y=837.2000 rot=0
+# pcb:sch TP_GND.TP x=372.3800 y=796.5600 rot=180
+# pcb:sch TP_SCL.TP x=550.1800 y=720.3600 rot=180
+# pcb:sch TP_SDA.TP x=486.6800 y=720.3600 rot=180
+# pcb:sch TP_VDD.TP x=372.3800 y=466.3600 rot=0
+# pcb:sch R_nRESET.R x=179.3400 y=583.2000 rot=180
+# pcb:sch TP_RESET.TP x=118.3800 y=529.8600 rot=0
+# pcb:sch R_ALERT.R x=611.1400 y=570.5000 rot=180
+# pcb:sch TP_ALERT.TP x=613.6800 y=720.3600 rot=180
+# pcb:sch TP_nRESET.TP x=143.7800 y=466.3600 rot=0

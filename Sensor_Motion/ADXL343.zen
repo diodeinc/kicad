@@ -1,0 +1,281 @@
+"""ADXL343 - 3-Axis, ±2g/±4g/±8g/±16g Digital MEMS Accelerometer
+
+The ADXL343 is a versatile 3-axis, digital-output, low g MEMS accelerometer with 
+10- to 13-bit resolution. It features selectable measurement ranges (±2g, ±4g, ±8g, ±16g), 
+built-in motion detection (tap, double-tap, activity, inactivity, free-fall), and a 
+32-level FIFO buffer. The device supports both I²C and SPI interfaces and operates 
+from 2.0V to 3.6V with low power consumption down to 23μA.
+
+Key features:
+- Digital output via SPI (3- and 4-wire) and I²C interfaces
+- Built-in motion detection with user-adjustable thresholds
+- 32-level FIFO for reducing host processor load
+- Wide operating temperature range (-40°C to +85°C)
+- 10,000g shock survival
+- Small 3mm × 5mm × 1mm LGA-14 package
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL343.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+MeasurementRange = enum("2g", "4g", "8g", "16g")
+InterfaceMode = enum("I2C", "SPI_3Wire", "SPI_4Wire")
+InterruptPolarity = enum("ActiveHigh", "ActiveLow")
+I2cAddress = enum("0x1D", "0x53")
+
+# Configuration
+measurement_range = config("measurement_range", MeasurementRange, default = "2g")
+interface_mode = config("interface_mode", InterfaceMode, default = "SPI_4Wire")
+interrupt_polarity = config("interrupt_polarity", InterruptPolarity, default = "ActiveHigh")
+
+# I2C specific configuration
+if interface_mode == InterfaceMode("I2C"):
+    i2c_address = config("i2c_address", I2cAddress, default = "0x53")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    if add_i2c_pullups:
+        i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+else:
+    # SPI specific configuration
+    add_cs_pullup = config("add_cs_pullup", bool, default = True)
+    if add_cs_pullup:
+        cs_pullup_value = config("cs_pullup_value", str, default = "100kohms")
+
+# Power configuration
+separate_vddio = config("separate_vddio", bool, default = True)
+
+# Decoupling configuration  
+add_supply_decoupling = config("add_supply_decoupling", bool, default = True)
+if separate_vddio:
+    add_io_decoupling = config("add_io_decoupling", bool, default = True)
+else:
+    add_io_decoupling = config("add_io_decoupling", bool, default = False)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+
+# Interrupt configuration
+use_int1 = config("use_int1", bool, default = True)
+use_int2 = config("use_int2", bool, default = True)
+if use_int1 or use_int2:
+    add_interrupt_pullups = config("add_interrupt_pullups", bool, default = True)
+
+# Test points
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VS = io("VS", Net, default = Net("VS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+if separate_vddio:
+    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+else:
+    VDD_IO = io("VDD_IO", Net, default = VS)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Communication interface
+if interface_mode == InterfaceMode("I2C"):
+    i2c = io("I2C", I2c)
+else:
+    spi = io("SPI", Spi)
+
+# Interrupt outputs (conditionally exposed)
+if use_int1:
+    INT1 = io("INT1", Net)
+else:
+    INT1 = Net("INT1_NC")
+
+if use_int2:
+    INT2 = io("INT2", Net)
+else:
+    INT2 = Net("INT2_NC")
+
+# Internal nets
+_VS = VS
+_VDD_IO = VDD_IO
+
+# Interface-specific pin connections
+if interface_mode == InterfaceMode("I2C"):
+    # I2C mode - CS tied high
+    _CS = _VDD_IO
+    _SCL_SCLK = i2c.SCL
+    _SDA_SDI_SDIO = i2c.SDA
+    # SDO/ALT_ADDRESS pin selects I2C address
+    if i2c_address == I2cAddress("0x1D"):
+        _SDO_ADDR = _VDD_IO  # High for 0x1D
+    else:
+        _SDO_ADDR = GND      # Low for 0x53
+else:
+    # SPI mode
+    _CS = spi.CS
+    _SCL_SCLK = spi.CLK
+    if interface_mode == InterfaceMode("SPI_3Wire"):
+        # 3-wire SPI - bidirectional data
+        _SDA_SDI_SDIO = spi.MOSI  # Assuming MOSI is used for bidirectional
+        _SDO_ADDR = Net("SDO_NC")
+    else:
+        # 4-wire SPI
+        _SDA_SDI_SDIO = spi.MOSI
+        _SDO_ADDR = spi.MISO
+
+# Reserved pins - per datasheet requirements
+_RES1 = _VS    # Reserved pin 3 - connect to VS or leave open (we connect to VS)
+_RES2 = GND    # Reserved pin 11 - connect to GND or leave open (we connect to GND)
+_NC = Net("NC") # Not internally connected
+
+# 3-Axis MEMS Accelerometer, 2/4/8/16g range, I2C/SPI, LGA-14
+Component(
+    name = "ADXL343",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "ADXL343"),
+    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-14_3x5mm_P0.8mm_LayoutBorder1x6y.kicad_mod"),
+    pins = {
+        "Vdd_I/O": _VDD_IO,
+        "GND": GND,
+        "RES": _RES1,
+        "Vs": _VS,
+        "~{CS}": _CS,
+        "INT1": INT1,
+        "INT2": INT2,
+        "NC": _NC,
+        "SDO/ADDR": _SDO_ADDR,
+        "SDA/SDI/SDIO": _SDA_SDI_SDIO,
+        "SCL/SCLK": _SCL_SCLK
+    },
+)
+
+# Supply decoupling capacitors
+if add_supply_decoupling:
+    # VS decoupling - close to pin
+    Capacitor(
+        name = "C_VS",
+        value = "100nF",
+        voltage = "10V",
+        package = "0402",
+        P1 = _VS,
+        P2 = GND
+    )
+
+# I/O voltage decoupling
+if add_io_decoupling:
+    # VDD_IO decoupling - close to pin
+    Capacitor(
+        name = "C_VDD_IO",
+        value = "100nF",
+        voltage = "6.3V", 
+        package = "0402",
+        P1 = _VDD_IO,
+        P2 = GND
+    )
+
+# Bulk capacitor for power supply
+if add_bulk_cap:
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        voltage = "10V",
+        package = "0805",
+        P1 = _VS,
+        P2 = GND
+    )
+
+# CS pull-up resistor for SPI mode
+if interface_mode != InterfaceMode("I2C") and add_cs_pullup:
+    # For SPI mode, add weak pull-up to prevent floating when not actively driven
+    Resistor(
+        name = "R_CS",
+        value = cs_pullup_value,
+        package = "0402",
+        P1 = _CS,
+        P2 = _VDD_IO
+    )
+
+# SDO pull-up/down for 3-wire SPI mode
+if interface_mode == InterfaceMode("SPI_3Wire"):
+    # Recommended 10k pull-up or pull-down per datasheet
+    Resistor(
+        name = "R_SDO",
+        value = "10kohms",
+        package = "0402",
+        P1 = _SDO_ADDR,
+        P2 = _VDD_IO  # Pull-up to VDD_IO
+    )
+
+# Interrupt pull-up resistors
+if add_interrupt_pullups:
+    if use_int1:
+        Resistor(
+            name = "R_INT1",
+            value = "10kohms",
+            package = "0402",
+            P1 = INT1,
+            P2 = _VDD_IO
+        )
+    
+    if use_int2:
+        Resistor(
+            name = "R_INT2", 
+            value = "10kohms",
+            package = "0402",
+            P1 = INT2,
+            P2 = _VDD_IO
+        )
+
+# I2C pull-up resistors
+if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = _SCL_SCLK,
+        P2 = _VDD_IO
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = _SDA_SDI_SDIO,
+        P2 = _VDD_IO
+    )
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(name = "TP_VS", variant = "Pad_D1.0mm", P1 = _VS)
+    TestPoint(name = "TP_VDD_IO", variant = "Pad_D1.0mm", P1 = _VDD_IO)
+    
+    if interface_mode != InterfaceMode("I2C"):
+        TestPoint(name = "TP_CS", variant = "Pad_D1.0mm", P1 = _CS)
+    
+    TestPoint(name = "TP_SCL", variant = "Pad_D1.0mm", P1 = _SCL_SCLK)
+    TestPoint(name = "TP_SDA", variant = "Pad_D1.0mm", P1 = _SDA_SDI_SDIO)
+    
+    if use_int1:
+        TestPoint(name = "TP_INT1", variant = "Pad_D1.0mm", P1 = INT1)
+    
+    if use_int2:
+        TestPoint(name = "TP_INT2", variant = "Pad_D1.0mm", P1 = INT2)
+
+# pcb:sch ADXL343 x=214.9000 y=37.1000 rot=0
+# pcb:sch C_BULK.C x=893.0800 y=113.3000 rot=0
+# pcb:sch C_VDD_IO.C x=753.3800 y=113.3000 rot=0
+# pcb:sch C_VS.C x=600.9800 y=113.3000 rot=0
+# pcb:sch R_INT1.R x=496.8400 y=75.2000 rot=180
+# pcb:sch R_INT2.R x=547.6400 y=75.2000 rot=180
+# pcb:sch R_SCL.R x=52.3400 y=62.5000 rot=180
+# pcb:sch R_SDA.R x=115.8400 y=62.5000 rot=180
+# pcb:sch GND.1 x=329.2000 y=354.6000 rot=0
+# pcb:sch VDD_IO.1 x=385.0800 y=-26.4000 rot=0
+# pcb:sch VS.1 x=334.2800 y=-64.5000 rot=0
+# pcb:sch TP_INT1.TP x=499.3800 y=339.3600 rot=180
+# pcb:sch TP_INT2.TP x=550.1800 y=339.3600 rot=180
+# pcb:sch TP_SCL.TP x=54.8800 y=212.3600 rot=180
+# pcb:sch TP_SDA.TP x=118.3800 y=212.3600 rot=180
+# pcb:sch TP_VDD_IO.TP x=766.0800 y=-117.8400 rot=0
+# pcb:sch TP_VS.TP x=359.6800 y=-105.1400 rot=0
+# pcb:sch R_CS.R x=39.6400 y=49.8000 rot=180
+# pcb:sch R_SDO.R x=115.8400 y=49.8000 rot=180
+# pcb:sch TP_CS.TP x=181.8800 y=212.3600 rot=180

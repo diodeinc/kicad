@@ -1,0 +1,219 @@
+"""LTC2990 - Quad I²C Voltage, Current and Temperature Monitor
+
+The LTC2990 is used to monitor system temperatures, voltages and currents. Through the I²C 
+serial interface, the device can be configured to measure many combinations of internal 
+temperature, remote temperature, remote voltage, remote current and internal VCC. The 
+internal 10ppm/°C reference minimizes the number of supporting components and area required. 
+Selectable address and configurable functionality give the LTC2990 flexibility to be 
+incorporated in various systems needing temperature, voltage or current data. The LTC2990 
+fits well in systems needing sub-millivolt voltage resolution, 1% current measurement and 
+1°C temperature accuracy or any combination of the three.
+
+Hardware Configuration Options:
+- measurement_mode: Determines which pins are exposed and external components needed
+- i2c_address: Sets ADR0/ADR1 pin connections (98h, 9Ah, 9Ch, 9Eh)
+- add_decoupling: Adds 100nF VCC decoupling capacitor
+- add_pullups: Adds 4.7k I2C pull-up resistors
+- use_external_diodes: Adds 470pF filter capacitors for remote temperature sensing
+- current_sense_value: Sets sense resistor value for current measurements
+
+Note: Software-only settings like temperature format (Celsius/Kelvin) and acquisition mode
+(single/repeated) should be configured via I2C registers at runtime, not in hardware.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/2990fg.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+MeasurementMode = enum(
+    "InternalTempOnly",           # Mode[4:0] = 00000
+    "V1_V2_TR2",                  # Mode[4:0] = 01000 
+    "V1minus2_TR2",               # Mode[4:0] = 01001
+    "V1minus2_V3_V4",             # Mode[4:0] = 01010
+    "TR1_V3_V4",                  # Mode[4:0] = 01011
+    "TR1_V3minus4",               # Mode[4:0] = 01100
+    "TR1_TR2",                    # Mode[4:0] = 01101
+    "V1minus2_V3minus4",          # Mode[4:0] = 01110
+    "V1_V2_V3_V4",                # Mode[4:0] = 01111
+    "AllMeasurements_V1minus2_V3minus4", # Mode[4:0] = 11110
+    "AllMeasurements_TR1_TR2"     # Mode[4:0] = 11101
+)
+
+AddressSelect = enum("98h", "9Ah", "9Ch", "9Eh")
+
+# Configuration - Only hardware-affecting options
+measurement_mode = config("measurement_mode", MeasurementMode, default = "AllMeasurements_TR1_TR2")
+i2c_address = config("i2c_address", AddressSelect, default = "98h")
+add_decoupling = config("add_decoupling", bool, default = True)
+add_pullups = config("add_pullups", bool, default = True)
+use_external_diodes = config("use_external_diodes", bool, default = True)
+current_sense_value = config("current_sense_value", str, default = "100mohm")
+
+# Determine which inputs are used based on mode
+v1_enabled = measurement_mode in [
+    MeasurementMode("V1_V2_TR2"),
+    MeasurementMode("V1minus2_TR2"), 
+    MeasurementMode("V1minus2_V3_V4"),
+    MeasurementMode("TR1_V3_V4"),
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("V1_V2_V3_V4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+v2_enabled = measurement_mode in [
+    MeasurementMode("V1_V2_TR2"),
+    MeasurementMode("V1minus2_TR2"),
+    MeasurementMode("V1minus2_V3_V4"),
+    MeasurementMode("TR1_V3_V4"),
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("V1_V2_V3_V4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+v3_enabled = measurement_mode in [
+    MeasurementMode("V1_V2_TR2"),
+    MeasurementMode("V1minus2_V3_V4"),
+    MeasurementMode("TR1_V3_V4"),
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("V1_V2_V3_V4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+v4_enabled = measurement_mode in [
+    MeasurementMode("V1_V2_TR2"),
+    MeasurementMode("V1minus2_V3_V4"),
+    MeasurementMode("TR1_V3_V4"),
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("V1_V2_V3_V4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+# Check if remote temperature sensing is used
+remote_temp1_enabled = measurement_mode in [
+    MeasurementMode("TR1_V3_V4"),
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+remote_temp2_enabled = measurement_mode in [
+    MeasurementMode("V1_V2_TR2"),
+    MeasurementMode("V1minus2_TR2"),
+    MeasurementMode("TR1_TR2"),
+    MeasurementMode("AllMeasurements_TR1_TR2")
+]
+
+# Check if differential measurements are used
+diff_v1v2_enabled = measurement_mode in [
+    MeasurementMode("V1minus2_TR2"),
+    MeasurementMode("V1minus2_V3_V4"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4")
+]
+
+diff_v3v4_enabled = measurement_mode in [
+    MeasurementMode("TR1_V3minus4"),
+    MeasurementMode("V1minus2_V3minus4"),
+    MeasurementMode("AllMeasurements_V1minus2_V3minus4")
+]
+
+# External IO
+VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+i2c = io("I2C", I2c, default = I2c("I2C"))
+
+# Measurement inputs - only expose those that are used
+if v1_enabled:
+    V1 = io("V1", Net, default = Net("V1"))
+if v2_enabled:
+    V2 = io("V2", Net, default = Net("V2"))
+if v3_enabled:
+    V3 = io("V3", Net, default = Net("V3"))
+if v4_enabled:
+    V4 = io("V4", Net, default = Net("V4"))
+
+# Address Configuration - Directly connect to GND/VCC based on selected address
+# ADR1 | ADR0 | Address
+#   0  |   0  |   98h
+#   0  |   1  |   9Ah  
+#   1  |   0  |   9Ch
+#   1  |   1  |   9Eh
+# Note: All LTC2990 devices also respond to the global sync address EEh for simultaneous triggering
+_ADR0 = GND if i2c_address in [AddressSelect("98h"), AddressSelect("9Ch")] else VCC
+_ADR1 = GND if i2c_address in [AddressSelect("98h"), AddressSelect("9Ah")] else VCC
+
+# Temperature Voltage and Current Monitor, I2C Interface, MSOP-10
+Component(
+    name = "LTC2990",
+    symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "LTC2990"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins = {
+        "V1": V1 if v1_enabled else Net("NC_V1"),
+        "V2": V2 if v2_enabled else Net("NC_V2"),
+        "V3": V3 if v3_enabled else Net("NC_V3"),
+        "V4": V4 if v4_enabled else Net("NC_V4"),
+        "GND": GND,
+        "VCC": VCC,
+        "SDA": i2c.SDA,
+        "SCL": i2c.SCL,
+        "ADR0": _ADR0,
+        "ADR1": _ADR1
+    },
+)
+
+# Power Supply Decoupling
+if add_decoupling:
+    Capacitor(name = "C_VCC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+
+# I2C Pull-up Resistors
+if add_pullups:
+    Resistor(name = "R_SCL_PU", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VCC)
+    Resistor(name = "R_SDA_PU", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VCC)
+
+# External temperature diode connections - datasheet recommends 470pF capacitors
+if use_external_diodes and remote_temp1_enabled:
+    # Capacitor for filtering - datasheet typical application shows 470pF
+    Capacitor(name = "C_DIODE1", value = "470pF", package = "0402", P1 = V1, P2 = V2)
+
+if use_external_diodes and remote_temp2_enabled:
+    # Capacitor for filtering - datasheet typical application shows 470pF
+    Capacitor(name = "C_DIODE2", value = "470pF", package = "0402", P1 = V3, P2 = V4)
+
+# Current sense resistor for differential measurements
+if diff_v1v2_enabled:
+    # Add sense resistor between V1 and V2 for current measurement
+    Resistor(name = "R_SENSE_V1V2", value = current_sense_value, package = "2512", P1 = V1, P2 = V2)
+
+if diff_v3v4_enabled:
+    # Add sense resistor between V3 and V4 for current measurement
+    Resistor(name = "R_SENSE_V3V4", value = current_sense_value, package = "2512", P1 = V3, P2 = V4)
+
+# pcb:sch C_VCC.C x=1108.9800 y=126.0000 rot=0
+# pcb:sch LTC2990 x=659.4000 y=49.8000 rot=0
+# pcb:sch R_SCL_PU.R x=1055.6400 y=49.8000 rot=180
+# pcb:sch R_SDA_PU.R x=992.1400 y=49.8000 rot=180
+# pcb:sch GND.1 x=799.1000 y=367.3000 rot=0
+# pcb:sch GND.2 x=1116.6000 y=303.8000 rot=0
+# pcb:sch VCC.1 x=880.3800 y=-51.8000 rot=0
+# pcb:sch R_SENSE_V1V2.R x=763.5400 y=-51.8000 rot=90
+# pcb:sch R_SENSE_V3V4.R x=598.4400 y=164.1000 rot=0
+# pcb:sch C_DIODE1.C x=753.3800 y=-77.2000 rot=90
+# pcb:sch C_DIODE2.C x=575.5800 y=164.1000 rot=0

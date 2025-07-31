@@ -1,0 +1,142 @@
+"""Si7020-A20 - I²C Humidity and Temperature Sensor, ±4%RH, ±0.4°C, 1.9-3.6V, DFN-6
+
+The Si7020-A20 is a monolithic CMOS IC integrating humidity and temperature sensor elements, 
+an analog-to-digital converter, signal processing, calibration data, and an I²C interface. 
+It features ±4%RH and ±0.4°C maximum accuracy, ultra-low power consumption (150µA active, 
+60nA standby), wide operating voltage range of 1.9V to 3.6V, and I²C interface supporting 
+up to 400kHz. The sensor uses patented low-K polymeric dielectrics for excellent long-term 
+stability with low drift and hysteresis. Available in a compact 3x3mm DFN-6 package with 
+optional protective cover for harsh environments.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.silabs.com/documents/public/data-sheets/Si7020-A20.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+# Fixed I2C address of 0x40 for Si7020-A20
+
+# Configuration
+# I2C configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "10kohms")
+
+# Power supply configuration
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+
+# Optional protective cover variant
+with_protective_cover = config("with_protective_cover", bool, default = False)
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# Component size configuration
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+power = io("power", Power, default = Power())
+VDD = Net("VDD")
+GND = Net("GND")
+
+# I2C interface
+i2c = io("i2c", I2c)
+
+# Internal nets
+_SCL = i2c.SCL
+_SDA = i2c.SDA
+
+# DNC pins - Do Not Connect pins can be floating or tied to VDD (NOT GND)
+_DNC = Net("DNC")
+
+
+# Digital Humidity and Temperature Sensor, ±4%RH, ±0.4°C, I2C, 1.9-3.6V, DFN-6
+Component(
+    name = "Si7020-A20",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Humidity.kicad_sym", name = "Si7020-A20"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-6-1EP_3x3mm_P1mm_EP1.5x2.4mm.kicad_mod"),
+    pins = {
+        "SDA": _SDA,      # Pin 1
+        "GND": GND,       # Pin 2
+        "NC": _DNC,       # Pins 3,4 - DNC (Do Not Connect) - can be floating or tied to VDD
+        "VDD": VDD,       # Pin 5 
+        "SCL": _SCL,      # Pin 6
+        "PAD": GND        # TGND Paddle - internally connected to GND, main thermal input
+    },
+)
+
+
+# Bulk Power Supply Capacitor
+if add_bulk_cap:
+    bulk_size = "0805" if passives_size == "0402" else passives_size
+    Capacitor(
+        name = "C_BULK",
+        value = "10uF",
+        voltage = "6.3V",
+        package = bulk_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+
+# Power Supply Decoupling Capacitor - close to sensor
+if add_decoupling_cap:
+    Capacitor(
+        name = "C_VDD",
+        value = "100nF",
+        voltage = "6.3V",
+        package = passives_size,
+        P1 = VDD,
+        P2 = GND
+    )
+
+
+# I2C Pull-up Resistors
+if add_i2c_pullups:
+    # I2C pull-ups are required for proper communication
+    # Value depends on bus capacitance and speed
+    # Typical values: 2.2kΩ to 10kΩ for 400kHz operation
+    
+    Resistor(
+        name = "R_SCL",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SCL,
+        P2 = VDD
+    )
+    
+    Resistor(
+        name = "R_SDA",
+        value = i2c_pullup_value,
+        package = passives_size,
+        P1 = _SDA,
+        P2 = VDD
+    )
+
+
+# Test Points (optional)
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+
+# pcb:sch Si7020-A20 x=214.9000 y=595.9000 rot=0
+# pcb:sch C_BULK.C x=473.9800 y=634.0000 rot=0
+# pcb:sch C_VDD.C x=613.6800 y=634.0000 rot=0
+# pcb:sch R_SCL.R x=90.4400 y=557.8000 rot=180
+# pcb:sch R_SDA.R x=26.9400 y=557.8000 rot=180
+# pcb:sch VDD.1 x=500.0000 y=550.0000 rot=0
+# pcb:sch GND.1 x=500.0000 y=650.0000 rot=0
+# pcb:sch TP_GND.TP x=334.2800 y=771.1600 rot=180
+# pcb:sch TP_SCL.TP x=92.9800 y=694.9600 rot=180
+# pcb:sch TP_SDA.TP x=29.4800 y=694.9600 rot=180
+# pcb:sch TP_VDD.TP x=334.2800 y=491.7600 rot=0
