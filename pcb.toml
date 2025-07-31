@@ -436,6 +436,7 @@ datasheet = "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
 name = "LM317"
 path = "Regulator_Linear/LM317_SOT-223.zen"
 category = "Regulator_Linear"
+description = "3-Pin Adjustable Linear Regulator in SOT-223 Package"
 datasheet = "https://www.ti.com/lit/ds/symlink/lm317.pdf"
 
 
