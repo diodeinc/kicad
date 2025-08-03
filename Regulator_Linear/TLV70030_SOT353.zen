@@ -21,7 +21,8 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 add_input_cap = config("add_input_cap", bool, default = True)
 add_output_cap = config("add_output_cap", bool, default = True)
 enable_control = config("enable_control", bool, default = True)
-add_enable_pullup = config("add_enable_pullup", bool, default = True)
+if enable_control:  
+    add_enable_pullup = config("add_enable_pullup", bool, default = True)
 
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
