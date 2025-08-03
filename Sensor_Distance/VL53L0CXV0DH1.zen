@@ -114,7 +114,7 @@ if shutdown_control == ShutdownControl("PullupOnly"):
         value = xshut_pullup_value,
         package = "0402",
         P1 = _XSHUT,
-        P2 = VDD.NET
+        P2 = VDD
     )
 elif shutdown_control == ShutdownControl("HostControlled"):
     # Host controlled with pull-up
