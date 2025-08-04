@@ -56,6 +56,54 @@ description = "16-Bit Sigma-Delta ADC with SPI Interface"
 datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
 
 
+[[workspace.ADS1013]]
+name = "ADS1013"
+path = "Analog_ADC/ADS1013IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1013.pdf"
+
+
+[[workspace.ADS1014]]
+name = "ADS1014"
+path = "Analog_ADC/ADS1014IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface and Comparator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1014.pdf"
+
+
+[[workspace.ADS1015]]
+name = "ADS1015"
+path = "Analog_ADC/ADS1015IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1015.pdf"
+
+
+[[workspace.ADS1113]]
+name = "ADS1113"
+path = "Analog_ADC/ADS1113IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, I2C-Compatible, 860-SPS, 16-Bit ADC with Internal Reference and Oscillator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1113.pdf"
+
+
+[[workspace.ADS1114]]
+name = "ADS1114"
+path = "Analog_ADC/ADS1114IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 16-Bit, 860-SPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1114.pdf"
+
+
+[[workspace.ADS1115]]
+name = "ADS1115"
+path = "Analog_ADC/ADS1115IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, I2C-Compatible, 860-SPS, 16-Bit ADC with Internal Reference, Oscillator, and Programmable Comparator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1115.pdf"
+
+
 [[workspace.ADS7029]]
 name = "ADS7029"
 path = "Analog_ADC/ADS7029.zen"
@@ -120,6 +168,30 @@ description = "Small-Size, Low-Power, 12-Bit, 2-MSPS, SAR ADC"
 datasheet = "https://www.ti.com/lit/ds/symlink/ads7049-q1.pdf"
 
 
+[[workspace.AD5691R]]
+name = "AD5691R"
+path = "Analog_DAC/AD5691R.zen"
+category = "Analog_DAC"
+description = "12-Bit I2C nanoDAC+ with 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD5693R-AD5692R-AD5691R-AD5693.pdf"
+
+
+[[workspace.AD5692R]]
+name = "AD5692R"
+path = "Analog_DAC/AD5692R.zen"
+category = "Analog_DAC"
+description = "14-Bit I2C nanoDAC+ with 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ad5693r-5692r-5691r-5693.pdf"
+
+
+[[workspace.AD5693R]]
+name = "AD5693R"
+path = "Analog_DAC/AD5693R.zen"
+category = "Analog_DAC"
+description = "Tiny 16-Bit I2C nanoDAC+ with ±2 LSB INL and 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD5693R_AD5692R_AD5691R_AD5693.pdf"
+
+
 [[workspace.DAC5311]]
 name = "DAC5311"
 path = "Analog_DAC/DAC5311.zen"
@@ -160,6 +232,22 @@ description = "Low-Power, Rail-to-Rail Output, 16-Bit Serial Input Digital-to-An
 datasheet = "https://www.ti.com/lit/ds/symlink/dac8531.pdf"
 
 
+[[workspace.MCP4725]]
+name = "MCP4725"
+path = "Analog_DAC/MCP4725.zen"
+category = "Analog_DAC"
+description = "12-Bit Digital-to-Analog Converter with EEPROM Memory"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+
+
+[[workspace.MCP4728]]
+name = "MCP4728"
+path = "Analog_DAC/MCP4728.zen"
+category = "Analog_DAC"
+description = "12-Bit, Quad Digital-to-Analog Converter with EEPROM Memory"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/22187E.pdf"
+
+
 [[workspace.LTC3553]]
 name = "LTC3553"
 path = "Battery_Management/LTC3553.zen"
@@ -190,6 +278,54 @@ path = "Display_Graphic/EA_DOGL128X-6.zen"
 category = "Display_Graphic"
 description = "128x64 Graphic Display with ST7565R Controller"
 datasheet = "https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf"
+
+
+[[workspace.PCA9685BS]]
+name = "PCA9685BS"
+path = "Driver_LED/PCA9685BS.zen"
+category = "Driver_LED"
+description = "16-channel 12-bit PWM Fm+ I2C-bus LED controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf"
+
+
+[[workspace.PCA9685PW]]
+name = "PCA9685PW"
+path = "Driver_LED/PCA9685PW.zen"
+category = "Driver_LED"
+description = "16-channel 12-bit PWM Fm+ I2C-bus LED controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf"
+
+
+[[workspace.TPS61165DBV]]
+name = "TPS61165DBV"
+path = "Driver_LED/TPS61165DBV.zen"
+category = "Driver_LED"
+description = "High-Brightness White LED Driver"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps61165.pdf"
+
+
+[[workspace.TCA9801]]
+name = "TCA9801"
+path = "Interface/TCA9801.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 1.1mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9801.pdf"
+
+
+[[workspace.TCA9802]]
+name = "TCA9802"
+path = "Interface/TCA9802.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 2.2mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9802.pdf"
+
+
+[[workspace.TCA9803]]
+name = "TCA9803"
+path = "Interface/TCA9803.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 3.3mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9803.pdf"
 
 
 [[workspace.LTC4317]]
@@ -246,6 +382,14 @@ path = "MCU_Microchip_ATmega/ATmega328-A.zen"
 category = "MCU_Microchip_ATmega"
 description = "8-bit AVR Microcontroller with 32K Bytes In-System Programmable Flash"
 datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf"
+
+
+[[workspace.ATSAMD21E18A]]
+name = "ATSAMD21E18A"
+path = "MCU_Microchip_SAMD/ATSAMD21E18A.zen"
+category = "MCU_Microchip_SAMD"
+description = "ARM Cortex-M0+ 32-bit MCU, 48MHz, 256KB Flash, 32KB SRAM"
+datasheet = "https://www.microchip.com/en-us/product/ATSAMD21E18"
 
 
 [[workspace.nRF52840]]
@@ -344,12 +488,92 @@ description = "4Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
 datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
 
 
+[[workspace.Si5351A_B]]
+name = "Si5351A-B"
+path = "Oscillator/Si5351A-B.zen"
+category = "Oscillator"
+description = "I²C-Programmable Any-Frequency CMOS Clock Generator"
+datasheet = "https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/data-sheets/Si5351-B.pdf"
+
+
+[[workspace.Si5351B_B]]
+name = "Si5351B-B"
+path = "Oscillator/Si5351B-B.zen"
+category = "Oscillator"
+description = "I²C Programmable Any-Frequency CMOS Clock Generator with VCXO"
+datasheet = "https://www.skyworksinc.com/Products/Timing/CMOS-Clock-Generators"
+
+
+[[workspace.NEO_M8M]]
+name = "NEO-M8M"
+path = "RF_GPS/NEO-M8M.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8N]]
+name = "NEO-M8N"
+path = "RF_GPS/NEO-M8N.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://www.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8P]]
+name = "NEO-M8P"
+path = "RF_GPS/NEO-M8P.zen"
+category = "RF_GPS"
+description = "u-blox M8 high precision GNSS module with RTK"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8P_DataSheet_UBX-15016656.pdf"
+
+
+[[workspace.NEO_M8Q]]
+name = "NEO-M8Q"
+path = "RF_GPS/NEO-M8Q.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8T]]
+name = "NEO-M8T"
+path = "RF_GPS/NEO-M8T.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS timing module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-LEA-M8T-FW3_DataSheet_UBX-15025193.pdf"
+
+
+[[workspace.NEO_M9N]]
+name = "NEO-M9N"
+path = "RF_GPS/NEO-M9N.zen"
+category = "RF_GPS"
+description = "Standard precision GNSS module"
+datasheet = "https://www.u-blox.com/sites/default/files/NEO-M9N-00B_DataSheet_UBX-19014285.pdf"
+
+
 [[workspace.SAM_M8Q]]
 name = "SAM-M8Q"
 path = "RF_GPS/SAM-M8Q.zen"
 category = "RF_GPS"
 description = "Easy-to-use u-blox M8 GNSS antenna module"
 datasheet = "https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-16012619.pdf"
+
+
+[[workspace.RFM69HW]]
+name = "RFM69HW"
+path = "RF_Module/RFM69HW.zen"
+category = "RF_Module"
+description = "ISM TRANSCEIVER MODULE"
+datasheet = "https://www.hoperf.com/data/upload/portal/20190307/RFM69HW-V1.3.pdf"
+
+
+[[workspace.RFM69W]]
+name = "RFM69W"
+path = "RF_Module/RFM69W.zen"
+category = "RF_Module"
+description = "ISM TRANSCEIVER MODULE"
+datasheet = "https://www.hoperf.com/data/upload/portal/20190307/RFM69W-V1.3.pdf"
 
 
 [[workspace.LM4125IM5_2_5]]
@@ -541,6 +765,14 @@ name = "TLV70033_SOT23-5"
 path = "Regulator_Linear/TLV70033_SOT23-5.zen"
 category = "Regulator_Linear"
 description = "200mA Low-IQ Low-Dropout Regulator with 3.3V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70036_SOT23_5]]
+name = "TLV70036_SOT23-5"
+path = "Regulator_Linear/TLV70036_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.6V Fixed Output"
 datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
 
 
@@ -752,12 +984,60 @@ description = "Time-of-Flight (ToF) ranging sensor with 2m range capability"
 datasheet = "https://www.st.com/resource/en/datasheet/vl53l0x.pdf"
 
 
+[[workspace.VL53L1CXV0FY1]]
+name = "VL53L1CXV0FY1"
+path = "Sensor_Distance/VL53L1CXV0FY1.zen"
+category = "Sensor_Distance"
+description = "4m distance ranging Time-of-Flight sensor"
+datasheet = "https://www.espressif.com/sites/default/files/documentation/vl53l1x_datasheet.pdf"
+
+
 [[workspace.INA219A]]
 name = "INA219A"
 path = "Sensor_Energy/INA219A.zen"
 category = "Sensor_Energy"
 description = "Zero-Drift, Bidirectional Current/Power Monitor With I²C Interface"
 datasheet = "https://www.ti.com/lit/ds/symlink/ina219.pdf"
+
+
+[[workspace.INA226]]
+name = "INA226"
+path = "Sensor_Energy/INA226.zen"
+category = "Sensor_Energy"
+description = "36V, 16-Bit, Ultra-Precise I²C Output Current, Voltage, and Power Monitor With Alert"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina226.pdf"
+
+
+[[workspace.INA228]]
+name = "INA228"
+path = "Sensor_Energy/INA228.zen"
+category = "Sensor_Energy"
+description = "85V, 20-Bit, Ultra-Precise Power/Energy/Charge Monitor With I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina228.pdf"
+
+
+[[workspace.INA233]]
+name = "INA233"
+path = "Sensor_Energy/INA233.zen"
+category = "Sensor_Energy"
+description = "36V, 16-Bit, Ultra-Precise I²C and PMBus Output Current, Voltage, Power, and Energy Monitor With Alert"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina233.pdf"
+
+
+[[workspace.INA237]]
+name = "INA237"
+path = "Sensor_Energy/INA237.zen"
+category = "Sensor_Energy"
+description = "85-V, 16-Bit, Precision Power Monitor With I²C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina237.pdf"
+
+
+[[workspace.INA238]]
+name = "INA238"
+path = "Sensor_Energy/INA238.zen"
+category = "Sensor_Energy"
+description = "85V, 16-Bit, High-Precision Power Monitor With I²C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina238.pdf"
 
 
 [[workspace.SCD40_D_R2]]
@@ -1054,3 +1334,11 @@ path = "Sensor_Temperature/TMP119AIYBGR.zen"
 category = "Sensor_Temperature"
 description = "Ultra-High Accuracy, Low-Power, Digital Temperature Sensor with I2C Interface"
 datasheet = "https://www.ti.com/lit/ds/symlink/tmp119.pdf"
+
+
+[[workspace.MPR121QR2]]
+name = "MPR121QR2"
+path = "Sensor_Touch/MPR121QR2.zen"
+category = "Sensor_Touch"
+description = "12-channel Proximity Capacitive Touch Sensor Controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/MPR121.pdf"

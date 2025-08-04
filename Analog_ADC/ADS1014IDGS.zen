@@ -1,0 +1,252 @@
+"""ADS1014 - Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface and Comparator
+
+The ADS1014 is a precision, low-power, 12-bit, I2C-compatible analog-to-digital converter (ADC)
+with integrated programmable gain amplifier (PGA) and digital comparator. The device is offered 
+in ultra-small leadless X2QFN-10 (1.5mm × 2mm), SOT-10 (2.9mm × 2.8mm), and VSSOP-10 
+(3mm × 4.9mm) packages. It features a low-drift voltage reference, internal oscillator, 
+12-bit resolution with no missing codes, ultra-low power consumption (150µA continuous mode), 
+wide supply range (2.0V to 5.5V), and programmable data rate from 128 to 3300 samples per second.
+The PGA offers input ranges from ±256mV to ±6.144V for precise large- and small-signal measurements.
+
+The I2C address is pin-selectable with 4 options:
+- 0x48 (ADDR connected to GND)
+- 0x49 (ADDR connected to VDD)
+- 0x4A (ADDR connected to SDA)
+- 0x4B (ADDR connected to SCL)
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/ads1014.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Import modules
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+I2cAddress = enum("0x48", "0x49", "0x4A", "0x4B")
+AlertMode = enum("Disabled", "Comparator", "ConversionReady")
+
+# I2C address mapping - maps I2C address to ADDR pin connection
+# According to datasheet Table 7-2:
+# GND -> 0x48 (1001000b)
+# VDD -> 0x49 (1001001b) 
+# SDA -> 0x4A (1001010b)
+# SCL -> 0x4B (1001011b)
+address_map = {
+    I2cAddress("0x48"): "GND",
+    I2cAddress("0x49"): "VDD",
+    I2cAddress("0x4A"): "SDA",
+    I2cAddress("0x4B"): "SCL",
+}
+
+# Configuration
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_analog_filtering = config("add_analog_filtering", bool, default = True)
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# I2C address configuration
+i2c_address = config("i2c_address", I2cAddress, default = I2cAddress("0x48"))
+
+# Alert/Ready pin configuration
+alert_mode = config("alert_mode", AlertMode, default = "Comparator")
+add_alert_pullup = config("add_alert_pullup", bool, default = True)
+
+# I2C interface configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# Filter configuration for analog inputs
+if add_analog_filtering:
+    filter_r_value = config("filter_r_value", str, default = "100ohms")
+    filter_c_value = config("filter_c_value", str, default = "100pF")
+
+# External power supply
+VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Analog inputs - ADS1014 has only one differential pair
+AIN0 = io("AIN0", Net)
+AIN1 = io("AIN1", Net)
+
+# Alert/Ready output
+if alert_mode != AlertMode("Disabled"):
+    ALERT_RDY = io("ALERT_RDY", Net)
+
+# Internal nets for filtered inputs
+if add_analog_filtering:
+    _AIN0_FILTERED = Net("AIN0_FILTERED")
+    _AIN1_FILTERED = Net("AIN1_FILTERED")
+else:
+    _AIN0_FILTERED = AIN0
+    _AIN1_FILTERED = AIN1
+
+# Address pin connection net based on selected I2C address
+_addr_pin_connection = address_map[i2c_address]
+if _addr_pin_connection == "GND":
+    _ADDR_NET = GND
+elif _addr_pin_connection == "VDD":
+    _ADDR_NET = VDD.NET
+elif _addr_pin_connection == "SDA":
+    _ADDR_NET = i2c.SDA
+else:  # SCL
+    _ADDR_NET = i2c.SCL
+
+# Main component
+Component(
+    name = "ADS1014",
+    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS1014IDGS"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins = {
+        "ADDR": _ADDR_NET,
+        "ALERT/RDY": ALERT_RDY if alert_mode != AlertMode("Disabled") else Net("NC_ALERT"),
+        "GND": GND,
+        "AIN0": _AIN0_FILTERED,
+        "AIN1": _AIN1_FILTERED,
+        "6": Net("NC_6"),
+        "7": Net("NC_7"),
+        "VDD": VDD.NET,
+        "SDA": i2c.SDA,
+        "SCL": i2c.SCL,
+    },
+)
+
+# Power supply decoupling - as per datasheet recommendation
+# 0.1µF decoupling capacitor close to VDD pin
+Capacitor(
+    name = "C_VDD",
+    value = "0.1uF",
+    package = "0402",
+    P1 = VDD.NET,
+    P2 = GND,
+)
+
+if add_decoupling_caps:
+    # Additional high-frequency decoupling
+    Capacitor(
+        name = "C_VDD_HF",
+        value = "1nF",
+        package = "0402",
+        P1 = VDD.NET,
+        P2 = GND,
+    )
+
+# Additional bulk capacitance for better power stability
+if add_bulk_caps:
+    Capacitor(
+        name = "C_VDD_BULK",
+        value = "10uF",
+        package = "0805",
+        P1 = VDD.NET,
+        P2 = GND,
+    )
+
+# I2C pull-up resistors
+if add_i2c_pullups:
+    Resistor(
+        name = "R_SCL_PULLUP",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SCL,
+        P2 = VDD.NET,
+    )
+    
+    Resistor(
+        name = "R_SDA_PULLUP",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SDA,
+        P2 = VDD.NET,
+    )
+
+# Alert/Ready pin pull-up
+if alert_mode != AlertMode("Disabled") and add_alert_pullup:
+    Resistor(
+        name = "R_ALERT_PULLUP",
+        value = "10kohms",
+        package = "0402",
+        P1 = ALERT_RDY,
+        P2 = VDD.NET,
+    )
+
+# Input filtering for analog inputs
+if add_analog_filtering:
+    # AIN0 filter
+    Resistor(
+        name = "R_FILTER_0",
+        value = filter_r_value,
+        package = "0402",
+        P1 = AIN0,
+        P2 = _AIN0_FILTERED,
+    )
+    Capacitor(
+        name = "C_FILTER_0",
+        value = filter_c_value,
+        package = "0402",
+        P1 = _AIN0_FILTERED,
+        P2 = GND,
+        # C0G/NPO dielectric recommended for stability
+    )
+    
+    # AIN1 filter
+    Resistor(
+        name = "R_FILTER_1",
+        value = filter_r_value,
+        package = "0402",
+        P1 = AIN1,
+        P2 = _AIN1_FILTERED,
+    )
+    Capacitor(
+        name = "C_FILTER_1",
+        value = filter_c_value,
+        package = "0402",
+        P1 = _AIN1_FILTERED,
+        P2 = GND,
+        # C0G/NPO dielectric recommended for stability
+    )
+
+# Test points for debugging
+if add_test_points:
+    TestPoint(
+        name = "TP_AIN0",
+        variant = "Pad_D1.0mm",
+        P1 = _AIN0_FILTERED,
+    )
+    TestPoint(
+        name = "TP_AIN1",
+        variant = "Pad_D1.0mm",
+        P1 = _AIN1_FILTERED,
+    )
+    
+    if alert_mode != AlertMode("Disabled"):
+        TestPoint(
+            name = "TP_ALERT",
+            variant = "Pad_D1.0mm",
+            P1 = ALERT_RDY,
+        )
+
+# pcb:sch ADS1014 x=176.8000 y=684.8000 rot=0
+# pcb:sch C_FILTER_0.C x=-122.9200 y=608.6000 rot=180
+# pcb:sch C_FILTER_1.C x=-34.0200 y=608.6000 rot=180
+# pcb:sch C_VDD.C x=664.4800 y=761.0000 rot=0
+# pcb:sch C_VDD_BULK.C x=766.0800 y=761.0000 rot=0
+# pcb:sch C_VDD_HF.C x=854.9800 y=761.0000 rot=0
+# pcb:sch R_FILTER_0.R x=-163.5600 y=748.3000 rot=270
+# pcb:sch R_FILTER_1.R x=-74.6600 y=773.7000 rot=270
+# pcb:sch R_SCL_PULLUP.R x=496.8400 y=672.1000 rot=180
+# pcb:sch R_SDA_PULLUP.R x=560.3400 y=672.1000 rot=180
+# pcb:sch GND.1 x=265.7000 y=951.5000 rot=0
+# pcb:sch GND.2 x=11.7000 y=545.1000 rot=0
+# pcb:sch VDD.1 x=270.7800 y=621.3000 rot=0
+# pcb:sch TP_AIN0.TP x=-148.3200 y=694.9600 rot=270
+# pcb:sch TP_AIN1.TP x=-46.7200 y=694.9600 rot=270
+# pcb:sch R_ALERT_PULLUP.R x=433.3400 y=672.1000 rot=180
+# pcb:sch TP_ALERT.TP x=397.7800 y=593.3600 rot=0

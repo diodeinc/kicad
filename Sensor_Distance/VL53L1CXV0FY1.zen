@@ -1,0 +1,155 @@
+"""VL53L1CXV0FY1 - 4m distance ranging Time-of-Flight sensor
+
+The VL53L1X is a state-of-the-art, Time-of-Flight (ToF) laser-ranging sensor that provides
+accurate distance measurement up to 4m with fast ranging frequency up to 50Hz. It features
+a 940nm invisible Class 1 laser emitter, SPAD receiving array with integrated lens, and
+operates from 2.6V to 3.5V. The sensor includes programmable region of interest (ROI),
+multizone operation, and communicates via I2C interface up to 400kHz.
+
+Pin configuration:
+- InterruptMode: None (not exposed), PullUp (10k to VDD), or PullDown (10k to GND)
+- ResetMode: None (not exposed), PullUp (10k to VDD), or PullDown (10k to GND)
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.espressif.com/sites/default/files/documentation/vl53l1x_datasheet.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies  
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+InterruptMode = enum("None", "PullUp", "PullDown")
+ResetMode = enum("None", "PullUp", "PullDown")
+
+# Configuration
+
+# Interrupt configuration
+interrupt_mode = config("interrupt_mode", InterruptMode, default = "PullUp")
+
+# Reset/shutdown configuration  
+reset_mode = config("reset_mode", ResetMode, default = "PullUp")
+
+# Power supply filtering
+add_avdd_filtering = config("add_avdd_filtering", bool, default = True)
+add_avddvcsel_filtering = config("add_avddvcsel_filtering", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+
+# I2C pull-ups (typically on host side)
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "2.4kohms")
+
+# Component size
+passives_size = config("passives_size", str, default = "0402")
+
+# External IO
+VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# GPIO1 interrupt output - exposed when pull resistor is configured
+if interrupt_mode != InterruptMode("None"):
+    GPIO1 = io("GPIO1", Net)
+
+# XSHUT reset pin - exposed when pull resistor is configured
+if reset_mode != ResetMode("None"):
+    XSHUT = io("XSHUT", Net)
+
+# Internal nets
+# Power supply nets - all connect to main VDD/GND
+# The VL53L1X supports both standard (1.8V I/O) and 2V8 modes,
+# but the power connections remain the same in both modes
+_AVDD = VDD.NET
+_AVDDVCSEL = VDD.NET
+_AVSSVCSEL = GND
+_DNC = Net("DNC")  # Do not connect
+
+# Internal nets for GPIO1 and XSHUT when not exposed
+_GPIO1 = GPIO1 if interrupt_mode != InterruptMode("None") else Net("GPIO1")
+_XSHUT = XSHUT if reset_mode != ResetMode("None") else Net("XSHUT")
+
+# 4m distance ranging ToF sensor, Optical LGA12
+Component(
+    name = "VL53L1CXV0FY1",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Distance.kicad_sym", name = "VL53L1CXV0FY1"),
+    footprint = File("@kicad-footprints/Sensor_Distance.pretty/ST_VL53L1x.kicad_mod"),
+    pins = {
+        "AVDDVCSEL": _AVDDVCSEL,
+        "AVSSVCSEL": _AVSSVCSEL,
+        "GND": GND,
+        "XSHUT": _XSHUT,
+        "GPIO1": _GPIO1,
+        "DNC": _DNC,
+        "SDA": i2c.SDA,
+        "SCL": i2c.SCL,
+        "AVDD": _AVDD
+    }
+)
+
+# Bulk capacitor
+if add_bulk_cap:
+    bulk_size = "0805" if passives_size == "0402" else passives_size
+    Capacitor(name = "C_BULK", value = "10uF", package = bulk_size, P1 = VDD.NET, P2 = GND)
+
+# AVDD decoupling capacitors (placed close to pin 11)
+if add_avdd_filtering:
+    Capacitor(name = "C_AVDD1", value = "100nF", package = passives_size, P1 = _AVDD, P2 = GND)
+    Capacitor(name = "C_AVDD2", value = "4.7uF", package = passives_size, P1 = _AVDD, P2 = GND)
+
+# AVDDVCSEL decoupling capacitors (placed close to pins 1 and 2)
+if add_avddvcsel_filtering:
+    Capacitor(name = "C_VCSEL1", value = "100nF", package = passives_size, P1 = _AVDDVCSEL, P2 = _AVSSVCSEL)
+    Capacitor(name = "C_VCSEL2", value = "4.7uF", package = passives_size, P1 = _AVDDVCSEL, P2 = _AVSSVCSEL)
+
+# XSHUT pull resistor
+if reset_mode == ResetMode("PullUp"):
+    Resistor(name = "R_XSHUT", value = "10kohms", package = passives_size, P1 = _XSHUT, P2 = VDD.NET)
+elif reset_mode == ResetMode("PullDown"):
+    Resistor(name = "R_XSHUT", value = "10kohms", package = passives_size, P1 = _XSHUT, P2 = GND)
+# None means no pull resistor
+
+# GPIO1 interrupt pull resistor
+if interrupt_mode == InterruptMode("PullUp"):
+    Resistor(name = "R_GPIO1", value = "10kohms", package = passives_size, P1 = _GPIO1, P2 = VDD.NET)
+elif interrupt_mode == InterruptMode("PullDown"):
+    Resistor(name = "R_GPIO1", value = "10kohms", package = passives_size, P1 = _GPIO1, P2 = GND)
+
+# I2C pull-up resistors (typically on host side of the bus)
+if add_i2c_pullups:
+    Resistor(name = "R_SDA", value = i2c_pullup_value, package = passives_size, P1 = i2c.SDA, P2 = VDD.NET)
+    Resistor(name = "R_SCL", value = i2c_pullup_value, package = passives_size, P1 = i2c.SCL, P2 = VDD.NET)
+
+# DNC (Do Not Connect) pin - must be left floating
+# No connection needed - the _DNC net remains unconnected
+
+# Test points for debugging (optional)
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+if add_test_points:
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
+    if interrupt_mode != InterruptMode("None"):
+        TestPoint(name = "TP_GPIO1", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _GPIO1)
+    if reset_mode != ResetMode("None"):
+        TestPoint(name = "TP_XSHUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _XSHUT)
+
+# PCB placement hints for optimal performance
+# pcb:sch C_BULK.C x=-224.5200 y=291.1000 rot=0
+# pcb:sch C_AVDD1.C x=-135.6200 y=291.1000 rot=0
+# pcb:sch C_AVDD2.C x=-34.0200 y=291.1000 rot=0
+# pcb:sch C_VCSEL1.C x=54.8800 y=291.1000 rot=0
+# pcb:sch C_VCSEL2.C x=156.4800 y=291.1000 rot=0
+# pcb:sch VL53L1CXV0FY1 x=494.3000 y=176.8000 rot=0
+# pcb:sch R_XSHUT.R x=255.5400 y=189.5000 rot=180
+# pcb:sch R_GPIO1.R x=446.0400 y=189.5000 rot=180
+# pcb:sch R_SDA.R x=382.5400 y=189.5000 rot=180
+# pcb:sch R_SCL.R x=319.0400 y=189.5000 rot=180
+# pcb:sch GND.1 x=583.2000 y=519.7000 rot=0
+# pcb:sch VDD.1 x=588.2800 y=126.0000 rot=0
+# pcb:sch TP_XSHUT.TP x=258.0800 y=529.8600 rot=180

@@ -1,0 +1,205 @@
+"""TCA9801 - Level-Translating I2C Bus Buffer/Repeater with 1.1mA Current Source
+
+The TCA9801 is a dual-channel bidirectional buffer intended for I2C bus and SMBus/PMBus 
+systems. It provides bidirectional level shifting (up-translation and down-translation) 
+between low voltages (down to 0.8V) and higher voltages (1.65V to 3.6V). The TCA9801 
+features an internal current source on the B-side of the device, allowing the removal 
+of external pull-up resistors on the B-side. The current source provides improved rise 
+time and ultra-low power consumption. The device provides true buffering without using 
+a static voltage offset, resulting in very low VOL on both sides (approximately 0.2V).
+
+Key features:
+- Two-channel bidirectional buffer
+- Integrated 1.1mA current source on B-side (no external B-side resistors required)
+- Ultra-low power consumption
+- No static-voltage offset, low VOL
+- I2C bus and SMBus compatible
+- Operating supply voltage range: 0.8V to 3.6V (A-side), 1.65V to 3.6V (B-side)
+- Active-high repeater enable input with internal pull-up (150-450kΩ)
+- Supports clock stretching and multiple master arbitration
+- No power sequencing requirements
+
+Author: @@anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tca9801.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+PullupValue = enum("1.5kohms", "2.2kohms", "4.7kohms", "10kohms")
+DecouplingConfig = enum("Minimal", "Standard", "Enhanced")
+
+# Configuration
+# Decoupling configuration
+decoupling_config = config("decoupling_config", DecouplingConfig, default = "Enhanced")
+
+# A-side pull-up configuration
+add_a_side_pullups = config("add_a_side_pullups", bool, default = True)
+if add_a_side_pullups:
+    a_side_pullup_value = config("a_side_pullup_value", PullupValue, default = "4.7kohms")
+
+# Enable pin configuration
+enable_control = config("enable_control", bool, default = True)
+if enable_control:
+    add_enable_pullup = config("add_enable_pullup", bool, default = True)
+    add_enable_testpoint = config("add_enable_testpoint", bool, default = False, optional = True)
+
+# Test points for debugging
+add_test_points = config("add_test_points", bool, default = False, optional = True)
+
+# External IO
+VCCA = io("VCCA", Net, default = Net("VCCA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+VCCB = io("VCCB", Net, default = Net("VCCB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interfaces
+i2c_a = io("I2C_A", I2c)
+i2c_b = io("I2C_B", I2c)
+
+# Enable control
+if enable_control:
+    EN = io("EN", Net)
+else:
+    # Internal net tied to VCCA when not controlled externally
+    EN = Net("EN_INT")
+
+# Level-Translating I2C Bus Buffer/Repeater 1.1mA Current Source, VSSOP-8
+Component(
+    name = "TCA9801",
+    symbol = Symbol(library = "@kicad-symbols/Interface.kicad_sym", name = "TCA9801"),
+    footprint = "Package_SO:VSSOP-8_3.0x3.0mm_P0.65mm",
+    pins = {
+        "VCCA": VCCA,
+        "SCLA": i2c_a.SCL,
+        "SDAA": i2c_a.SDA,
+        "GND": GND,
+        "EN": EN,
+        "SDAB": i2c_b.SDA,
+        "SCLB": i2c_b.SCL,
+        "VCCB": VCCB
+    },
+)
+
+# Power Supply Decoupling Capacitors
+if decoupling_config == DecouplingConfig("Minimal"):
+    # Minimal decoupling - single capacitor per supply
+    Capacitor(name = "C_VCCA", value = "100nF", package = "0402", P1 = VCCA, P2 = GND)
+    Capacitor(name = "C_VCCB", value = "100nF", package = "0402", P1 = VCCB, P2 = GND)
+    
+elif decoupling_config == DecouplingConfig("Standard"):
+    # Standard decoupling - recommended configuration per datasheet
+    # VCCA decoupling
+    Capacitor(name = "C_VCCA1", value = "100nF", package = "0402", P1 = VCCA, P2 = GND)
+    Capacitor(name = "C_VCCA2", value = "1uF", package = "0603", P1 = VCCA, P2 = GND)
+    
+    # VCCB decoupling
+    Capacitor(name = "C_VCCB1", value = "100nF", package = "0402", P1 = VCCB, P2 = GND)
+    Capacitor(name = "C_VCCB2", value = "1uF", package = "0603", P1 = VCCB, P2 = GND)
+    
+elif decoupling_config == DecouplingConfig("Enhanced"):
+    # Enhanced decoupling - for noisy environments
+    # VCCA decoupling
+    Capacitor(name = "C_VCCA1", value = "100nF", package = "0402", P1 = VCCA, P2 = GND)
+    Capacitor(name = "C_VCCA2", value = "1uF", package = "0603", P1 = VCCA, P2 = GND)
+    Capacitor(name = "C_VCCA3", value = "10uF", package = "0805", P1 = VCCA, P2 = GND)
+    
+    # VCCB decoupling
+    Capacitor(name = "C_VCCB1", value = "100nF", package = "0402", P1 = VCCB, P2 = GND)
+    Capacitor(name = "C_VCCB2", value = "1uF", package = "0603", P1 = VCCB, P2 = GND)
+    Capacitor(name = "C_VCCB3", value = "10uF", package = "0805", P1 = VCCB, P2 = GND)
+
+# A-side pull-up resistors (required for I2C operation)
+# B-side MUST NOT have external pull-ups due to internal current source
+if add_a_side_pullups:
+    Resistor(
+        name = "R_SCLA_PU",
+        value = a_side_pullup_value.value,
+        package = "0402",
+        P1 = i2c_a.SCL,
+        P2 = VCCA
+    )
+    
+    Resistor(
+        name = "R_SDAA_PU",
+        value = a_side_pullup_value.value,
+        package = "0402",
+        P1 = i2c_a.SDA,
+        P2 = VCCA
+    )
+
+# Enable control
+if not enable_control:
+    # When enable control is disabled, tie EN to VCCA through internal pull-up
+    # The TCA9801 has an internal pull-up on EN pin (150k-450k)
+    # No external connection needed - internal pull-up handles this
+    pass
+else:
+    # External enable control
+    if add_enable_pullup:
+        # Add external pull-up for more defined logic levels
+        Resistor(name = "R_EN_PU", value = "10kohms", package = "0402", P1 = EN, P2 = VCCA)
+    
+    if add_enable_testpoint:
+        TestPoint(name = "TP_EN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = EN)
+
+# Test points for debugging
+if add_test_points:
+    # A-side test points
+    TestPoint(name = "TP_SCLA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_a.SCL)
+    TestPoint(name = "TP_SDAA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_a.SDA)
+    
+    # B-side test points
+    TestPoint(name = "TP_SCLB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_b.SCL)
+    TestPoint(name = "TP_SDAB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_b.SDA)
+    
+    # Power test points
+    TestPoint(name = "TP_VCCA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VCCA)
+    TestPoint(name = "TP_VCCB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VCCB)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+
+# Schematic Layout
+# pcb:sch TCA9801 x=-64.5000 y=189.5000 rot=0
+
+# Power supply decoupling capacitors - VCCA side (left)
+# pcb:sch C_VCCA.C x=-101.6000 y=50.8000 rot=0
+# pcb:sch C_VCCA1.C x=-491.2200 y=278.4000 rot=0
+# pcb:sch C_VCCA2.C x=-389.6200 y=278.4000 rot=0
+# pcb:sch C_VCCA3.C x=-313.4200 y=278.4000 rot=0
+
+# Power supply decoupling capacitors - VCCB side (right)
+# pcb:sch C_VCCB.C x=101.6000 y=50.8000 rot=0
+# pcb:sch C_VCCB1.C x=270.7800 y=265.7000 rot=0
+# pcb:sch C_VCCB2.C x=385.0800 y=265.7000 rot=0
+# pcb:sch C_VCCB3.C x=486.6800 y=265.7000 rot=0
+
+# A-side pull-up resistors (left side)
+# pcb:sch R_SCLA_PU.R x=-112.7600 y=202.2000 rot=180
+# pcb:sch R_SDAA_PU.R x=-176.2600 y=202.2000 rot=180
+
+# Enable control (bottom)
+# pcb:sch R_EN_PU.R x=-239.7600 y=202.2000 rot=180
+
+# Test points - A-side
+# pcb:sch TP_SCLA.TP x=-135.6200 y=34.5600 rot=0
+# pcb:sch TP_SDAA.TP x=-211.8200 y=34.5600 rot=0
+
+# Test points - B-side
+# pcb:sch TP_SCLB.TP x=194.5800 y=47.2600 rot=0
+# pcb:sch TP_SDAB.TP x=245.3800 y=47.2600 rot=0
+
+# Test points - Power
+# pcb:sch TP_VCCA.TP x=-72.1200 y=34.5600 rot=0
+# pcb:sch TP_VCCB.TP x=143.7800 y=47.2600 rot=0
+# pcb:sch TP_GND.TP x=-59.4200 y=479.0600 rot=180
+# pcb:sch TP_EN.TP x=0.0000 y=-127.0000 rot=0
+
+# Power symbols
+# pcb:sch VCCA.1 x=-8.6200 y=100.6000 rot=0
+# pcb:sch VCCB.1 x=67.5800 y=100.6000 rot=0
+# pcb:sch GND.1 x=24.4000 y=468.9000 rot=0

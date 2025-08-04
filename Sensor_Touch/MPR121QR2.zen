@@ -1,0 +1,188 @@
+"""MPR121QR2 - 12-channel Proximity Capacitive Touch Sensor Controller
+
+The MPR121 is a proximity capacitive touch sensor controller with 12 electrodes/
+capacitance sensing inputs. It features integrated independent autocalibration, 
+autoconfiguration, and operates from 1.71V to 3.6V. The device uses I2C interface 
+with 4 selectable addresses (0x5A-0x5D based on ADDR pin connection).
+
+Power configurations:
+- LowVoltage: 1.71V to 2.75V supply (VDD and VREG connected together)
+- HighVoltage: 2.0V to 3.6V supply (internal regulator active, VREG needs bypass cap)
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.nxp.com/docs/en/data-sheet/MPR121.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+
+# Types
+# I2C address based on ADDR pin connection
+I2cAddress = enum("0x5A", "0x5B", "0x5C", "0x5D")
+IrqPullConfig = enum("PullUp", "PullDown", "None")
+PowerConfig = enum("LowVoltage", "HighVoltage")
+
+# Configuration
+power_config = config("power_config", PowerConfig, default = "HighVoltage")
+address = config("address", I2cAddress, default = "0x5A")
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+irq_pull_config = config("irq_pull_config", IrqPullConfig, default = "PullUp")
+add_electrode_header = config("add_electrode_header", bool, default = True)
+add_test_points = config("add_test_points", bool, default = False)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VSS = io("VSS", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Interrupt output (open collector, active low)
+IRQ = io("IRQ", Net)
+
+# All 12 electrode outputs
+ELE0 = io("ELE0", Net)
+ELE1 = io("ELE1", Net)
+ELE2 = io("ELE2", Net)
+ELE3 = io("ELE3", Net)
+ELE4 = io("ELE4", Net)
+ELE5 = io("ELE5", Net)
+ELE6 = io("ELE6", Net)
+ELE7 = io("ELE7", Net)
+ELE8 = io("ELE8", Net)
+ELE9 = io("ELE9", Net)
+ELE10 = io("ELE10", Net)
+ELE11 = io("ELE11", Net)
+
+# Internal nets
+_REXT = Net("REXT")
+
+# VREG net configuration depends on power mode
+if power_config == PowerConfig("LowVoltage"):
+    # Low voltage mode: VREG connects directly to VDD
+    _VREG = VDD
+else:
+    # High voltage mode: VREG is separate internal regulator output
+    _VREG = Net("VREG")
+
+# Address configuration
+# ADDR connected to VSS = 0x5A, VDD = 0x5B, SDA = 0x5C, SCL = 0x5D
+address_map = {
+    I2cAddress("0x5A"): VSS,    # ADDR to VSS
+    I2cAddress("0x5B"): VDD,    # ADDR to VDD
+    I2cAddress("0x5C"): i2c.SDA, # ADDR to SDA
+    I2cAddress("0x5D"): i2c.SCL, # ADDR to SCL
+}
+
+_ADDR = address_map[address]
+
+# Main component
+Component(
+    name = "MPR121QR2",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Touch.kicad_sym", name = "MPR121QR2"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/UQFN-20_3x3mm_P0.4mm.kicad_mod"),
+    pins = {
+        "~{IRQ}": IRQ,
+        "SCL": i2c.SCL,
+        "SDA": i2c.SDA,
+        "ADDR": _ADDR,
+        "VREG": _VREG,
+        "VSS": VSS,
+        "REXT": _REXT,
+        "ELE0": ELE0,
+        "ELE1": ELE1,
+        "ELE2": ELE2,
+        "ELE3": ELE3,
+        "LED0/ELE4": ELE4,
+        "LED1/ELE5": ELE5,
+        "LED2/ELE6": ELE6,
+        "LED3/ELE7": ELE7,
+        "LED4/ELE8": ELE8,
+        "LED5/ELE9": ELE9,
+        "LED6/ELE10": ELE10,
+        "LED7/ELE11": ELE11,
+        "VDD": VDD,
+    },
+)
+
+# Power supply decoupling
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = VSS)
+
+if add_decoupling:
+    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = VSS)
+
+# VREG bypass capacitor - only needed in high voltage mode
+if power_config == PowerConfig("HighVoltage"):
+    # High voltage mode (2.0V to 3.6V): Internal regulator active
+    Capacitor(name = "C_VREG", value = "100nF", package = "0402", P1 = _VREG, P2 = VSS)
+# In low voltage mode (1.71V to 2.75V), VREG is connected to VDD,
+# so the VDD decoupling capacitor serves both
+
+# External reference resistor - always required (75k 1%)
+Resistor(name = "R_EXT", value = "75kohms", package = "0402", P1 = _REXT, P2 = VSS)
+
+# I2C pull-up resistors
+if add_i2c_pullups:
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VDD)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VDD)
+
+# IRQ pull resistor (active low open collector output)
+if irq_pull_config == IrqPullConfig("PullUp"):
+    Resistor(name = "R_IRQ", value = "10kohms", package = "0402", P1 = IRQ, P2 = VDD)
+elif irq_pull_config == IrqPullConfig("PullDown"):
+    Resistor(name = "R_IRQ", value = "10kohms", package = "0402", P1 = IRQ, P2 = VSS)
+
+# Test points
+if add_test_points:
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+    TestPoint(name = "TP_IRQ", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = IRQ)
+
+# Electrode header for easy connection
+if add_electrode_header:
+    # 13-pin header: ELE0-ELE11 and GND
+    PinHeader(
+        name = "J_ELECTRODES",
+        pins = 13,
+        rows = 1,
+        pitch = "2.54mm",
+        orientation = "Vertical",
+        Pin_1 = ELE0,
+        Pin_2 = ELE1,
+        Pin_3 = ELE2,
+        Pin_4 = ELE3,
+        Pin_5 = ELE4,
+        Pin_6 = ELE5,
+        Pin_7 = ELE6,
+        Pin_8 = ELE7,
+        Pin_9 = ELE8,
+        Pin_10 = ELE9,
+        Pin_11 = ELE10,
+        Pin_12 = ELE11,
+        Pin_13 = VSS,  # Ground reference
+    )
+
+# PCB schematic placement
+# pcb:sch MPR121QR2 x=1497.6000 y=799.1000 rot=0
+# pcb:sch VDD.1 x=1616.9800 y=710.2000 rot=0
+# pcb:sch GND.1 x=1611.9000 y=1269.0000 rot=0
+# pcb:sch C_BULK.C x=1020.0800 y=951.5000 rot=0
+# pcb:sch C_VDD.C x=1134.3800 y=951.5000 rot=0
+# pcb:sch C_VREG.C x=1375.6800 y=1116.6000 rot=0
+# pcb:sch R_EXT.R x=1296.9400 y=1116.6000 rot=0
+# pcb:sch R_SCL.R x=1335.0400 y=786.4000 rot=180
+# pcb:sch R_SDA.R x=1398.5400 y=786.4000 rot=180
+# pcb:sch R_IRQ.R x=1284.2400 y=913.4000 rot=90
+# pcb:sch TP_SCL.TP x=1286.7800 y=644.1600 rot=0
+# pcb:sch TP_SDA.TP x=1362.9800 y=644.1600 rot=0
+# pcb:sch TP_IRQ.TP x=1223.2800 y=999.7600 rot=180
+# pcb:sch J_ELECTRODES.PH x=1878.6000 y=837.2000 rot=0

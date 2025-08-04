@@ -1,0 +1,198 @@
+"""Si5351A-B - I²C-Programmable Any-Frequency CMOS Clock Generator
+
+The Si5351A-B is an I²C configurable clock generator that can produce up to 3 
+independent clocks from 2.5 kHz to 200 MHz. It uses a PLL/VCXO + high resolution 
+MultiSynth fractional divider architecture to generate any frequency with 0 ppm 
+error. The device requires only a low-cost fixed-frequency crystal (25 or 27 MHz) 
+and provides flexible output options with a single VDDO pin for level translation.
+
+Key features:
+- 3 outputs (10-MSOP package)
+- I²C programmable (7-bit address: 0x60)
+- Built from 25/27 MHz crystal reference
+- Output frequency range: 2.5 kHz to 200 MHz
+- Core supply: 2.5V or 3.3V
+- Output supply: 1.8V, 2.5V, or 3.3V
+- Spread spectrum capability (Si5351A only)
+- Low jitter: < 70 ps pp typical
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/data-sheets/Si5351-B.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+CrystalFreq = enum("25MHz", "27MHz")
+CrystalLoadCap = enum("6pF", "8pF", "10pF", "12pF")
+
+# Configuration
+crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
+add_external_load_caps = config("add_external_load_caps", bool, default = True)
+if add_external_load_caps:
+    crystal_load_cap = config("crystal_load_cap", CrystalLoadCap, default = "10pF")
+else:
+    crystal_load_cap = None
+
+# I2C configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "2.2kohms")
+else:
+    i2c_pullup_value = None
+
+# Output configuration
+add_output_series_resistors = config("add_output_series_resistors", bool, default = True)
+if add_output_series_resistors:
+    output_series_resistor_value = config("output_series_resistor_value", str, default = "0ohms")
+
+seperate_vdd_vddo = config("seperate_vdd_vddo", bool, default = True)
+
+# Power supply configuration
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+
+# Test points
+add_clock_test_points = config("add_clock_test_points", bool, default = True)
+
+# External IO
+VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+if seperate_vdd_vddo:
+    VDDO = io("VDDO", Power, default = Power(NET = Net("VDDO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+else:
+    VDDO = VDD
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Clock outputs
+CLK0 = io("CLK0", Net)
+CLK1 = io("CLK1", Net)
+CLK2 = io("CLK2", Net)
+
+# Internal nets
+_XA = Net("XA")
+_XB = Net("XB")
+
+# Output nets (for optional series resistors)
+if add_output_series_resistors:
+    _CLK0_INT = Net("CLK0_INT")
+    _CLK1_INT = Net("CLK1_INT")
+    _CLK2_INT = Net("CLK2_INT")
+else:
+    _CLK0_INT = CLK0
+    _CLK1_INT = CLK1
+    _CLK2_INT = CLK2
+
+# Main component
+Component(
+    name = "Si5351A-B",
+    symbol = Symbol(library = "@kicad-symbols/Oscillator.kicad_sym", name = "Si5351A-B-GT"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins = {
+        "VDD": VDD.NET,
+        "XA": _XA,
+        "XB": _XB,
+        "SCL": i2c.SCL,
+        "SDA": i2c.SDA,
+        "CLK2": _CLK2_INT,
+        "VDDO": VDDO.NET,
+        "GND": GND,
+        "CLK1": _CLK1_INT,
+        "CLK0": _CLK0_INT,
+    }
+)
+
+# Crystal oscillator
+if crystal_freq == CrystalFreq("25MHz"):
+    freq_value = "25MHz"
+else:
+    freq_value = "27MHz"
+
+Crystal(
+    name = "Y1",
+    frequency = freq_value,
+    package = "3225_4Pin",
+    XIN = _XA,
+    XOUT = _XB,
+    GND = GND
+)
+
+# Crystal load capacitors
+if crystal_load_cap == CrystalLoadCap("12pF") or add_external_load_caps:
+    # For 12pF load cap, use internal 10pF + external 4pF (2pF added by each external cap)
+    # Or add external caps when explicitly requested
+    if crystal_load_cap == CrystalLoadCap("12pF") and not add_external_load_caps:
+        cap_value = "4pF"
+    elif crystal_load_cap == CrystalLoadCap("6pF"):
+        cap_value = "12pF"  # Total 6pF when combined with internal
+    elif crystal_load_cap == CrystalLoadCap("8pF"):
+        cap_value = "16pF"  # Total 8pF when combined with internal
+    elif crystal_load_cap == CrystalLoadCap("10pF"):
+        cap_value = "20pF"  # Total 10pF when combined with internal
+    else:
+        cap_value = "10pF"  # Default external cap value
+    
+    Capacitor(name = "C_XTAL1", value = cap_value, package = "0402", P1 = _XA, P2 = GND)
+    Capacitor(name = "C_XTAL2", value = cap_value, package = "0402", P1 = _XB, P2 = GND)
+
+# Power supply capacitors
+if add_bulk_caps:
+    # Core supply bulk capacitor
+    Capacitor(name = "C_VDD_BULK", value = "10uF", package = "0805", P1 = VDD.NET, P2 = GND)
+    # Output supply bulk capacitor
+    if seperate_vdd_vddo:
+        Capacitor(name = "C_VDDO_BULK", value = "10uF", package = "0805", P1 = VDDO.NET, P2 = GND)
+
+if add_decoupling:
+    # Core supply decoupling (0.1uF per datasheet recommendation)
+    Capacitor(name = "C_VDD", value = "0.1uF", package = "0402", P1 = VDD.NET, P2 = GND)
+    # Output supply decoupling
+    if seperate_vdd_vddo:
+        Capacitor(name = "C_VDDO", value = "0.1uF", package = "0402", P1 = VDDO.NET, P2 = GND)
+
+# I2C pull-up resistors (1k per datasheet recommendation)
+if add_i2c_pullups:
+    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD.NET)
+    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD.NET)
+
+# Output series resistors (optional, for impedance matching)
+if add_output_series_resistors:
+    Resistor(name = "R_CLK0", value = output_series_resistor_value, package = "0402", P1 = _CLK0_INT, P2 = CLK0)
+    Resistor(name = "R_CLK1", value = output_series_resistor_value, package = "0402", P1 = _CLK1_INT, P2 = CLK1)
+    Resistor(name = "R_CLK2", value = output_series_resistor_value, package = "0402", P1 = _CLK2_INT, P2 = CLK2)
+
+# Test points for clock outputs
+if add_clock_test_points:
+    TestPoint(name = "TP_CLK0", variant = "Pad_D1.5mm", P1 = CLK0)
+    TestPoint(name = "TP_CLK1", variant = "Pad_D1.5mm", P1 = CLK1)
+    TestPoint(name = "TP_CLK2", variant = "Pad_D1.5mm", P1 = CLK2)
+
+# pcb:sch C_VDD.C x=334.2800 y=519.7000 rot=0
+# pcb:sch C_VDDO.C x=1185.1800 y=545.1000 rot=0
+# pcb:sch C_VDDO_BULK.C x=1096.2800 y=545.1000 rot=0
+# pcb:sch C_VDD_BULK.C x=232.6800 y=519.7000 rot=0
+# pcb:sch R_SCL.R x=496.8400 y=494.3000 rot=180
+# pcb:sch R_SDA.R x=433.3400 y=494.3000 rot=180
+# pcb:sch Si5351A-B x=608.6000 y=456.2000 rot=0
+# pcb:sch Y1.Y x=697.5000 y=837.2000 rot=180
+# pcb:sch GND.1 x=722.9000 y=735.6000 rot=0
+# pcb:sch GND.2 x=722.9000 y=976.9000 rot=0
+# pcb:sch VDD.1 x=702.5800 y=380.0000 rot=0
+# pcb:sch C_XTAL1.C x=829.5800 y=862.6000 rot=0
+# pcb:sch C_XTAL2.C x=600.9800 y=862.6000 rot=0
+# pcb:sch R_CLK0.R x=928.6400 y=494.3000 rot=270
+# pcb:sch R_CLK1.R x=928.6400 y=545.1000 rot=270
+# pcb:sch R_CLK2.R x=928.6400 y=595.9000 rot=270
+# pcb:sch VDDO.1 x=753.3800 y=380.0000 rot=0
+# pcb:sch TP_CLK0.TP x=994.6800 y=352.0600 rot=0
+# pcb:sch TP_CLK1.TP x=1032.7800 y=352.0600 rot=0
+# pcb:sch TP_CLK2.TP x=1070.8800 y=352.0600 rot=0

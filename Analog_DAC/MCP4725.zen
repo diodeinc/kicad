@@ -1,0 +1,123 @@
+"""MCP4725 - 12-Bit Digital-to-Analog Converter with EEPROM Memory
+
+The MCP4725 is a low-power, high-accuracy, single-channel, 12-bit buffered voltage 
+output Digital-to-Analog Converter (DAC) with non-volatile memory (EEPROM). Its 
+on-board precision output amplifier allows it to achieve rail-to-rail analog output 
+swing. The DAC input and configuration data can be programmed to the non-volatile 
+memory (EEPROM) using the I²C interface. The non-volatile memory feature enables 
+the DAC device to hold the DAC input code during power-off time, with the DAC 
+output available immediately after power-up. The device operates from a single 
+2.7V to 5.5V supply and includes a Power-On-Reset (POR) circuit. Available with 
+8 different I²C addresses through factory-programmed A2/A1 bits and user-selectable 
+A0 pin:
+- MCP4725A0: 0x60 (A0=GND) or 0x61 (A0=VDD)
+- MCP4725A1: 0x62 (A0=GND) or 0x63 (A0=VDD)
+- MCP4725A2: 0x64 (A0=GND) or 0x65 (A0=VDD)
+- MCP4725A3: 0x66 (A0=GND) or 0x67 (A0=VDD)
+
+Author: @Anthropic/claude-3-5-sonnet-20241022
+Reviewer: Nasheed Ur Rehman
+Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+I2cAddress = enum("0x60", "0x61", "0x62", "0x63", "0x64", "0x65", "0x66", "0x67")
+FactoryVersion = enum("A0", "A1", "A2", "A3")
+
+# I2C address mapping - maps I2C address to A0 pin connection
+# According to datasheet, MCP4725 has factory-programmed A2/A1 bits
+# and user-selectable A0 pin:
+# MCP4725A0: 0x60 (A0=GND) or 0x61 (A0=VDD)
+# MCP4725A1: 0x62 (A0=GND) or 0x63 (A0=VDD)
+# MCP4725A2: 0x64 (A0=GND) or 0x65 (A0=VDD)
+# MCP4725A3: 0x66 (A0=GND) or 0x67 (A0=VDD)
+address_map = {
+    I2cAddress("0x60"): ("A0", "GND"),
+    I2cAddress("0x61"): ("A0", "VDD"),
+    I2cAddress("0x62"): ("A1", "GND"),
+    I2cAddress("0x63"): ("A1", "VDD"),
+    I2cAddress("0x64"): ("A2", "GND"),
+    I2cAddress("0x65"): ("A2", "VDD"),
+    I2cAddress("0x66"): ("A3", "GND"),
+    I2cAddress("0x67"): ("A3", "VDD"),
+}
+
+# Configuration
+add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_output_filter = config("add_output_filter", bool, default = True)
+
+# I2C address configuration
+i2c_address = config("i2c_address", I2cAddress, default = I2cAddress("0x60"))
+
+# External IO
+i2c = io("I2C", I2c, default = I2c("I2C"))
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VSS = io("VSS", Net, default = Net("VSS", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VOUT = io("VOUT", Net, default = Net("VOUT"))
+
+# A0 pin configuration based on selected I2C address
+_factory_version, _a0_connection = address_map[i2c_address]
+_A0 = VDD if _a0_connection == "VDD" else VSS
+
+# 12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6
+Component(
+    name = "MCP4725",
+    symbol = Symbol(library = "@kicad-symbols/Analog_DAC.kicad_sym", name = "MCP4725xxx-xCH"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins = {
+        "SCL": i2c.SCL,
+        "SDA": i2c.SDA,
+        "A0": _A0,
+        "VDD": VDD,
+        "VSS": VSS,
+        "VOUT": VOUT
+    },
+)
+
+# Power Supply Decoupling - Datasheet recommends 0.1µF ceramic capacitor
+if add_decoupling_cap:
+    # Primary ceramic decoupling capacitor - place within 4mm of VDD pin
+    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VDD, P2 = VSS)
+
+# Bulk capacitor - Datasheet recommends 10µF tantalum for additional filtering
+if add_bulk_cap:
+    # Tantalum bulk capacitor for low frequency noise suppression
+    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = VSS)
+
+# I2C Pull-up Resistors - Required for proper I2C operation
+if add_i2c_pullups:
+    # SDA pull-up resistor (1k-10k typical per datasheet)
+    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VDD)
+    
+    # SCL pull-up resistor (1k-10k typical per datasheet)
+    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VDD)
+
+# Optional Output Filter - For noise-sensitive applications
+if add_output_filter:
+    # Series resistor for RC filter (100-1k ohm typical)
+    _VOUT_FILTERED = Net("VOUT_FILTERED")
+    Resistor(name = "R_FILTER", value = "100ohms", package = "0402", P1 = VOUT, P2 = _VOUT_FILTERED)
+    
+    # Filter capacitor (100pF-1nF typical, depends on bandwidth requirements)
+    Capacitor(name = "C_FILTER", value = "100pF", package = "0402", P1 = _VOUT_FILTERED, P2 = VSS)
+    
+    # Update output net to filtered version
+    VOUT = _VOUT_FILTERED
+
+# pcb:sch MCP4725 x=405.4000 y=214.9000 rot=0
+# pcb:sch C_DEC.C x=92.9800 y=227.6000 rot=0
+# pcb:sch C_BULK.C x=194.5800 y=227.6000 rot=0
+# pcb:sch R_SDA.R x=280.9400 y=164.1000 rot=180
+# pcb:sch R_SCL.R x=344.4400 y=164.1000 rot=180
+# pcb:sch VSS.1 x=494.3000 y=405.4000 rot=0
+# pcb:sch VDD.1 x=499.3800 y=113.3000 rot=0
+# pcb:sch C_FILTER.C x=791.4800 y=303.8000 rot=0
+# pcb:sch R_FILTER.R x=700.0400 y=253.0000 rot=270
