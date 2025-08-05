@@ -27,7 +27,7 @@ FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 Inductor = Module("@stdlib/generics/Inductor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 PinHeader = Module("@stdlib/kicad/PinHeader.zen")
-AP2112K_3_3 = Module("../../Regulator_Linear/AP2112K-3.3/AP2112K-3.3.zen")
+AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
