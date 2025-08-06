@@ -1,0 +1,160 @@
+"""ADP7182AUJZ-5.0 - -28V, -200mA, Low Noise, Linear Regulator
+
+The ADP7182 is a CMOS, low dropout (LDO) negative linear regulator that operates from 
+-2.7V to -28V and provides up to -200mA of output current. This high input voltage 
+LDO is ideal for regulation of high performance analog and mixed signal circuits 
+operating from negative voltage rails. Using an advanced proprietary architecture, 
+it provides high power supply rejection (66dB at 10kHz), low noise (18μV rms), 
+and achieves excellent line and load transient response with a small 2.2μF ceramic 
+output capacitor.
+
+This is the -5.0V fixed output version in TSOT-23-5 package.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7182.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_bulk_caps = config("add_bulk_caps", bool, default = True)
+enable_control = config("enable_control", bool, default = True)
+add_enable_pulldown = config("add_enable_pulldown", bool, default = True)
+add_output_discharge = config("add_output_discharge", bool, default = True)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VOUT = io("VOUT", Net, default = Net("VOUT", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+EN = io("EN", Net, default = Net("EN")) if enable_control else VIN
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# -200mA, Low Noise, CMOS Low Dropout Regulator, Negative, -5.0V Fixed Output, TSOT-23-5
+Component(
+    name = "ADP7182AUJZ-5.0",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "ADP7182AUJZ-5.0"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-5.kicad_mod"),
+    pins = {
+        "GND": GND,
+        "VIN": VIN,
+        "EN": EN,
+        "NC": Net("NC"),  # No connect pin
+        "VOUT": VOUT
+    },
+)
+
+# Input Capacitor - Datasheet recommends minimum 2.2μF ceramic with ESR < 0.2Ω
+if add_input_cap:
+    Capacitor(
+        name = "C_IN", 
+        value = "2.2uF", 
+        voltage = "50V",
+        package = "0805",
+        dielectric = "X7R",
+        P1 = VIN, 
+        P2 = GND
+    )
+    
+    # Additional high-frequency decoupling
+    Capacitor(
+        name = "C_IN_HF",
+        value = "100nF",
+        voltage = "50V", 
+        package = "0402",
+        dielectric = "X7R",
+        P1 = VIN,
+        P2 = GND
+    )
+
+# Output Capacitor - Datasheet specifies minimum 2.2μF with ESR < 0.2Ω
+if add_output_cap:
+    Capacitor(
+        name = "C_OUT",
+        value = "2.2uF",
+        voltage = "10V",
+        package = "0805",
+        dielectric = "X7R",
+        P1 = VOUT,
+        P2 = GND
+    )
+    
+    # Additional high-frequency decoupling
+    Capacitor(
+        name = "C_OUT_HF",
+        value = "100nF",
+        voltage = "10V",
+        package = "0402", 
+        dielectric = "X7R",
+        P1 = VOUT,
+        P2 = GND
+    )
+
+# Bulk Capacitors for improved transient response
+if add_bulk_caps:
+    # Input bulk capacitor
+    Capacitor(
+        name = "C_BULK_IN",
+        value = "10uF",
+        voltage = "50V",
+        package = "1206",
+        dielectric = "X7R",
+        P1 = VIN,
+        P2 = GND
+    )
+    
+    # Output bulk capacitor  
+    Capacitor(
+        name = "C_BULK_OUT",
+        value = "10uF",
+        voltage = "10V",
+        package = "1206",
+        dielectric = "X7R",
+        P1 = VOUT,
+        P2 = GND
+    )
+
+# Enable Control
+if enable_control:
+    # The ADP7182 has dual polarity enable that turns on when |V_EN| >= 2V
+    # For automatic startup, EN can be connected to VIN
+    # For controlled startup, use external control signal
+    
+    if add_enable_pulldown:
+        # Pull-down resistor to ensure regulator is disabled by default
+        # EN threshold is ±2V with respect to GND
+        Resistor(
+            name = "R_EN_PD",
+            value = "100kohms",
+            package = "0402",
+            P1 = EN,
+            P2 = GND
+        )
+
+# Output Discharge Resistor
+if add_output_discharge:
+    # The ADP7182 has an internal 220kΩ resistor that pulls VOUT to GND when disabled
+    # An external discharge resistor can be added for faster discharge
+    Resistor(
+        name = "R_DISCHARGE",
+        value = "10kohms",
+        package = "0603",
+        P1 = VOUT,
+        P2 = GND
+    )
+
+# pcb:sch ADP7182AUJZ-5.0 x=621.3000 y=303.8000 rot=0
+# pcb:sch C_BULK_IN.C x=423.1800 y=316.5000 rot=180
+# pcb:sch C_BULK_OUT.C x=1312.1800 y=316.5000 rot=180
+# pcb:sch C_IN.C x=67.5800 y=316.5000 rot=180
+# pcb:sch C_IN_HF.C x=245.3800 y=316.5000 rot=180
+# pcb:sch C_OUT.C x=956.5800 y=316.5000 rot=180
+# pcb:sch C_OUT_HF.C x=1134.3800 y=316.5000 rot=180
+# pcb:sch R_DISCHARGE.R x=865.1400 y=303.8000 rot=180
+# pcb:sch GND.1 x=710.2000 y=240.3000 rot=180
+# pcb:sch R_EN_PD.R x=534.9400 y=291.1000 rot=90
+# pcb:sch VIN.1 x=-8.6200 y=341.9000 rot=0
+# pcb:sch VOUT.1 x=1464.5800 y=341.9000 rot=0

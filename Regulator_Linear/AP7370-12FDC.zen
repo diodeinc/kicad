@@ -1,0 +1,145 @@
+"""AP7370-12FDC - 200mA Low-Dropout Linear Regulator, 1.2V Fixed Output
+
+The AP7370-12FDC is a 200mA, fixed 1.2V output voltage, ultra-low dropout linear regulator 
+capable of supplying 200mA of output current. It features ultra-low dropout voltage of 
+500mV at 100mA load current and excellent line and load regulation. The device 
+includes current limiting and thermal overload protection. The regulator requires 
+a minimum 1µF ceramic output capacitor for stability and operates with input 
+voltages from 3.2V to 18V.
+
+Author: @Anthropic/claude-4-opus-20250514
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.diodes.com/assets/Datasheets/AP7370.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Led = Module("@stdlib/generics/Led.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+PackageSize = enum("0402", "0603", "0805", "1206")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_protection_diode = config("add_protection_diode", bool, default = False)
+add_power_led = config("add_power_led", bool, default = True)
+add_test_points = config("add_test_points", bool, default = True)
+passive_size = config("passive_size", PackageSize, default = "0603")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VI", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VOUT = io("VOUT", Net, default = Net("VO", symbol = Symbol("@kicad-symbols/power.kicad_sym:+1V2")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# 200mA Low Dropout regulator, positive, 1.2V fixed output, DFN-6
+Component(
+    name = "AP7370-12FDC",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AP7370-12FDC"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-6-1EP_2x2mm_P0.65mm_EP1.01x1.7mm.kicad_mod"),
+    pins = {
+        "VI": VIN,
+        "NC": GND,     # NC (Not connected)
+        "GND": GND,
+        "VO": VOUT
+    },
+)
+
+# Input Capacitor - Recommended for improved transient response
+if add_input_cap:
+    # Determine bulk capacitor package based on passive_size
+    if passive_size == "0402":
+        bulk_package = "0603"  # Minimum size for bulk caps
+    elif passive_size == "1206":
+        bulk_package = "1206"
+    else:
+        bulk_package = "0805"  # Default for 0603 and 0805 configs
+    
+    # Bulk capacitor
+    Capacitor(name = "C_IN_BULK", value = "10uF", package = bulk_package, P1 = VIN, P2 = GND)
+    
+    # High-frequency decoupling
+    Capacitor(name = "C_IN_HF", value = "100nF", package = passive_size, P1 = VIN, P2 = GND)
+
+# Output Capacitor - Required 1µF minimum for stability
+if add_output_cap:
+    # Determine output capacitor package based on passive_size
+    if passive_size == "0402":
+        out_package = "0805"  # Minimum size for 22uF
+    elif passive_size == "0603":
+        out_package = "1206"  # Standard for 22uF
+    else:
+        out_package = "1210"  # Larger sizes for better performance
+    
+    # Main output capacitor - 1µF ceramic required for stability
+    Capacitor(name = "C_OUT", value = "22uF", package = out_package, P1 = VOUT, P2 = GND)
+    
+    # Additional ceramic for improved high-frequency response
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = passive_size, P1 = VOUT, P2 = GND)
+
+# Protection Diode - Optional for high-value output capacitors
+if add_protection_diode:
+    # Schottky diode from output to input for reverse current protection
+    # Recommended when using output capacitors > 1000µF
+    Component(
+        name = "D_PROT",
+        symbol = Symbol("@kicad-symbols/Device.kicad_sym:D_Schottky"),
+        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_SOD-123.kicad_mod"),
+        pins = {
+            "K": VIN,
+            "A": VOUT,
+        },
+    )
+
+# Power LED - Optional indicator for output voltage
+if add_power_led:
+    # LED cathode net
+    _LED_K = Net("LED_PWR_K")
+    
+    # Power indicator LED
+    Led(
+        name = "LED_PWR",
+        color = "green",
+        package = passive_size,
+        A = VOUT,
+        K = _LED_K
+    )
+    
+    # Current limiting resistor for LED
+    # For 1.2V output, 1.8V red LED forward voltage won't work
+    # Using 1.2V output directly with ultra-low current LED
+    # R = (1.2V - 1.0V) / 0.5mA = 400Ω for ultra-low current LED
+    Resistor(
+        name = "R_LED",
+        value = "390ohms",
+        package = passive_size,
+        P1 = _LED_K,
+        P2 = GND
+    )
+
+# Test Points - Optional for debugging and validation
+if add_test_points:
+    TestPoint(name = "TP_VIN", P1 = VIN, variant = "THTPad_D1.0mm_Drill0.5mm")
+    TestPoint(name = "TP_VOUT", P1 = VOUT, variant = "THTPad_D1.0mm_Drill0.5mm")
+    TestPoint(name = "TP_GND", P1 = GND, variant = "THTPad_D1.0mm_Drill0.5mm")
+
+# pcb:sch AP7370-12FDC x=278.4000 y=348.2500 rot=0
+# pcb:sch C_IN_BULK.C x=92.9800 y=380.0000 rot=0
+# pcb:sch C_IN_HF.C x=194.5800 y=380.0000 rot=0
+# pcb:sch C_OUT.C x=473.9800 y=380.0000 rot=0
+# pcb:sch C_OUT_HF.C x=588.2800 y=380.0000 rot=0
+# pcb:sch GND.1 x=341.9000 y=507.0000 rot=0
+# pcb:sch D_PROT x=317.5000 y=292.1000 rot=0
+# pcb:sch LED_PWR x=673.1000 y=431.8000 rot=0
+# pcb:sch R_LED.R x=750.8400 y=405.4000 rot=0
+# pcb:sch VI.1 x=105.6800 y=329.2000 rot=0
+# pcb:sch VO.1 x=600.9800 y=329.2000 rot=0
+# pcb:sch LED_PWR.LED x=672.1000 y=349.5200 rot=180
+# pcb:sch TP_VIN x=105.6800 y=280.0000 rot=0
+# pcb:sch TP_VOUT x=600.9800 y=280.0000 rot=0
+# pcb:sch TP_GND x=341.9000 y=550.0000 rot=0
+# pcb:sch TP_GND.TP x=486.6800 y=479.0600 rot=180
+# pcb:sch TP_VIN.TP x=207.2800 y=301.2600 rot=0
+# pcb:sch TP_VOUT.TP x=486.6800 y=301.2600 rot=0

@@ -1,0 +1,232 @@
+"""TPS2065CDBV - 1A Current Limited Power Switch with Reverse Blocking
+
+The TPS2065CDBV is a 1A current-limited power distribution switch designed for applications
+where heavy capacitive loads and short circuits are likely to be encountered, such as USB
+ports. It features a ±20% accurate fixed current limit of 1.3A to 1.8A (typ 1.55A), fast
+2μs overcurrent response time, and built-in soft start. The device operates from 4.5V to
+5.5V input and includes reverse current blocking, output discharge (470Ω typical), thermal
+protection, and deglitched fault reporting. The active-high enable input allows for simple
+power sequencing and the open-drain fault output can be used to alert the system of
+overcurrent or overtemperature conditions.
+
+Key features:
+- 1A continuous output current capability
+- 86-96mΩ typical on-resistance at 25°C
+- Fixed current limit: 1.3A to 1.8A
+- Fast 2μs overcurrent response
+- Reverse current blocking when disabled
+- Built-in 470Ω output discharge resistor
+- Thermal protection with 135°C threshold in current limit
+- 9ms deglitched fault reporting
+- SOT-23-5 package
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tps2065c.pdf
+"""
+
+# Dependencies
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
+
+# Types
+OutputCapType = enum("Ceramic", "Electrolytic", "Both")
+PinConfig = enum("PullUp", "PullDown", "UserDefined")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+if add_input_cap:
+    input_cap_value = config("input_cap_value", str, default = "1uF")
+add_output_cap = config("add_output_cap", bool, default = True)
+if add_output_cap:
+    output_cap_value = config("output_cap_value", str, default = "120uF")
+    output_cap_type = config("output_cap_type", OutputCapType, default = "Both")
+# Fault pin configuration
+fault_config = config("fault_config", PinConfig, default = "PullUp")
+if fault_config != PinConfig("UserDefined"):
+    fault_resistor_value = config("fault_resistor_value", str, default = "47kohms")
+
+# Enable pin configuration
+enable_config = config("enable_config", PinConfig, default = "PullUp")
+if enable_config != PinConfig("UserDefined"):
+    enable_resistor_value = config("enable_resistor_value", str, default = "47kohms")
+
+add_input_tvs = config("add_input_tvs", bool, default = True)
+add_output_tvs = config("add_output_tvs", bool, default = True)
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VOUT = io("VOUT", Net, default = Net("VOUT", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Enable pin - external IO only if UserDefined
+if enable_config == PinConfig("UserDefined"):
+    EN = io("EN", Net, default = Net("EN"))
+    _EN = EN
+else:
+    _EN = Net("EN_INT")
+
+# Fault pin - external IO only if UserDefined
+if fault_config == PinConfig("UserDefined"):
+    FLT = io("FLT", Net, default = Net("FLT"))
+    _FLT = FLT
+else:
+    _FLT = Net("FLT_INT")
+
+# Internal nets
+_IN = VIN
+_OUT = VOUT
+_GND = GND
+
+# Main component - 1A Current Limited Power Switch
+Component(
+    name = "TPS2065CDBV",
+    symbol = Symbol(library = "@kicad-symbols/Power_Management.kicad_sym", name = "TPS2065CDBVx-2"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins = {
+        "IN": _IN,
+        "EN": _EN,
+        "GND": _GND,
+        "OUT": _OUT,
+        "~{FLT}": _FLT
+    },
+)
+
+# Input bypass capacitor - required for transient response
+if add_input_cap:
+    Capacitor(
+        name = "C_IN",
+        value = input_cap_value,
+        voltage = "10V",
+        package = "0805",  # Standard package for bypass caps
+        P1 = _IN,
+        P2 = _GND
+    )
+
+# Output capacitor - required for USB applications (120μF min) and voltage undershoot control
+if add_output_cap:
+    if output_cap_type == OutputCapType("Ceramic"):
+        # Use ceramic capacitor (larger package for high capacitance)
+        Capacitor(
+            name = "C_OUT",
+            value = output_cap_value,
+            voltage = "10V", 
+            package = "1210",  # Larger package for high capacitance ceramics
+            P1 = _OUT,
+            P2 = _GND
+        )
+    elif output_cap_type == OutputCapType("Electrolytic"):
+        # Use electrolytic capacitor for high capacitance
+        Component(
+            name = "C_OUT",
+            symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "C_Polarized"),
+            footprint = File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_6.3x7.7.kicad_mod"),
+            pins = {
+                "1": _OUT,  # + (positive)
+                "2": _GND   # - (negative)
+            },
+            properties = {
+                "Value": output_cap_value,
+                "Voltage": "10V"
+            }
+        )
+    else:  # Both
+        # Ceramic for high frequency bypass
+        Capacitor(
+            name = "C_OUT_HF",
+            value = "1uF",
+            voltage = "10V",
+            package = "0805",
+            P1 = _OUT,
+            P2 = _GND
+        )
+        # Electrolytic for bulk storage
+        Component(
+            name = "C_OUT_BULK",
+            symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "C_Polarized"),
+            footprint = File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_6.3x7.7.kicad_mod"),
+            pins = {
+                "1": _OUT,  # + (positive)
+                "2": _GND   # - (negative)
+            },
+            properties = {
+                "Value": output_cap_value,
+                "Voltage": "10V"
+            }
+        )
+
+# Fault pin resistor configuration
+if fault_config == PinConfig("PullUp"):
+    Resistor(
+        name = "R_FLT",
+        value = fault_resistor_value,
+        package = "0603",
+        P1 = _FLT,
+        P2 = _IN  # Pull to input voltage
+    )
+elif fault_config == PinConfig("PullDown"):
+    Resistor(
+        name = "R_FLT",
+        value = fault_resistor_value,
+        package = "0603",
+        P1 = _FLT,
+        P2 = _GND
+    )
+# else UserDefined - no resistor, user handles externally
+
+# Enable pin resistor configuration
+if enable_config == PinConfig("PullUp"):
+    Resistor(
+        name = "R_EN",
+        value = enable_resistor_value,
+        package = "0603",
+        P1 = _EN,
+        P2 = _IN  # Pull to input voltage for default-on
+    )
+elif enable_config == PinConfig("PullDown"):
+    Resistor(
+        name = "R_EN",
+        value = enable_resistor_value,
+        package = "0603",
+        P1 = _EN,
+        P2 = _GND
+    )
+# else UserDefined - no resistor, user handles externally
+
+# Optional input TVS diode for ESD protection
+if add_input_tvs:
+    Diode = Module("@stdlib/generics/Diode.zen")
+    Diode(
+        name = "D_TVS_IN",
+        variant = "Zener",  # TVS diodes are similar to Zener
+        v_r = "6.8V",  # Clamp voltage above 5.5V max input
+        package = "SOD-323",
+        A = _GND,
+        K = _IN
+    )
+
+# Optional output TVS diode for ESD protection
+if add_output_tvs:
+    Diode(
+        name = "D_TVS_OUT",
+        variant = "Zener",  # TVS diodes are similar to Zener
+        v_r = "6.8V",  # Clamp voltage for output protection
+        package = "SOD-323",
+        A = _GND,
+        K = _OUT
+    )
+
+# pcb:sch TPS2065CDBV x=100.6000 y=-1.0000 rot=0
+# pcb:sch C_IN.C x=-161.0200 y=62.5000 rot=0
+# pcb:sch C_OUT.C x=100.0000 y=50.0000 rot=0
+# pcb:sch R_FLT.R x=382.5400 y=113.3000 rot=90
+# pcb:sch R_EN.R x=26.9400 y=37.1000 rot=90
+# pcb:sch C_OUT x=496.8400 y=62.5000 rot=0
+# pcb:sch GND.1 x=189.5000 y=227.6000 rot=0
+# pcb:sch VIN.1 x=-148.3200 y=-26.4000 rot=0
+# pcb:sch VOUT.1 x=499.3800 y=-26.4000 rot=0
+# pcb:sch D_TVS_IN.D x=-267.7000 y=87.9000 rot=90
+# pcb:sch D_TVS_OUT.D x=684.8000 y=87.9000 rot=90
+# pcb:sch C_OUT_BULK x=484.1400 y=62.5000 rot=0
+# pcb:sch C_OUT_HF.C x=588.2800 y=62.5000 rot=0

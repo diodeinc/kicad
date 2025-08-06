@@ -1,0 +1,175 @@
+"""CAP1206 - 6-Channel Capacitive Touch Sensor Controller (DFN Package)
+
+The CAP1206 is a multiple channel capacitive touch sensor controller with six (6) 
+individual capacitive touch sensor inputs with programmable sensitivity. Each sensor 
+input is calibrated to compensate for system parasitic capacitance and automatically 
+recalibrated to compensate for gradual environmental changes. The device includes 
+Multiple Pattern Touch recognition, power button support, and comprehensive noise 
+filtering. It communicates via SMBus/I2C and operates from 3.0V to 5.5V with low 
+power consumption (5μA typical in Deep Sleep, 50μA in Standby).
+
+Note: This module is for the DFN package with fixed I2C address 0x28.
+
+Author: @anthropic/claude-4-opus
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/00001567B.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+NetTie = Module("@stdlib/generics/NetTie.zen")
+
+# Types
+AlertPullup = enum("None", "Weak", "Strong")
+
+# Configuration
+add_power_filtering = config("add_power_filtering", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+
+# Touch sensor configuration
+add_series_resistors = config("add_series_resistors", bool, default = True)
+if add_series_resistors:
+    series_resistor_value = config("series_resistor_value", str, default = "1kohms")
+
+# ALERT# configuration
+alert_pullup = config("alert_pullup", AlertPullup, default = "Strong")
+if alert_pullup != AlertPullup("None"):
+    if alert_pullup == AlertPullup("Weak"):
+        alert_pullup_value = config("alert_pullup_value", str, default = "10kohms")
+    else:  # Strong
+        alert_pullup_value = config("alert_pullup_value", str, default = "4.7kohms")
+
+# I2C configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# Debug/Test configuration
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c, default = I2c("I2C"))
+
+# ALERT# output
+ALERT = io("ALERT", Net, default = Net("ALERT#"))
+
+# Touch sensor inputs
+CS1 = io("CS1", Net, default = Net("CS1"))
+CS2 = io("CS2", Net, default = Net("CS2"))
+CS3 = io("CS3", Net, default = Net("CS3"))
+CS4 = io("CS4", Net, default = Net("CS4"))
+CS5 = io("CS5", Net, default = Net("CS5"))
+CS6 = io("CS6", Net, default = Net("CS6"))
+
+# Internal nets
+
+# Internal touch sensor nets (after series resistors if enabled)
+if add_series_resistors:
+    _CS1_INT = Net("CS1_INT")
+    _CS2_INT = Net("CS2_INT")
+    _CS3_INT = Net("CS3_INT")
+    _CS4_INT = Net("CS4_INT")
+    _CS5_INT = Net("CS5_INT")
+    _CS6_INT = Net("CS6_INT")
+else:
+    _CS1_INT = CS1
+    _CS2_INT = CS2
+    _CS3_INT = CS3
+    _CS4_INT = CS4
+    _CS5_INT = CS5
+    _CS6_INT = CS6
+
+# Main component - 6-Channel Capacitive Touch Sensor, DFN-10
+Component(
+    name = "CAP1206",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Touch.kicad_sym", name = "CAP1206-x-AIA"),
+    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-10-1EP_3x3mm_P0.5mm_EP1.55x2.48mm.kicad_mod"),
+    pins = {
+        "CS1": _CS1_INT,
+        "CS2": _CS2_INT,
+        "CS3": _CS3_INT,
+        "CS4": _CS4_INT,
+        "CS5": _CS5_INT,
+        "CS6": _CS6_INT,
+        "VDD": VDD,
+        "GND": GND,
+        "SMCLK": i2c.SCL,
+        "SMDATA": i2c.SDA,
+        "ALERT#": ALERT
+    },
+)
+
+# Power supply filtering
+if add_power_filtering:
+    # Bulk capacitor (recommended in datasheet)
+    Capacitor(name = "C_BULK", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+
+# Decoupling capacitor (close to VDD pin)
+if add_decoupling:
+    Capacitor(name = "C_VDD", value = "0.1uF", package = "0402", P1 = VDD, P2 = GND)
+
+# Series resistors for touch sensor inputs (optional for ESD protection)
+if add_series_resistors:
+    Resistor(name = "R_CS1", value = series_resistor_value, package = "0402", P1 = CS1, P2 = _CS1_INT)
+    Resistor(name = "R_CS2", value = series_resistor_value, package = "0402", P1 = CS2, P2 = _CS2_INT)
+    Resistor(name = "R_CS3", value = series_resistor_value, package = "0402", P1 = CS3, P2 = _CS3_INT)
+    Resistor(name = "R_CS4", value = series_resistor_value, package = "0402", P1 = CS4, P2 = _CS4_INT)
+    Resistor(name = "R_CS5", value = series_resistor_value, package = "0402", P1 = CS5, P2 = _CS5_INT)
+    Resistor(name = "R_CS6", value = series_resistor_value, package = "0402", P1 = CS6, P2 = _CS6_INT)
+
+# ALERT# pull-up resistor (required as it's open drain)
+if alert_pullup != AlertPullup("None"):
+    Resistor(name = "R_ALERT", value = alert_pullup_value, package = "0402", P1 = ALERT, P2 = VDD)
+
+# I2C pull-up resistors (required for proper operation)
+if add_i2c_pullups:
+    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD)
+    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD)
+
+# Test points for debug/development
+if add_test_points:
+    TestPoint(name = "TP_CS1", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS1_INT)
+    TestPoint(name = "TP_CS2", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS2_INT)
+    TestPoint(name = "TP_CS3", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS3_INT)
+    TestPoint(name = "TP_CS4", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS4_INT)
+    TestPoint(name = "TP_CS5", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS5_INT)
+    TestPoint(name = "TP_CS6", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CS6_INT)
+    TestPoint(name = "TP_ALERT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = ALERT)
+
+    if add_i2c_pullups:
+        TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
+        TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+
+# pcb:sch CAP1206 x=253.0000 y=418.1000 rot=0
+# pcb:sch C_BULK.C x=804.1800 y=519.7000 rot=0
+# pcb:sch C_VDD.C x=893.0800 y=519.7000 rot=0
+# pcb:sch FB_VDD.FB x=441.2140 y=316.5000 rot=90
+# pcb:sch R_ALERT.R x=750.8400 y=430.8000 rot=180
+# pcb:sch R_SCL.R x=598.4400 y=430.8000 rot=180
+# pcb:sch R_SDA.R x=674.6400 y=430.8000 rot=180
+# pcb:sch 3V3.1 x=677.1800 y=316.5000 rot=0
+# pcb:sch GND.1 x=392.7000 y=735.6000 rot=0
+# pcb:sch VDD.1 x=397.7800 y=329.2000 rot=0
+# pcb:sch R_CS1.R x=-87.3600 y=456.2000 rot=270
+# pcb:sch R_CS2.R x=-11.1600 y=481.6000 rot=270
+# pcb:sch R_CS3.R x=65.0400 y=507.0000 rot=270
+# pcb:sch R_CS4.R x=141.2400 y=532.4000 rot=270
+# pcb:sch R_CS5.R x=-11.1600 y=557.8000 rot=270
+# pcb:sch R_CS6.R x=-11.1600 y=621.3000 rot=270
+# pcb:sch TP_ALERT.TP x=753.3800 y=606.0600 rot=180
+# pcb:sch TP_CS1.TP x=-34.0200 y=402.8600 rot=0
+# pcb:sch TP_CS2.TP x=42.1800 y=402.8600 rot=0
+# pcb:sch TP_CS3.TP x=118.3800 y=402.8600 rot=0
+# pcb:sch TP_CS4.TP x=194.5800 y=402.8600 rot=0
+# pcb:sch TP_CS5.TP x=118.3800 y=644.1600 rot=180
+# pcb:sch TP_CS6.TP x=194.5800 y=644.1600 rot=180
+# pcb:sch TP_SCL.TP x=600.9800 y=606.0600 rot=180
+# pcb:sch TP_SDA.TP x=677.1800 y=606.0600 rot=180

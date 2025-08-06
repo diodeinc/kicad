@@ -52,7 +52,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Inductor = Module("@stdlib/generics/Inductor.zen")
 Diode = Module("@stdlib/generics/Diode.zen")
-LED = Module("@stdlib/generics/LED.zen")
+LED = Module("@stdlib/generics/Led.zen")
 
 # Types
 LEDCurrent = enum("20mA", "50mA", "100mA", "150mA", "200mA", "300mA", "350mA")

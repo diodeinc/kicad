@@ -1,0 +1,140 @@
+"""CDCV304 - 200-MHz General-Purpose Clock Buffer, PCI-X Compliant
+
+The CDCV304 is a high-performance, low-skew, general-purpose PCI-X compliant clock buffer. 
+It distributes one input clock signal (CLKIN) to one bank of four outputs (1Y[0:3]). 
+It features 0-200 MHz operation, low output skew (<100 ps), and operates from either 
+3.3V or 2.5V supply. The device includes an output enable control that drives outputs 
+low when OE is low. It is specifically designed for PCI-X applications and comes in 
+an 8-pin TSSOP package.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/cdcv304.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+
+# Types
+OutputEnable = enum("AlwaysOn", "External", "Pullup", "Pulldown")
+
+# Configuration
+output_enable_mode = config("output_enable_mode", OutputEnable, default = "Pullup")
+add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default = True)
+add_power_filtering = config("add_power_filtering", bool, default = True)
+
+# Test points
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# EMI reduction
+add_emi_filtering = config("add_emi_filtering", bool, default = True, optional = True)
+
+# External IO
+VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Input clock
+CLKIN = io("CLKIN", Net)
+
+# Internal nets
+_VDD_FILT = Net("VDD_FILT") if add_power_filtering else VDD
+
+# Output clocks
+CLK_OUT0 = io("CLK_OUT0", Net)
+CLK_OUT1 = io("CLK_OUT1", Net)
+CLK_OUT2 = io("CLK_OUT2", Net)
+CLK_OUT3 = io("CLK_OUT3", Net)
+
+# Output Enable control (conditionally exposed)
+if output_enable_mode == OutputEnable("External"):
+    OE = io("OE", Net)
+    _OE = OE
+elif output_enable_mode == OutputEnable("AlwaysOn"):
+    OE = io("OE", Net)
+    _OE = _VDD_FILT
+else:
+    _OE = Net("OE")
+
+
+# Main component
+Component(
+    name = "CDCV304",
+    symbol = Symbol(library = "@kicad-symbols/Buffer.kicad_sym", name = "CDCV304"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-8_4.4x3mm_P0.65mm.kicad_mod"),
+    pins = {
+        "CLKIN": CLKIN,
+        "OE": _OE,
+        "1Y0": CLK_OUT0,
+        "GND": GND,
+        "1Y1": CLK_OUT1,
+        "V_{DD}": _VDD_FILT,
+        "1Y2": CLK_OUT2,
+        "1Y3": CLK_OUT3
+    }
+)
+
+# Power Supply Filtering
+if add_power_filtering:
+    # Ferrite bead for power supply isolation
+    FerriteBead(name = "FB_VDD", package = "0603", P1 = VDD, P2 = _VDD_FILT)
+
+# Bulk Capacitor
+if add_bulk_cap:
+    Capacitor(name = "C_BULK", value = "10uF",package = "0805", P1 = VDD, P2 = GND)
+
+# Power Supply Decoupling
+if add_decoupling:
+    # Place close to VDD pin
+    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = _VDD_FILT, P2 = GND)
+    Capacitor(name = "C_VDD2", value = "1nF", package = "0402", P1 = _VDD_FILT, P2 = GND)
+
+# Output Enable Configuration
+if output_enable_mode == OutputEnable("Pullup"):
+    # Pull-up with weak resistor
+    Resistor(name = "R_OE", value = "100kohms", package = "0402", P1 = _OE, P2 = _VDD_FILT)
+elif output_enable_mode == OutputEnable("Pulldown"):
+    # Pull-down to disable by default
+    Resistor(name = "R_OE", value = "100kohms", package = "0402", P1 = _OE, P2 = GND)
+
+# Direct output connections - no termination
+
+# EMI Filtering
+if add_emi_filtering:
+    # Add small capacitors on outputs for EMI reduction
+    # These should be placed close to the output pins
+    Capacitor(name = "C_EMI0", value = "10pF", package = "0402", P1 = CLK_OUT0, P2 = GND)
+    Capacitor(name = "C_EMI1", value = "10pF", package = "0402", P1 = CLK_OUT1, P2 = GND)
+    Capacitor(name = "C_EMI2", value = "10pF", package = "0402", P1 = CLK_OUT2, P2 = GND)
+    Capacitor(name = "C_EMI3", value = "10pF", package = "0402", P1 = CLK_OUT3, P2 = GND)
+
+# Test Points
+if add_test_points:
+    TestPoint(name = "TP_CLKIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLKIN)
+    TestPoint(name = "TP_1Y0", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_OUT0)
+    TestPoint(name = "TP_1Y1", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_OUT1)
+    TestPoint(name = "TP_1Y2", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_OUT2)
+    TestPoint(name = "TP_1Y3", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_OUT3)
+    if output_enable_mode == OutputEnable("External"):
+        TestPoint(name = "TP_OE", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _OE)
+
+# pcb:sch CDCV304 x=329.2000 y=392.7000 rot=0
+# pcb:sch C_BULK.C x=-84.8200 y=418.1000 rot=0
+# pcb:sch C_VDD1.C x=16.7800 y=418.1000 rot=0
+# pcb:sch C_VDD2.C x=118.3800 y=418.1000 rot=0
+# pcb:sch FB_VDD.FB x=-41.3860 y=291.1000 rot=270
+# pcb:sch R_OE.R x=255.5400 y=405.4000 rot=90
+# pcb:sch GND.1 x=418.1000 y=659.4000 rot=0
+# pcb:sch VDD.1 x=-72.1200 y=253.0000 rot=0
+# pcb:sch C_EMI0.C x=778.7800 y=456.2000 rot=0
+# pcb:sch C_EMI1.C x=715.2800 y=481.6000 rot=0
+# pcb:sch C_EMI2.C x=651.7800 y=519.7000 rot=0
+# pcb:sch C_EMI3.C x=588.2800 y=545.1000 rot=0
+# pcb:sch TP_1Y0.TP x=791.4800 y=364.7600 rot=0
+# pcb:sch TP_1Y1.TP x=727.9800 y=364.7600 rot=0
+# pcb:sch TP_1Y2.TP x=664.4800 y=364.7600 rot=0
+# pcb:sch TP_1Y3.TP x=600.9800 y=364.7600 rot=0
+# pcb:sch TP_CLKIN.TP x=258.0800 y=491.7600 rot=180
