@@ -1,0 +1,280 @@
+"""MAX31826 - 1-Wire Digital Temperature Sensor with 1Kb Lockable EEPROM
+
+The MAX31826 is a digital thermometer that provides 12-bit temperature measurements and 
+communicates over a 1-Wire bus. It features a -55°C to +125°C operating temperature range 
+with ±0.5°C accuracy from -10°C to +85°C. The device includes 128 bytes (1Kb) of EEPROM 
+for storage of system data that can be locked to prevent further writes. Each device has 
+a unique 64-bit serial code allowing multiple devices on the same 1-Wire bus. Four location 
+address pins (AD0-AD3) simplify mapping devices to physical locations. The device can be 
+powered from the data line ("parasite power") or from an external 3.0V to 3.7V supply.
+
+Key features:
+- 12-bit temperature resolution (0.0625°C)
+- ±0.5°C accuracy from -10°C to +85°C
+- ±2.0°C accuracy from -55°C to +125°C
+- 1-Wire interface requiring only one data line
+- 1Kb EEPROM with lockable pages
+- Parasite power capability (3.0V to 3.7V)
+- 4 location address pins for up to 16 unique addresses
+- Unique 64-bit serial code
+- 8-pin μMAX and TDFN packages
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31826.pdf
+"""
+
+load("@stdlib/interfaces.zen", "OneWire")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+Mosfet = Module("@stdlib/generics/Mosfet.zen")
+
+# Types
+PowerMode = enum("External", "Parasite")
+PassiveSize = enum("0402", "0603", "0805", "1206")
+AddressConfiguration = enum("Floating", "VDD", "GND", "DQ")
+
+# Device Address enum - shows all 16 possible addresses based on AD[3:0] pin connections
+# Each address is formed by AD3(MSB), AD2, AD1, AD0(LSB)
+# Connect pins to GND for '0' or VDD for '1'
+DeviceAddress = enum(
+    "0x0",  # 0000: AD3=GND, AD2=GND, AD1=GND, AD0=GND
+    "0x1",  # 0001: AD3=GND, AD2=GND, AD1=GND, AD0=VDD
+    "0x2",  # 0010: AD3=GND, AD2=GND, AD1=VDD, AD0=GND
+    "0x3",  # 0011: AD3=GND, AD2=GND, AD1=VDD, AD0=VDD
+    "0x4",  # 0100: AD3=GND, AD2=VDD, AD1=GND, AD0=GND
+    "0x5",  # 0101: AD3=GND, AD2=VDD, AD1=GND, AD0=VDD
+    "0x6",  # 0110: AD3=GND, AD2=VDD, AD1=VDD, AD0=GND
+    "0x7",  # 0111: AD3=GND, AD2=VDD, AD1=VDD, AD0=VDD
+    "0x8",  # 1000: AD3=VDD, AD2=GND, AD1=GND, AD0=GND
+    "0x9",  # 1001: AD3=VDD, AD2=GND, AD1=GND, AD0=VDD
+    "0xA",  # 1010: AD3=VDD, AD2=GND, AD1=VDD, AD0=GND
+    "0xB",  # 1011: AD3=VDD, AD2=GND, AD1=VDD, AD0=VDD
+    "0xC",  # 1100: AD3=VDD, AD2=VDD, AD1=GND, AD0=GND
+    "0xD",  # 1101: AD3=VDD, AD2=VDD, AD1=GND, AD0=VDD
+    "0xE",  # 1110: AD3=VDD, AD2=VDD, AD1=VDD, AD0=GND
+    "0xF"   # 1111: AD3=VDD, AD2=VDD, AD1=VDD, AD0=VDD
+)
+
+# Configuration
+# Power configuration
+power_mode = config("power_mode", PowerMode, default = "External")
+if power_mode == PowerMode("External"):
+    add_bulk_cap = config("add_bulk_cap", bool, default = True)
+    add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+
+# 1-Wire bus configuration
+pullup_value = config("pullup_value", str, default = "4.7kohms")
+if power_mode == PowerMode("Parasite"):
+    add_fet_input_resistor = config("add_fet_input_resistor", bool, default = True)
+    if add_fet_input_resistor:
+        fet_input_resistor_value = config("fet_input_resistor_value", str, default = "330ohms")
+
+# Address configuration - choose either automatic or manual
+use_automatic_address = config("use_automatic_address", bool, default = True)
+
+if use_automatic_address:
+    # Automatic address configuration - select desired address and pins are configured automatically
+    device_address = config("device_address", DeviceAddress, default = "0x0")
+    
+    # Extract individual bits from the address
+    addr_val = int(device_address.value[2:], 16)  # Convert hex string to int
+    ad0_config = AddressConfiguration("VDD") if (addr_val & 0x1) else AddressConfiguration("GND")
+    ad1_config = AddressConfiguration("VDD") if (addr_val & 0x2) else AddressConfiguration("GND")
+    ad2_config = AddressConfiguration("VDD") if (addr_val & 0x4) else AddressConfiguration("GND")
+    ad3_config = AddressConfiguration("VDD") if (addr_val & 0x8) else AddressConfiguration("GND")
+else:
+    # Manual address pin configuration - configure each pin individually
+    ad0_config = config("ad0_config", AddressConfiguration, default = "GND")
+    ad1_config = config("ad1_config", AddressConfiguration, default = "GND")
+    ad2_config = config("ad2_config", AddressConfiguration, default = "GND")
+    ad3_config = config("ad3_config", AddressConfiguration, default = "GND")
+
+# Test and debug configuration
+add_test_points = config("add_test_points", bool, default = True)
+
+# Component size configuration
+passives_size = config("passives_size", PassiveSize, default = "0603")
+
+# External IO
+VDD = (io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+GND = (io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))))
+
+# 1-Wire interface
+onewire = io("onewire", OneWire)
+
+# Internal nets
+_DQ = onewire.DQ
+_VDD_CHIP = GND if power_mode == PowerMode("Parasite") else VDD
+
+# Strong pullup control signal (optional)
+if power_mode == PowerMode("Parasite"):
+    PULLUP_CTRL = io("pullup_ctrl", Net, default = Net("PULLUP_CTRL"))
+    PULLUP_GATE_VDD = io("pullup_gate_vdd", Net, default = Net("PULLUP_GATE_VDD"))
+    _PULLUP_CTRL = PULLUP_CTRL
+    _PULLUP_GATE_VDD = PULLUP_GATE_VDD
+else:
+    _PULLUP_CTRL = Net("NC_PULLUP")
+    _PULLUP_GATE_VDD = VDD
+
+# Address pins - configure based on settings
+# In parasite mode, VDD connections become DQ connections
+if ad0_config == AddressConfiguration("VDD"):
+    _AD0 = _DQ if power_mode == PowerMode("Parasite") else VDD
+elif ad0_config == AddressConfiguration("GND"):
+    _AD0 = GND
+elif ad0_config == AddressConfiguration("DQ"):
+    _AD0 = _DQ
+else:  # Floating
+    _AD0 = Net("AD0_NC")
+
+if ad1_config == AddressConfiguration("VDD"):
+    _AD1 = _DQ if power_mode == PowerMode("Parasite") else VDD
+elif ad1_config == AddressConfiguration("GND"):
+    _AD1 = GND
+elif ad1_config == AddressConfiguration("DQ"):
+    _AD1 = _DQ
+else:  # Floating
+    _AD1 = Net("AD1_NC")
+
+if ad2_config == AddressConfiguration("VDD"):
+    _AD2 = _DQ if power_mode == PowerMode("Parasite") else VDD
+elif ad2_config == AddressConfiguration("GND"):
+    _AD2 = GND
+elif ad2_config == AddressConfiguration("DQ"):
+    _AD2 = _DQ
+else:  # Floating
+    _AD2 = Net("AD2_NC")
+
+if ad3_config == AddressConfiguration("VDD"):
+    _AD3 = _DQ if power_mode == PowerMode("Parasite") else VDD
+elif ad3_config == AddressConfiguration("GND"):
+    _AD3 = GND
+elif ad3_config == AddressConfiguration("DQ"):
+    _AD3 = _DQ
+else:  # Floating
+    _AD3 = Net("AD3_NC")
+
+# Main component - MAX31826 with EEPROM
+Component(
+    name = "MAX31826",
+    symbol = Symbol(library = "@kicad-symbols/Sensor_Temperature.kicad_sym", name = "MAX31826"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-8_3x3mm_P0.65mm.kicad_mod"),
+    pins = {
+        "V_{DD}": _VDD_CHIP,    # Pin 1 - Power supply (GND in parasite mode)
+        "DQ": _DQ,               # Pin 2 - 1-Wire data
+        "NC": Net("NC"),         # Pin 3 - No connection
+        "GND": GND,              # Pin 4 - Ground
+        "AD0": _AD0,             # Pin 5 - Address bit 0 (LSB)
+        "AD1": _AD1,             # Pin 6 - Address bit 1
+        "AD2": _AD2,             # Pin 7 - Address bit 2
+        "AD3": _AD3              # Pin 8 - Address bit 3 (MSB)
+    },
+)
+
+# Power supply capacitors - only needed in external power mode
+if power_mode == PowerMode("External"):
+    # Bulk Power Supply Capacitor
+    if add_bulk_cap:
+        # Use one size larger for bulk capacitor, or same size if already large
+        bulk_size = "0805" if passives_size == PassiveSize("0603") or passives_size == PassiveSize("0402") else passives_size.value
+        Capacitor(
+            name = "C_BULK",
+            value = "10uF",
+            voltage = "6.3V",
+            dielectric = "X7R",
+            package = bulk_size,
+            P1 = VDD,
+            P2 = GND
+        )
+
+    # Power Supply Decoupling Capacitor
+    if add_decoupling_cap:
+        Capacitor(
+            name = "C_VDD",
+            value = "100nF",
+            voltage = "6.3V",
+            dielectric = "X7R",
+            package = passives_size.value,
+            P1 = VDD,
+            P2 = GND
+        )
+
+# 1-Wire pullup resistor (always required)
+# Typical value is 4.7kΩ for short cable runs
+# Can be reduced to 2.2kΩ for longer cables or multiple devices
+Resistor(
+    name = "R_PULLUP",
+    value = pullup_value,
+    package = passives_size.value,
+    P1 = _DQ,
+    P2 = VDD
+)
+
+# Strong pullup circuit for parasite power mode
+# Required for temperature conversions and EEPROM writes
+if  power_mode == PowerMode("Parasite"):
+    # N-channel MOSFET for strong pullup
+    # Active high control signal enables strong pullup
+    Mosfet(
+        name = "Q_PULLUP",
+        package = "SOT-23-3",
+        channel = "N",
+        mpn = "NMOS_SOT23",
+        G = _PULLUP_CTRL,
+        D = _DQ,
+        S = VDD
+    )
+    
+    # Gate pull-up resistor to ensure MOSFET is off by default
+    # Connects gate to external control voltage for proper biasing
+    # Value is configurable to accommodate different switching speeds and power requirements
+    if add_fet_input_resistor:
+        Resistor(
+            name = "R_GATE",
+            value = fet_input_resistor_value,
+            package = passives_size.value,
+            P1 = _PULLUP_CTRL,
+            P2 = _PULLUP_GATE_VDD
+        )
+
+# Test Points
+if add_test_points:
+    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name = "TP_DQ", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _DQ)
+    if power_mode == PowerMode("Parasite"):
+        if add_fet_input_resistor:
+            # When resistor is present, test point connects to the gate VDD supply
+            TestPoint(name = "TP_GATE_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _PULLUP_GATE_VDD)
+        else:
+            # When no resistor, test point connects directly to MOSFET gate
+            TestPoint(name = "TP_GATE", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _PULLUP_CTRL)
+
+# Layout recommendations:
+# 1. Keep the MAX31826 away from heat sources on the board
+# 2. Minimize copper area around the sensor for better ambient temperature measurement
+# 3. Keep 1-Wire bus traces short to minimize capacitance
+# 4. Use a solid ground plane for noise immunity
+# 5. Place decoupling capacitors close to the device (if using external power)
+# 6. Address pins must be connected to VDD, GND, or DQ (parasite mode) - not left floating
+# 7. For parasite power, ensure strong pullup can deliver >1.5mA during conversions
+
+# Schematic placement suggestions
+# pcb:sch MAX31826 x=392.7000 y=202.2000 rot=0
+# pcb:sch R_PULLUP.R x=636.5400 y=189.5000 rot=180
+# pcb:sch VDD.1 x=486.6800 y=113.3000 rot=0
+# pcb:sch GND.1 x=481.6000 y=430.8000 rot=0
+# pcb:sch TP_DQ.TP x=816.8800 y=275.8600 rot=180
+# pcb:sch TP_VDD.TP x=562.8800 y=98.0600 rot=0
+# pcb:sch TP_GND.TP x=537.4800 y=377.4600 rot=90
+# pcb:sch C_BULK.C x=194.5800 y=227.6000 rot=0
+# pcb:sch C_VDD.C x=16.7800 y=227.6000 rot=0
+# pcb:sch R_GATE.R x=954.0400 y=202.2000 rot=270
+# pcb:sch TP_PULLUP.TP x=816.8800 y=123.4600 rot=0
+# pcb:sch Q_PULLUP.M x=799.1000 y=189.5000 rot=180
+# pcb:sch TP_GATE_VDD.TP x=1032.7800 y=136.1600 rot=0
+# pcb:sch TP_GATE.TP x=1032.7800 y=136.1600 rot=0

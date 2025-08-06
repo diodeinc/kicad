@@ -1,0 +1,185 @@
+"""ADS7867 - 10-Bit, 240-kSPS, Micro-Power SAR ADC with SPI Interface
+
+The ADS7867 is a low power, miniature, 10-bit analog-to-digital converter (ADC) with a unipolar, 
+single-ended input. The device operates from a single 1.2V to 3.6V supply with up to 240-kSPS 
+throughput when VDD ≥ 1.6V, or 120-kSPS when VDD ≥ 1.2V. The converter features excellent 
+linearity (±0.5 LSB INL), low power consumption (0.86mW typ at 240kSPS, 3.6V), and automatic 
+power-down between conversions (8nA typ). The analog input range is 0V to VDD as the reference 
+is internally derived from the supply. The device interfaces through a high-speed SPI-compatible 
+serial interface and is available in a 6-pin SOT-23 package.
+
+Key features:
+- 10-bit resolution with no missing codes
+- 240kSPS at VDD ≥ 1.6V, 120kSPS at VDD ≥ 1.2V  
+- 61.8dB SNR, -78dB THD at fIN = 30kHz
+- Ultra-low power with auto power-down
+- 0V to VDD unipolar input range
+- SPI-compatible serial interface
+- Synchronized conversion with SCLK
+- No pipeline delays
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/ads7867.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Spi", "Power")
+
+# Import modules
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Configuration options
+add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_input_filtering = config("add_input_filtering", bool, default = True)
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# Input filter configuration
+if add_input_filtering:
+    input_filter_r = config("input_filter_r", str, default = "100ohms")
+    input_filter_c = config("input_filter_c", str, default = "100pF")
+
+# Decoupling capacitor values
+decoupling_cap_value = config("decoupling_cap_value", str, default = "0.1uF")
+if add_decoupling_caps:
+    bulk_cap_value = config("bulk_cap_value", str, default = "10uF")
+
+# External power supply
+VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# SPI interface - using subset of standard SPI
+spi = io("SPI", Spi)
+
+# Analog input
+AIN = io("AIN", Net)
+
+# Internal nets
+if add_input_filtering:
+    _AIN_FILTERED = Net("AIN_FILTERED")
+else:
+    _AIN_FILTERED = AIN
+
+# Main ADC component
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS7867"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins = {
+        "VDD": VDD.NET,        # Pin 1 - REF/VDD - Reference input and power supply 
+        "GND": GND,            # Pin 2 - GND - Ground
+        "AIN": _AIN_FILTERED,  # Pin 3 - AIN - Analog signal input
+        "SCLK": spi.CLK,       # Pin 4 - SCLK - Serial clock input
+        "SDO": spi.MISO,       # Pin 5 - SDO - Serial data output (connects to MISO)
+        "~{CS}": spi.CS,       # Pin 6 - CS - Chip select (active low)
+    },
+)
+
+# Power supply decoupling - critical for ADC performance
+# Place 0.1µF ceramic capacitor as close as possible to VDD pin
+Capacitor(
+    name = "C_VDD",
+    value = decoupling_cap_value,
+    package = "0402",
+    dielectric = "X7R",
+    P1 = VDD.NET,
+    P2 = GND,
+)
+
+# Additional bulk capacitance for power supply stability
+if add_decoupling_caps:
+    Capacitor(
+        name = "C_BULK",
+        value = bulk_cap_value,
+        package = "0805",
+        dielectric = "X5R",
+        P1 = VDD.NET,
+        P2 = GND,
+    )
+
+# Input filter to reduce noise and limit bandwidth
+# RC filter helps meet the ADC's input capacitance charging requirements
+if add_input_filtering:
+    Resistor(
+        name = "R_FILTER",
+        value = input_filter_r,
+        package = "0402",
+        P1 = AIN,
+        P2 = _AIN_FILTERED,
+    )
+    
+    Capacitor(
+        name = "C_FILTER",
+        value = input_filter_c,
+        package = "0402",
+        dielectric = "C0G",  # C0G/NP0 for stability
+        P1 = _AIN_FILTERED,
+        P2 = GND,
+    )
+
+# Test points for debugging and measurement
+if add_test_points:
+    TestPoint(
+        name = "TP_AIN",
+        variant = "Pad_D1.0mm",
+        P1 = _AIN_FILTERED,
+    )
+    
+    TestPoint(
+        name = "TP_VDD",
+        variant = "Pad_D1.0mm",
+        P1 = VDD.NET,
+    )
+
+    TestPoint(
+        name = "TP_GND",
+        variant = "Pad_D1.0mm",
+        P1 = GND,
+    )
+
+    TestPoint(
+        name = "TP_SCLK",
+        variant = "Pad_D1.0mm",
+        P1 = spi.CLK,
+    )
+
+    TestPoint(
+        name = "TP_SDO",
+        variant = "Pad_D1.0mm",
+        P1 = spi.MISO,
+    )
+
+    TestPoint(
+        name = "TP_CS",
+        variant = "Pad_D1.0mm",
+        P1 = spi.CS,
+    )
+
+# Design notes:
+# 1. The ADC uses VDD as the reference, so VDD must be clean and stable
+# 2. Input signal must be between 0V and VDD
+# 3. SCLK frequency determines conversion rate (max 4.1MHz at VDD ≥ 1.6V)
+# 4. The ADC automatically powers down between conversions
+# 5. Digital inputs (CS, SCLK) can exceed VDD up to 3.6V max
+# 6. For best performance, use a low-noise op-amp driver (e.g., OPA364, OPA333)
+
+# PCB layout recommendations:
+# - Place C_VDD as close as possible to the ADC VDD pin
+# - Minimize trace length between C_VDD and ADC
+# - Use solid ground plane under the ADC
+# - Keep digital signals away from analog input
+# - If using input filter, place components close to ADC input pin
+# pcb:sch C_BULK.C x=867.6800 y=392.7000 rot=0
+# pcb:sch C_FILTER.C x=448.5800 y=443.5000 rot=0
+# pcb:sch C_VDD.C x=1007.3800 y=392.7000 rot=0
+# pcb:sch R_FILTER.R x=382.5400 y=392.7000 rot=270
+# pcb:sch TP_AIN.TP x=461.2800 y=352.0600 rot=0
+# pcb:sch TP_VDD.TP x=880.3800 y=250.4600 rot=0
+# pcb:sch U1 x=557.8000 y=354.6000 rot=0
+# pcb:sch GND.1 x=646.7000 y=545.1000 rot=0
+# pcb:sch VDD.1 x=651.7800 y=240.3000 rot=0
+# pcb:sch TP_CS.TP x=778.7800 y=428.2600 rot=180
+# pcb:sch TP_GND.TP x=880.3800 y=517.1600 rot=180
+# pcb:sch TP_SCLK.TP x=829.5800 y=428.2600 rot=180
+# pcb:sch TP_SDO.TP x=829.5800 y=352.0600 rot=0

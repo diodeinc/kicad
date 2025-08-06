@@ -1,0 +1,208 @@
+"""LM5050-2 - High-Side OR-ing FET Controller
+
+The LM5050-2 is a high-side OR-ing FET controller that operates in conjunction with 
+an external N-channel MOSFET as an ideal diode rectifier. This controller allows 
+MOSFETs to replace diode rectifiers in power distribution networks, reducing both 
+power loss and voltage drops. The device provides charge pump gate drive for the 
+external MOSFET and a fast response comparator to turn off the FET when current 
+flows in the reverse direction. It operates from 6V to 75V and can withstand 
+transients up to 100V. Key difference from LM5050-1 is the nFGD (FET Good) 
+diagnostic output pin.
+
+Key features:
+- Wide operating voltage range: 6V to 75V
+- 100V transient capability
+- Fast response to current reversal
+- 2A peak gate turnoff current
+- FET diagnostic output (nFGD)
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/lm5050-2.pdf
+"""
+
+load("@stdlib/interfaces.zen", "Power")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+ProtectionLevel = enum("Basic", "Enhanced", "Full")
+OffControl = enum("PullDown", "UserDefined")
+NFGDControl = enum("VLOGIC", "UserDefined")
+
+# Configuration
+# Protection configuration
+protection_level = config("protection_level", ProtectionLevel, default = "Full")
+
+# MOSFET is fixed: N-CH 100V 40A TO263 (D2PAK)
+
+# OFF pin control
+off_control = config("off_control", OffControl, default = "PullDown")
+
+# nFGD pin control (specific to LM5050-2)
+nfgd_control = config("nfgd_control", NFGDControl, default = "VLOGIC")
+
+# Test points
+add_test_points = config("add_test_points", bool, default = True)
+
+# External IO
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# OFF control IO
+if off_control == OffControl("UserDefined"):
+    OFF = io("OFF", Net)
+else:
+    _OFF = Net("OFF")
+    OFF = _OFF
+
+# nFGD control IO (specific to LM5050-2)
+if nfgd_control == NFGDControl("VLOGIC"):
+    VLOGIC = io("VLOGIC", Net, default = Net("5V", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+elif nfgd_control == NFGDControl("UserDefined"):
+    FGD = io("FGD", Net)
+
+# Internal nets
+_GATE = Net("GATE")
+_FGD = Net("FGD")
+
+# High side OR-ing FET controller, 6V to 75V operation, TSOT-23-6
+Component(
+    name = "U1",
+    symbol = Symbol(library = "@kicad-symbols/Power_Management.kicad_sym", name = "LM5050-2"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-6.kicad_mod"),
+    pins = {
+        "IN": VIN.NET,
+        "OFF": OFF,
+        "GATE": _GATE,
+        "GND": GND,
+        "OUT": VOUT.NET,
+        "~{FGD}": _FGD
+    },
+)
+
+# OFF Pin Control
+if off_control == OffControl("PullDown"):
+    # Internal pull-down is 5µA typical, add external pull-down for noise immunity
+    Resistor(name = "R_OFF", value = "100kohms", package = "0402", P1 = OFF, P2 = GND)
+elif off_control == OffControl("UserDefined"):
+    # OFF pin exposed for user-defined control
+    pass
+
+# nFGD Pin Control (specific to LM5050-2)
+if nfgd_control == NFGDControl("VLOGIC"):
+    # Pull-up resistor to VLOGIC for FGD pin (active low output)
+    Resistor(name = "R_FGD", value = "100kohms", package = "0402", P1 = _FGD, P2 = VLOGIC)
+elif nfgd_control == NFGDControl("UserDefined"):
+    # FGD pin exposed for user-defined control
+    FGD = _FGD
+
+# Fixed MOSFET configuration
+
+# N-Channel MOSFET: 100V 40A TO263 (D2PAK)
+# Note: MOSFET generic only supports SOT-23-3, so using direct Component
+Component(
+    name = "Q1",
+    symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Q_NMOS"),
+    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-263-2.kicad_mod"),
+    pins = {
+        "G": _GATE,
+        "D": VOUT.NET,
+        "S": VIN.NET
+    }
+)
+
+# Gate capacitor for controlled turn-off time
+# 47nF provides ~180ns turn-off time typical
+Capacitor(name = "C_GATE", value = "47nF", package = "0402", P1 = _GATE, P2 = VIN.NET)
+
+# Protection Components
+if protection_level == ProtectionLevel("Basic"):
+    # Basic protection - just input diode
+    Diode(
+        name = "D1",
+        variant = "Schottky",
+        package = "SMA",
+        v_r = "60V",  # Reverse voltage rating
+        i_f = "1A",    # Forward current rating
+        K = VIN.NET,
+        A = GND
+    )
+    
+elif protection_level == ProtectionLevel("Enhanced"):
+    # Enhanced protection - input diode and output capacitor
+    Diode(
+        name = "D1",
+        variant = "Schottky",
+        package = "SMA",
+        v_r = "60V",  # Reverse voltage rating
+        i_f = "1A",    # Forward current rating
+        K = VIN.NET,
+        A = GND
+    )
+    
+    # Output capacitor to absorb reverse recovery energy
+    Capacitor(name = "C_OUT", value = "10uF", package = "1206", P1 = VOUT.NET, P2 = GND)
+    
+elif protection_level == ProtectionLevel("Full"):
+    # Full protection - input diode, output TVS, and capacitors
+    Diode(
+        name = "D1",
+        variant = "Schottky",
+        package = "SMA",
+        v_r = "60V",  # Reverse voltage rating
+        i_f = "1A",    # Forward current rating
+        K = VIN.NET,
+        A = GND
+    )
+    
+    # Output TVS for transient protection (96.8V Clamp 4.1A Ipp DO-214AC/SMA)
+    Component(
+        name = "D2",
+        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "SMAJ90A"),  # 90V standoff, ~96.8V clamp
+        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_SMA.kicad_mod"),
+        pins = {
+            "A1": VOUT.NET,
+            "A2": GND
+        }
+    )
+    
+    # Output capacitor
+    Capacitor(name = "C_OUT", value = "10uF", package = "1206", P1 = VOUT.NET, P2 = GND)
+    
+    # Additional ceramic capacitor for high frequency
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0603", P1 = VOUT.NET, P2 = GND)
+
+# Input bulk capacitor for general filtering
+Capacitor(name = "C_IN", value = "10uF", package = "1206", P1 = VIN.NET, P2 = GND)
+
+# Test Points
+if add_test_points:
+    TestPoint(name = "TP_VIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VIN.NET)
+    TestPoint(name = "TP_VOUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VOUT.NET)
+    TestPoint(name = "TP_GATE", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _GATE)
+    TestPoint(name = "TP_FGD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _FGD)
+
+# pcb:sch C_GATE.C x=423.1800 y=583.2000 rot=0
+# pcb:sch C_IN.C x=283.4800 y=824.5000 rot=0
+# pcb:sch C_OUT.C x=842.2800 y=824.5000 rot=0
+# pcb:sch D1.D x=138.7000 y=849.9000 rot=90
+# pcb:sch Q1 x=532.4000 y=583.2000 rot=90
+# pcb:sch R_OFF.R x=433.3400 y=849.9000 rot=90
+# pcb:sch R_FGD.R x=776.2400 y=799.1000 rot=180
+# pcb:sch TP_GATE.TP x=575.5800 y=517.1600 rot=0
+# pcb:sch TP_VIN.TP x=296.1800 y=669.5600 rot=0
+# pcb:sch TP_VOUT.TP x=854.9800 y=682.2600 rot=0
+# pcb:sch TP_FGD.TP x=778.7800 y=987.0600 rot=180
+# pcb:sch U1 x=507.0000 y=761.0000 rot=0
+# pcb:sch GND.1 x=570.5000 y=1015.0000 rot=0
+# pcb:sch IN.VCC.1 x=385.0800 y=684.8000 rot=0
+# pcb:sch OUT.VCC.1 x=727.9800 y=697.5000 rot=0
+# pcb:sch 5V.1 x=778.7800 y=697.5000 rot=0
+# pcb:sch C_OUT_HF.C x=1020.0800 y=824.5000 rot=0
+# pcb:sch D2 x=913.4000 y=849.9000 rot=90

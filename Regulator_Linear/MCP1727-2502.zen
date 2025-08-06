@@ -1,0 +1,133 @@
+"""MCP1727-2502 - 1.5A Low Voltage Low Quiescent Current LDO Regulator
+
+The MCP1727 is a high output current, Low Dropout (LDO) voltage regulator with 
+an adjustable delay power-good output and shutdown control input. This fixed 2.5V 
+version provides 1.5A output current capability with only 330mV typical dropout 
+voltage. The device features excellent line and load regulation, low 120µA typical 
+quiescent current, and is stable with only 1µF ceramic output capacitor. It includes 
+power-good output with adjustable delay, active-low shutdown control, current limiting, 
+and overtemperature protection. The regulator operates from 2.3V to 6.0V input range 
+making it ideal for battery-powered and high-current applications.
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
+"""
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+# Types
+ShutdownConfig = enum("PullUp", "PullDown", "UserDefined")
+PowerGoodConfig = enum("PullUp", "PullDown", "UserDefined")
+
+# Configuration
+add_input_cap = config("add_input_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default = True)
+add_bulk_input_cap = config("add_bulk_input_cap", bool, default = True)
+
+# Shutdown pin configuration
+shutdown_config = config("shutdown_config", ShutdownConfig, default = ShutdownConfig("PullUp"))
+
+# Power Good pin configuration
+pwrgd_config = config("pwrgd_config", PowerGoodConfig, default = PowerGoodConfig("PullUp"))
+
+# Power Good delay configuration
+add_power_good_delay = config("add_power_good_delay", bool, default = True)
+if add_power_good_delay:
+    power_good_delay_cap = config("power_good_delay_cap", str, default = "1000pF")
+
+# External IO
+VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VOUT = io("VOUT", Net, default = Net("VOUT_2V5", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# Conditional IO for SHDN based on configuration
+if shutdown_config == ShutdownConfig("UserDefined"):
+    SHDN = io("SHDN", Net)
+    _SHDN = SHDN
+else:
+    _SHDN = Net("SHDN_INT")
+
+# Conditional IO for PWRGD based on configuration
+if pwrgd_config == PowerGoodConfig("UserDefined"):
+    PWRGD = io("PWRGD", Net)
+    _PWRGD = PWRGD
+else:
+    _PWRGD = Net("PWRGD_INT")
+
+# Internal nets
+_SENSE = Net("SENSE")
+_CDELAY = Net("CDELAY")
+
+# Connect SENSE to VOUT for fixed voltage operation (required for proper regulation)
+_SENSE = VOUT
+
+# 1.5A, Low Voltage, Low Quiescent Current LDO Regulator, 2.3-6V Input, Fixed 2.5V Output, 330mV Dropout, SOIC-8
+Component(
+    name = "MCP1727-2502",
+    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MCP1727-2502xSN"),
+    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
+    pins = {
+        "Vin": VIN,
+        "~{SHDN}": _SHDN,
+        "GND": GND,
+        "PWRGD": _PWRGD,
+        "Cdelay": _CDELAY,
+        "Sense": _SENSE,
+        "Vout": VOUT
+    },
+)
+
+
+# Input Capacitors - Datasheet recommends 1µF to 10µF ceramic for stability
+if add_input_cap:
+    # Primary ceramic decoupling capacitor - place close to VIN pin
+    Capacitor(name = "C_IN", value = "4.7uF", package = "0805", P1 = VIN, P2 = GND)
+
+# Additional bulk capacitor for improved transient response
+if add_bulk_input_cap:
+    # Bulk capacitor for low frequency filtering and transient current supply
+    Capacitor(name = "C_IN_BULK", value = "10uF", package = "1206", P1 = VIN, P2 = GND)
+
+# Output Capacitor - Minimum 1µF required for stability, datasheet recommends up to 22µF
+if add_output_cap:
+    # Primary output capacitor - X7R or X5R ceramic recommended
+    Capacitor(name = "C_OUT", value = "4.7uF", package = "0805", P1 = VOUT, P2 = GND)
+
+# Shutdown Pin Configuration
+if shutdown_config == ShutdownConfig("PullUp"):
+    # Pull-up resistor to VIN (100k typical for low power consumption) - enables regulator
+    Resistor(name = "R_SHDN", value = "100kohms", package = "0402", P1 = _SHDN, P2 = VIN)
+elif shutdown_config == ShutdownConfig("PullDown"):
+    # Pull-down resistor to GND - disables regulator by default
+    Resistor(name = "R_SHDN", value = "100kohms", package = "0402", P1 = _SHDN, P2 = GND)
+# else: UserDefined - SHDN controlled directly by external circuit
+
+# Power Good Pin Configuration
+if pwrgd_config == PowerGoodConfig("PullUp"):
+    # Pull-up resistor to VIN (10k typical per datasheet)
+    Resistor(name = "R_PWRGD", value = "100kohms", package = "0402", P1 = _PWRGD, P2 = VOUT)
+elif pwrgd_config == PowerGoodConfig("PullDown"):
+    # Pull-down resistor to GND
+    Resistor(name = "R_PWRGD", value = "100kohms", package = "0402", P1 = _PWRGD, P2 = GND)
+# else: UserDefined - PWRGD controlled directly by external circuit
+
+# Power Good Delay Configuration
+if add_power_good_delay:
+    # Delay capacitor - delay time is approximately 30ms/nF
+    # Default 1000pF (1nF) gives ~30ms delay
+    Capacitor(name = "C_DELAY", value = power_good_delay_cap, package = "0402", P1 = _CDELAY, P2 = GND)
+
+# pcb:sch MCP1727-2502 x=1015.0000 y=507.0000 rot=0
+# pcb:sch C_IN.C x=740.6800 y=570.5000 rot=0
+# pcb:sch C_IN_BULK.C x=651.7800 y=570.5000 rot=0
+# pcb:sch C_OUT.C x=1426.4800 y=557.8000 rot=0
+# pcb:sch R_PWRGD.R x=1335.0400 y=545.1000 rot=270
+# pcb:sch R_SHDN.R x=890.5400 y=570.5000 rot=90
+# pcb:sch C_DELAY.C x=969.2800 y=595.9000 rot=0
+# pcb:sch GND.1 x=1129.3000 y=710.2000 rot=0
+# pcb:sch VIN.1 x=664.4800 y=481.6000 rot=0
+# pcb:sch VOUT.1 x=1539.5100 y=444.5000 rot=0
+# pcb:sch VOUT_2V5.1 x=1439.1800 y=494.3000 rot=0

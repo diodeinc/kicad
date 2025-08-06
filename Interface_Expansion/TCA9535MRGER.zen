@@ -1,0 +1,353 @@
+"""TCA9535MRGER - Low-Voltage 16-Bit I2C and SMBus Low-Power I/O Expander
+
+The TCA9535 is a 24-pin device that provides 16 bits of general purpose parallel 
+input and output (I/O) expansion for the two-line bidirectional I2C bus or SMBus 
+protocol. The device can operate with a power supply voltage ranging from 1.65V to 5.5V.
+
+The TCA9535 consists of two 8-bit Configuration (input or output selection), Input Port, 
+Output Port, and Polarity Inversion (active-high or active-low operation) registers. 
+At power on, the I/Os are configured as inputs. The system controller can enable the 
+I/Os as either inputs or outputs by writing to the I/O configuration bits.
+
+Key features:
+- 16-bit I/O port with individual bit configuration
+- I2C to parallel port expander
+- Wide power supply voltage range: 1.65V to 5.5V
+- Low standby current consumption
+- Open-drain active-low interrupt output
+- 5V tolerant I/O ports
+- 400kHz Fast I2C bus
+- High-current drive capability for directly driving LEDs
+- Three hardware address pins for up to 8 devices on the same bus
+- No internal pull-up resistors (requires external pull-ups/pull-downs on unused inputs)
+
+Configuration options:
+- Port activation control (use only Port 0, Port 1, or both)
+- Automatic pull-up resistors for inactive ports
+- Configurable I2C address selection
+
+Author: @anthropic/claude-opus-4
+Reviewer: Nasheed Ur Rehman
+Datasheet: https://www.ti.com/lit/ds/symlink/tca9535.pdf
+"""
+
+load("@stdlib/interfaces.zen", "I2c")
+
+# Dependencies
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# Types
+DecouplingConfig = enum("Minimal", "Standard", "Enhanced")
+AddressConfig = enum("0x20", "0x21", "0x22", "0x23", "0x24", "0x25", "0x26", "0x27")
+PortConfig = enum("Port0Only", "Port1Only", "BothPorts")
+UnusedPortHandling = enum("PullUp", "NoResistors")
+
+# Configuration
+# I2C address configuration
+device_address = config("device_address", AddressConfig, default = "0x20")
+
+# Port configuration
+port_config = config("port_config", PortConfig, default = "BothPorts")
+
+# Unused port handling
+unused_port_handling = config("unused_port_handling", UnusedPortHandling, default = "PullUp")
+
+# Add pull-up resistors to all pins (for unused pins in application)
+add_unused_io_resistors = config("add_unused_io_resistors", bool, default = True)
+
+# Decoupling configuration
+decoupling_config = config("decoupling_config", DecouplingConfig, default = "Enhanced")
+
+# I2C pull-up configuration
+add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+if add_i2c_pullups:
+    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+
+# Interrupt configuration
+use_interrupt = config("use_interrupt", bool, default = True)
+if use_interrupt:
+    add_int_pullup = config("add_int_pullup", bool, default = True)
+    int_pullup_value = config("int_pullup_value", str, default = "10kohms")
+
+# Unused I/O resistor value
+if add_unused_io_resistors or unused_port_handling == UnusedPortHandling("PullUp"):
+    unused_io_resistor_value = config("unused_io_resistor_value", str, default = "10kohms")
+
+# Test points for debugging
+add_test_points = config("add_test_points", bool, default = True, optional = True)
+
+# External IO
+VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+
+# I2C interface
+i2c = io("I2C", I2c)
+
+# Interrupt output
+if use_interrupt:
+    INT = io("INT", Net)
+else:
+    INT = Net("INT_NC")  # Not connected internally
+
+# GPIO ports - conditionally exposed based on port configuration
+# Create internal nets for all GPIO pins
+_gpio_p0 = [Net(f"P0{i}") for i in range(8)]
+_gpio_p1 = [Net(f"P1{i}") for i in range(8)]
+
+# Expose active ports as external IOs
+if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
+    gpio_p0 = [io(f"P0{i}", Net, default = _gpio_p0[i]) for i in range(8)]
+    # Connect internal nets to external IOs
+    for i in range(8):
+        _gpio_p0[i] = gpio_p0[i]
+else:
+    gpio_p0 = _gpio_p0  # Port 0 not exposed, use internal nets
+
+if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
+    gpio_p1 = [io(f"P1{i}", Net, default = _gpio_p1[i]) for i in range(8)]
+    # Connect internal nets to external IOs
+    for i in range(8):
+        _gpio_p1[i] = gpio_p1[i]
+else:
+    gpio_p1 = _gpio_p1  # Port 1 not exposed, use internal nets
+
+# Address configuration nets
+if device_address == AddressConfig("0x20"):
+    A0_net = GND
+    A1_net = GND
+    A2_net = GND
+elif device_address == AddressConfig("0x21"):
+    A0_net = VCC
+    A1_net = GND
+    A2_net = GND
+elif device_address == AddressConfig("0x22"):
+    A0_net = GND
+    A1_net = VCC
+    A2_net = GND
+elif device_address == AddressConfig("0x23"):
+    A0_net = VCC
+    A1_net = VCC
+    A2_net = GND
+elif device_address == AddressConfig("0x24"):
+    A0_net = GND
+    A1_net = GND
+    A2_net = VCC
+elif device_address == AddressConfig("0x25"):
+    A0_net = VCC
+    A1_net = GND
+    A2_net = VCC
+elif device_address == AddressConfig("0x26"):
+    A0_net = GND
+    A1_net = VCC
+    A2_net = VCC
+elif device_address == AddressConfig("0x27"):
+    A0_net = VCC
+    A1_net = VCC
+    A2_net = VCC
+
+# 16-bit I/O expander, I2C and SMBus interface, interrupts, w/o pull-ups, VQFN-24
+Component(
+    name = "TCA9535MRGER",
+    symbol = Symbol(library = "@kicad-symbols/Interface_Expansion.kicad_sym", name = "TCA9535MRGER"),
+    footprint = "Package_DFN_QFN:VQFN-24-1EP_4x4mm_P0.5mm_EP2.45x2.45mm",
+    pins = {
+        "SDA": i2c.SDA,
+        "SCL": i2c.SCL,
+        "~{INT}": INT,
+        "A2": A2_net,
+        "A1": A1_net,
+        "A0": A0_net,
+        "VCC": VCC,
+        "GND": GND,
+        "EPAD": GND,  # Exposed pad connected to GND per datasheet
+        "P00": _gpio_p0[0],
+        "P01": _gpio_p0[1],
+        "P02": _gpio_p0[2],
+        "P03": _gpio_p0[3],
+        "P04": _gpio_p0[4],
+        "P05": _gpio_p0[5],
+        "P06": _gpio_p0[6],
+        "P07": _gpio_p0[7],
+        "P10": _gpio_p1[0],
+        "P11": _gpio_p1[1],
+        "P12": _gpio_p1[2],
+        "P13": _gpio_p1[3],
+        "P14": _gpio_p1[4],
+        "P15": _gpio_p1[5],
+        "P16": _gpio_p1[6],
+        "P17": _gpio_p1[7]
+    },
+)
+
+# Power Supply Decoupling Capacitors
+if decoupling_config == DecouplingConfig("Minimal"):
+    # Minimal decoupling - single capacitor
+    Capacitor(name = "C_VCC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    
+elif decoupling_config == DecouplingConfig("Standard"):
+    # Standard decoupling - recommended configuration
+    Capacitor(name = "C_VCC1", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    Capacitor(name = "C_VCC2", value = "1uF", package = "0603", P1 = VCC, P2 = GND)
+    
+elif decoupling_config == DecouplingConfig("Enhanced"):
+    # Enhanced decoupling - for noisy environments or high-speed switching
+    Capacitor(name = "C_VCC1", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    Capacitor(name = "C_VCC2", value = "1uF", package = "0603", P1 = VCC, P2 = GND)
+    Capacitor(name = "C_VCC3", value = "10uF", package = "0805", P1 = VCC, P2 = GND)
+
+# I2C pull-up resistors (required for I2C operation)
+if add_i2c_pullups:
+    Resistor(
+        name = "R_SCL_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SCL,
+        P2 = VCC
+    )
+    
+    Resistor(
+        name = "R_SDA_PU",
+        value = i2c_pullup_value,
+        package = "0402",
+        P1 = i2c.SDA,
+        P2 = VCC
+    )
+
+# Interrupt pull-up resistor (INT is open-drain)
+if use_interrupt and add_int_pullup:
+    Resistor(
+        name = "R_INT_PU",
+        value = int_pullup_value,
+        package = "0402",
+        P1 = INT,
+        P2 = VCC
+    )
+
+# Pull resistors for unused I/Os
+# Note: TCA9535 has no internal pull-ups, so unused inputs must be tied to VCC or GND
+
+# First, add pull-ups for all pins if configured (for application-level unused pins)
+if add_unused_io_resistors:
+    # Add pull-ups to all pins in active ports
+    if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
+        for i in range(8):
+            Resistor(
+                name = f"R_P0{i}",
+                value = unused_io_resistor_value,
+                package = "0402",
+                P1 = _gpio_p0[i],
+                P2 = VCC
+            )
+    
+    if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
+        for i in range(8):
+            Resistor(
+                name = f"R_P1{i}",
+                value = unused_io_resistor_value,
+                package = "0402",
+                P1 = _gpio_p1[i],
+                P2 = VCC
+            )
+
+# Additionally, add pull-ups for inactive ports if configured
+if unused_port_handling == UnusedPortHandling("PullUp"):
+    # Add pull-ups only for inactive ports
+    if port_config == PortConfig("Port1Only") and not add_unused_io_resistors:
+        # Port 0 is inactive - add pull-ups (only if not already added above)
+        for i in range(8):
+            Resistor(
+                name = f"R_P0{i}",
+                value = unused_io_resistor_value,
+                package = "0402",
+                P1 = _gpio_p0[i],
+                P2 = VCC
+            )
+    
+    if port_config == PortConfig("Port0Only") and not add_unused_io_resistors:
+        # Port 1 is inactive - add pull-ups (only if not already added above)
+        for i in range(8):
+            Resistor(
+                name = f"R_P1{i}",
+                value = unused_io_resistor_value,
+                package = "0402",
+                P1 = _gpio_p1[i],
+                P2 = VCC
+            )
+
+# Test points for debugging
+if add_test_points:
+    # I2C test points
+    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
+    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+    
+    # Interrupt test point
+    if use_interrupt:
+        TestPoint(name = "TP_INT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = INT)
+    
+    # Power test points
+    TestPoint(name = "TP_VCC", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VCC)
+    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    
+    # GPIO test points - only for active ports
+    if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
+        # Port 0 test points
+        for bit in range(8):
+            TestPoint(name = f"TP_P0{bit}", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _gpio_p0[bit])
+    
+    if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
+        # Port 1 test points  
+        for bit in range(8):
+            TestPoint(name = f"TP_P1{bit}", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _gpio_p1[bit])
+
+# pcb:sch C_VCC.C x=499.3800 y=265.7000 rot=0
+# pcb:sch C_VCC1.C x=397.7800 y=265.7000 rot=0
+# pcb:sch TCA9535MRGER x=634.0000 y=37.1000 rot=0
+# pcb:sch R_INT_PU.R x=471.4400 y=11.7000 rot=180
+# pcb:sch R_P00.R x=1208.0400 y=392.7000 rot=180
+# pcb:sch R_P01.R x=1335.0400 y=392.7000 rot=180
+# pcb:sch R_P02.R x=1462.0400 y=392.7000 rot=180
+# pcb:sch R_P03.R x=1589.0400 y=392.7000 rot=180
+# pcb:sch R_P04.R x=1652.5400 y=75.2000 rot=180
+# pcb:sch R_P05.R x=1525.5400 y=75.2000 rot=180
+# pcb:sch R_P06.R x=1398.5400 y=75.2000 rot=180
+# pcb:sch R_P07.R x=1271.5400 y=75.2000 rot=180
+# pcb:sch R_SCL_PU.R x=534.9400 y=11.7000 rot=180
+# pcb:sch R_P10.R x=1271.5400 y=392.7000 rot=180
+# pcb:sch R_P11.R x=1398.5400 y=392.7000 rot=180
+# pcb:sch R_P12.R x=1525.5400 y=392.7000 rot=180
+# pcb:sch R_P13.R x=1652.5400 y=392.7000 rot=180
+# pcb:sch R_P14.R x=1589.0400 y=75.2000 rot=180
+# pcb:sch R_P15.R x=1462.0400 y=75.2000 rot=180
+# pcb:sch R_P16.R x=1335.0400 y=75.2000 rot=180
+# pcb:sch R_P17.R x=1208.0400 y=75.2000 rot=180
+# pcb:sch R_SDA_PU.R x=598.4400 y=11.7000 rot=180
+# pcb:sch GND.1 x=811.8000 y=646.7000 rot=0
+# pcb:sch VCC.1 x=804.1800 y=-39.1000 rot=0
+# pcb:sch VCC.2 x=1210.5800 y=303.8000 rot=0
+# pcb:sch VCC.3 x=1210.5800 y=-51.8000 rot=0
+
+# pcb:sch TP_INT.TP x=473.9800 y=186.9600 rot=180
+# pcb:sch TP_P00.TP x=1210.5800 y=466.3600 rot=180
+# pcb:sch TP_P01.TP x=1337.5800 y=466.3600 rot=180
+# pcb:sch TP_P02.TP x=1464.5800 y=466.3600 rot=180
+# pcb:sch TP_P03.TP x=1591.5800 y=466.3600 rot=180
+# pcb:sch TP_P04.TP x=1655.0800 y=148.8600 rot=180
+# pcb:sch TP_P05.TP x=1528.0800 y=148.8600 rot=180
+# pcb:sch TP_P06.TP x=1401.0800 y=148.8600 rot=180
+# pcb:sch TP_P07.TP x=1274.0800 y=148.8600 rot=180
+# pcb:sch TP_SCL.TP x=537.4800 y=186.9600 rot=180
+# pcb:sch TP_P10.TP x=1274.0800 y=466.3600 rot=180
+# pcb:sch TP_P11.TP x=1401.0800 y=466.3600 rot=180
+# pcb:sch TP_P12.TP x=1528.0800 y=466.3600 rot=180
+# pcb:sch TP_P13.TP x=1655.0800 y=466.3600 rot=180
+# pcb:sch TP_P14.TP x=1591.5800 y=148.8600 rot=180
+# pcb:sch TP_P15.TP x=1464.5800 y=148.8600 rot=180
+# pcb:sch TP_P16.TP x=1337.5800 y=148.8600 rot=180
+# pcb:sch TP_P17.TP x=1210.5800 y=148.8600 rot=180
+# pcb:sch TP_SDA.TP x=600.9800 y=186.9600 rot=180
+# pcb:sch C_VCC2.C x=283.4800 y=265.7000 rot=0
+# pcb:sch TP_GND.TP x=727.9800 y=631.4600 rot=180
+# pcb:sch TP_VCC.TP x=715.2800 y=-67.0400 rot=0
+# pcb:sch C_VCC3.C x=169.1800 y=265.7000 rot=0
