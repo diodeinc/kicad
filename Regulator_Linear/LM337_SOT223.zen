@@ -38,7 +38,7 @@ if add_bypass_cap:
     bypass_cap_value = config("bypass_cap_value", str, default = "10uF")
 
 add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default = "Full")
-add_test_points = config("add_test_points", bool, default = False)
+add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
 VIN = io("VIN", Power)
@@ -185,18 +185,18 @@ if add_test_points:
         P1 = _ADJ
     )
 
-# pcb:sch C_ADJ.C x=105.6800 y=405.4000 rot=180
+# pcb:sch C_ADJ.C x=105.6800 y=418.1000 rot=180
 # pcb:sch C_IN.C x=-21.3200 y=468.9000 rot=180
-# pcb:sch C_OUT.C x=372.3800 y=468.9000 rot=180
+# pcb:sch C_OUT.C x=473.9800 y=468.9000 rot=180
 # pcb:sch D1.D x=100.6000 y=697.5000 rot=180
-# pcb:sch D2.D x=176.8000 y=545.1000 rot=90
-# pcb:sch R1.R x=280.9400 y=507.0000 rot=180
+# pcb:sch D2.D x=253.0000 y=545.1000 rot=90
+# pcb:sch R1.R x=395.2400 y=519.7000 rot=180
 # pcb:sch R2.R x=280.9400 y=405.4000 rot=180
-# pcb:sch TP_ADJ.TP x=232.6800 y=339.3600 rot=0
-# pcb:sch TP_VIN.TP x=-8.6200 y=707.6600 rot=180
-# pcb:sch TP_VOUT.TP x=283.4800 y=720.3600 rot=180
-# pcb:sch U1 x=49.8000 y=532.4000 rot=0
-# pcb:sch GND.1 x=418.1000 y=418.1000 rot=0
+# pcb:sch TP_ADJ.TP x=397.7800 y=453.6600 rot=0
+# pcb:sch TP_VIN.TP x=-8.6200 y=733.0600 rot=180
+# pcb:sch TP_VOUT.TP x=283.4800 y=733.0600 rot=180
+# pcb:sch U1 x=49.8000 y=545.1000 rot=0
+# pcb:sch GND.1 x=532.4000 y=418.1000 rot=0
 # pcb:sch GND.2 x=-140.7000 y=430.8000 rot=0
-# pcb:sch VI.VCC.1 x=-135.6200 y=570.5000 rot=0
-# pcb:sch VO.VCC.1 x=423.1800 y=570.5000 rot=0
+# pcb:sch VI.VCC.1 x=-135.6200 y=583.2000 rot=0
+# pcb:sch VO.VCC.1 x=537.4800 y=583.2000 rot=0

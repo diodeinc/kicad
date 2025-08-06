@@ -36,7 +36,7 @@ if i2c_pullup_location == I2cPullupLocation("Local"):
     i2c_pullup_value = config("i2c_pullup_value", str, default = "2kohms" if interface_voltage == InterfaceVoltage("2V8") else "4.7kohms")
 
 # Control pin configuration
-shutdown_control = config("shutdown_control", ShutdownControl, default = "HostControlled")
+shutdown_control = config("shutdown_control", ShutdownControl, default = "PullupOnly")
 if shutdown_control != ShutdownControl("External"):
     xshut_pullup_value = config("xshut_pullup_value", str, default = "10kohms")
 

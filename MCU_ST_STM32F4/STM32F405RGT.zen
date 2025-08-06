@@ -26,8 +26,6 @@ PinHeader = Module("@stdlib/kicad/PinHeader.zen")
 ClockSource = enum("Internal", "Crystal", "External")
 CrystalFreq = enum("8MHz", "16MHz", "25MHz")
 PassivesSize = enum("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
-CrystalSeriesResistor = enum("100ohm", "220ohm", "470ohm", "1kohm", "2.2kohm")
-CrystalLoadCap = enum("10pF", "12pF", "15pF", "18pF", "20pF", "22pF", "27pF", "33pF")
 
 # Configuration
 add_bulk_cap = config("add_bulk_cap", bool, default = True)
@@ -45,16 +43,17 @@ if add_boot1_button:
 clock_source = config("clock_source", ClockSource, default = "Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
-    crystal_load_cap = config("crystal_load_cap", CrystalLoadCap, default = "10pF")
+    crystal_load_cap = config("crystal_load_cap", str, default = "10pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", CrystalSeriesResistor, default = "1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", str, default = "1kohm")
 
 # RTC configuration
 add_rtc = config("add_rtc", bool, default = True, optional = True)
 
 if add_rtc:
     add_vbat_battery = config("add_vbat_battery", bool, default = True, optional = True)
+    rtc_load_cap = config("rtc_load_cap", str, default = "12pF")
 
 # VDDA filter configuration
 add_vdda_filter = config("add_vdda_filter", bool, default = True, optional = True)
@@ -330,12 +329,12 @@ if clock_source == ClockSource("Crystal"):
     )
     
     # Load capacitors
-    Capacitor(name = "C_HSE1", value = crystal_load_cap.value, package = passives_size.value, P1 = _PH0, P2 = GND)
-    Capacitor(name = "C_HSE2", value = crystal_load_cap.value, package = passives_size.value, P1 = crystal_out, P2 = GND)
+    Capacitor(name = "C_HSE1", value = crystal_load_cap, package = passives_size.value, P1 = _PH0, P2 = GND)
+    Capacitor(name = "C_HSE2", value = crystal_load_cap, package = passives_size.value, P1 = crystal_out, P2 = GND)
     
     # Series resistor for oscillator stability (if enabled)
     if add_crystal_series_resistor:
-        Resistor(name = "R_OSC", value = crystal_series_resistor.value + " 5%", package = passives_size.value, P1 = _R_OSC, P2 = _PH1)
+        Resistor(name = "R_OSC", value = crystal_series_resistor, package = passives_size.value, P1 = _R_OSC, P2 = _PH1)
 
 # RTC Crystal (32.768kHz)
 if add_rtc:
@@ -347,8 +346,8 @@ if add_rtc:
         XOUT = _PC15,
     )
     # Load capacitors for RTC crystal
-    Capacitor(name = "C_RTC1", value = "12pF", package = passives_size.value, P1 = _PC14, P2 = GND)
-    Capacitor(name = "C_RTC2", value = "12pF", package = passives_size.value, P1 = _PC15, P2 = GND)
+    Capacitor(name = "C_RTC1", value = rtc_load_cap, package = passives_size.value, P1 = _PC14, P2 = GND)
+    Capacitor(name = "C_RTC2", value = rtc_load_cap, package = passives_size.value, P1 = _PC15, P2 = GND)
 
 # USB-C Connector with ESD Protection
 if add_usb:
@@ -414,12 +413,12 @@ if add_swd_header:
 # Connect to VDD if no battery backup is used
 Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = GND)
 
-# pcb:sch C_HSE1.C x=334.2800 y=1015.0000 rot=0
-# pcb:sch C_HSE2.C x=537.4800 y=1015.0000 rot=0
+# pcb:sch C_HSE1.C x=346.9800 y=1040.4000 rot=0
+# pcb:sch C_HSE2.C x=550.1800 y=1040.4000 rot=0
 # pcb:sch C_NRST.C x=512.0800 y=634.0000 rot=0
 # pcb:sch C_VBAT.C x=842.2800 y=392.7000 rot=0
-# pcb:sch C_VCAP1.C x=639.0800 y=1281.7000 rot=0
-# pcb:sch C_VCAP2.C x=727.9800 y=1319.8000 rot=0
+# pcb:sch C_VCAP1.C x=626.3800 y=1294.4000 rot=0
+# pcb:sch C_VCAP2.C x=715.2800 y=1319.8000 rot=0
 # pcb:sch C_VDD1.C x=1375.6800 y=684.8000 rot=0
 # pcb:sch C_VDD2.C x=1464.5800 y=684.8000 rot=0
 # pcb:sch C_VDD3.C x=1553.4800 y=684.8000 rot=0
@@ -427,56 +426,56 @@ Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = G
 # pcb:sch C_VDDA1.C x=1121.6800 y=405.4000 rot=0
 # pcb:sch C_VDDA2.C x=1223.2800 y=405.4000 rot=0
 # pcb:sch C_VDD_BULK.C x=156.4800 y=62.5000 rot=0
-# pcb:sch R_BOOT0.R x=611.1400 y=684.8000 rot=0
+# pcb:sch R_BOOT0.R x=661.9400 y=684.8000 rot=0
 # pcb:sch R_NRST.R x=522.2400 y=532.4000 rot=180
 # pcb:sch STM32F405RGT x=773.7000 y=545.1000 rot=0
-# pcb:sch Y_HSE.Y x=418.1000 y=951.5000 rot=0
-# pcb:sch GND.1 x=684.8000 y=1408.7000 rot=0
+# pcb:sch Y_HSE.Y x=418.1000 y=976.9000 rot=0
+# pcb:sch GND.1 x=684.8000 y=1421.4000 rot=0
 # pcb:sch GND.2 x=976.9000 y=1535.7000 rot=0
 # pcb:sch VDD.1 x=473.9800 y=468.9000 rot=0
 # pcb:sch VDD.2 x=969.2800 y=494.3000 rot=0
 # pcb:sch VDD.3 x=1477.2800 y=634.0000 rot=0
-# pcb:sch VDD.4 x=613.6800 y=468.9000 rot=0
+# pcb:sch VDD.4 x=664.4800 y=443.5000 rot=0
 # pcb:sch VDD.6 x=1870.9800 y=621.3000 rot=0
-# pcb:sch GND.3 x=443.5000 y=1103.9000 rot=0
+# pcb:sch GND.3 x=443.5000 y=1142.0000 rot=0
 # pcb:sch GND.4 x=1472.2000 y=786.4000 rot=0
-# pcb:sch GND.5 x=608.6000 y=862.6000 rot=0
+# pcb:sch GND.5 x=659.4000 y=875.3000 rot=0
 # pcb:sch GND.6 x=468.9000 y=786.4000 rot=0
 # pcb:sch GND.7 x=849.9000 y=507.0000 rot=0
 # pcb:sch GND.8 x=1180.1000 y=519.7000 rot=0
-# pcb:sch GND.9 x=468.9000 y=1396.0000 rot=0
-# pcb:sch GND.10 x=1523.0000 y=1472.2000 rot=0
-# pcb:sch GND.11 x=1751.6000 y=1421.4000 rot=0
-# pcb:sch GND.12 x=1878.6000 y=1294.4000 rot=0
+# pcb:sch GND.9 x=418.1000 y=1446.8000 rot=0
+# pcb:sch GND.10 x=1523.0000 y=1484.9000 rot=0
+# pcb:sch GND.11 x=1764.3000 y=1370.6000 rot=0
+# pcb:sch GND.12 x=1853.2000 y=1307.1000 rot=0
 # pcb:sch BT_VBAT x=763.5400 y=392.7000 rot=0
 # pcb:sch C_BULK.C x=1286.7800 y=684.8000 rot=0
-# pcb:sch C_RESET.C x=461.2800 y=659.4000 rot=0
-# pcb:sch C_RTC1.C x=397.7800 y=1307.1000 rot=0
-# pcb:sch C_RTC2.C x=524.7800 y=1307.1000 rot=0
+# pcb:sch C_RESET.C x=461.2800 y=634.0000 rot=0
+# pcb:sch C_RTC1.C x=359.6800 y=1332.5000 rot=0
+# pcb:sch C_RTC2.C x=461.2800 y=1332.5000 rot=0
 # pcb:sch FB_VDDA x=1292.1140 y=354.6000 rot=90
 # pcb:sch J_USB x=1434.1000 y=1053.1000 rot=0
-# pcb:sch LED_BOOT0.LED x=528.5900 y=705.1200 rot=270
-# pcb:sch LED_BOOT1.LED x=1328.6900 y=1136.9200 rot=270
-# pcb:sch R_BOOT1.R x=1296.9400 y=1167.4000 rot=0
+# pcb:sch LED_BOOT0.LED x=557.8000 y=705.1200 rot=270
+# pcb:sch LED_BOOT1.LED x=1307.1000 y=1124.2200 rot=270
+# pcb:sch R_BOOT1.R x=1271.5400 y=1167.4000 rot=0
 # pcb:sch R_CC1.R x=1919.2400 y=1167.4000 rot=0
 # pcb:sch R_CC2.R x=1855.7400 y=1167.4000 rot=0
-# pcb:sch R_LED_BOOT0.R x=560.3400 y=773.7000 rot=0
-# pcb:sch R_LED_BOOT1.R x=1360.4400 y=1218.2000 rot=0
-# pcb:sch R_RESET.R x=471.4400 y=532.4000 rot=180
-# pcb:sch SW_BOOT0 x=557.8000 y=540.0200 rot=270
-# pcb:sch SW_BOOT1 x=1269.0000 y=984.5200 rot=90
+# pcb:sch R_LED_BOOT0.R x=573.0400 y=773.7000 rot=0
+# pcb:sch R_LED_BOOT1.R x=1322.3400 y=1218.2000 rot=0
+# pcb:sch R_RESET.R x=471.4400 y=519.7000 rot=180
+# pcb:sch SW_BOOT0 x=621.3000 y=514.6200 rot=270
+# pcb:sch SW_BOOT1 x=1230.9000 y=984.5200 rot=90
 # pcb:sch SW_RESET x=341.9000 y=667.0200 rot=270
 # pcb:sch Y_RTC.Y x=443.5000 y=1230.9000 rot=90
 # pcb:sch C_VBUS.C x=1972.5800 y=1103.9000 rot=0
-# pcb:sch U_USB_ESD x=1713.5000 y=1180.1000 rot=0
+# pcb:sch U_USB_ESD x=1726.2000 y=1180.1000 rot=0
 # pcb:sch VDD.5 x=1375.6800 y=354.6000 rot=0
 # pcb:sch VDD.6 x=1870.9800 y=621.3000 rot=0
-# pcb:sch VDD.7 x=1299.4800 y=888.0000 rot=0
-# pcb:sch GND.12 x=1878.6000 y=1294.4000 rot=0
-# pcb:sch VBUS.1 x=1756.6800 y=1027.7000 rot=0
-# pcb:sch GND.14 x=1294.4000 y=1307.1000 rot=0
+# pcb:sch VDD.7 x=1274.0800 y=888.0000 rot=0
+# pcb:sch GND.12 x=1853.2000 y=1307.1000 rot=0
+# pcb:sch VBUS.1 x=1769.3800 y=1027.7000 rot=0
+# pcb:sch GND.14 x=1269.0000 y=1319.8000 rot=0
 # pcb:sch FB_VDDA.FB x=1292.1140 y=354.6000 rot=90
 # pcb:sch J_SWD x=1256.3000 y=4786.9000 rot=0
-# pcb:sch J_SWD.PH x=1910.3500 y=646.7000 rot=0
+# pcb:sch J_SWD.PH x=1916.7000 y=646.7000 rot=0
 # pcb:sch GND.17 x=1865.9000 y=811.8000 rot=0
-# pcb:sch R_OSC.R x=509.5400 y=926.1000 rot=180
+# pcb:sch R_OSC.R x=522.2400 y=938.8000 rot=180

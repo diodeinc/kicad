@@ -97,7 +97,7 @@ GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.
 # USB IO (if enabled)
 if add_usb_circuit:
     usb = io("USB", Usb2, default = Usb2("USB"))
-    VUSB = io("VUSB", Net)
+    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
 
 # JTAG IO (if enabled)
 if add_jtag_header:
@@ -610,55 +610,55 @@ if add_jtag_header:
 # pcb:sch C_VDDA1.C x=816.8800 y=1040.4000 rot=0
 # pcb:sch C_VDDA2.C x=893.0800 y=1040.4000 rot=0
 # pcb:sch C_VDD_SPI.C x=1807.4800 y=1535.7000 rot=0
-# pcb:sch C_XTAL1.C x=499.3800 y=2107.2000 rot=0
-# pcb:sch C_XTAL2.C x=651.7800 y=2107.2000 rot=0
+# pcb:sch C_XTAL1.C x=372.3800 y=2107.2000 rot=0
+# pcb:sch C_XTAL2.C x=600.9800 y=2107.2000 rot=0
 # pcb:sch ESP32-S3 x=786.4000 y=1307.1000 rot=0
 # pcb:sch FB_VDD3P3_CPU.FB x=1101.6140 y=608.6000 rot=90
 # pcb:sch FB_VDD3P3_RTC.FB x=1088.9140 y=989.6000 rot=90
 # pcb:sch FB_VDDA.FB x=758.7140 y=989.6000 rot=270
 # pcb:sch R_GPIO0.R x=598.4400 y=1294.4000 rot=180
 # pcb:sch R_GPIO45.R x=1335.0400 y=1992.9000 rot=0
-# pcb:sch R_GPIO46.R x=496.8400 y=1345.2000 rot=0
-# pcb:sch R_PU.R x=1398.5400 y=1865.9000 rot=180
-# pcb:sch R_USB_DM.R x=458.7400 y=1764.3000 rot=270
-# pcb:sch R_USB_DP.R x=458.7400 y=1789.7000 rot=270
+# pcb:sch R_GPIO46.R x=522.2400 y=1294.4000 rot=0
+# pcb:sch R_PU.R x=1398.5400 y=1878.6000 rot=180
+# pcb:sch R_USB_DM.R x=573.0400 y=1751.6000 rot=270
+# pcb:sch R_USB_DP.R x=573.0400 y=1802.4000 rot=270
 # pcb:sch R_VDD_SPI.R x=407.9400 y=926.1000 rot=0
-# pcb:sch SW_BOOT x=570.5000 y=1416.3200 rot=90
+# pcb:sch SW_BOOT x=557.8000 y=1416.3200 rot=90
 # pcb:sch SW_RESET x=1446.8000 y=2000.5200 rot=90
-# pcb:sch Y1.Y x=557.8000 y=2043.7000 rot=0
-# pcb:sch GND.1 x=583.2000 y=2208.8000 rot=0
-# pcb:sch GND.2 x=1002.3000 y=2107.2000 rot=0
-# pcb:sch GND.3 x=595.9000 y=1523.0000 rot=0
+# pcb:sch Y1.Y x=468.9000 y=2043.7000 rot=0
+# pcb:sch GND.1 x=494.3000 y=2208.8000 rot=0
+# pcb:sch GND.2 x=1002.3000 y=2094.5000 rot=0
+# pcb:sch GND.3 x=519.7000 y=1548.4000 rot=0
 # pcb:sch VDD.1 x=1058.1800 y=1218.2000 rot=0
-# pcb:sch VDD.2 x=1401.0800 y=1802.4000 rot=0
-# pcb:sch VDD.3 x=740.6800 y=1154.7000 rot=0
+# pcb:sch VDD.2 x=1401.0800 y=1827.8000 rot=0
+# pcb:sch VDD.3 x=651.7800 y=1142.0000 rot=0
 # pcb:sch VDD.4 x=600.9800 y=1256.3000 rot=0
-# pcb:sch VDD.5 x=334.2800 y=1408.7000 rot=0
+# pcb:sch VDD.5 x=346.9800 y=1370.6000 rot=0
 
-# pcb:sch C_OSC3.C x=423.1800 y=1840.5000 rot=90
-# pcb:sch C_OSC4.C x=423.1800 y=1942.1000 rot=90
-# pcb:sch R_OSC.R x=687.3400 y=1992.9000 rot=270
-# pcb:sch Y2.Y x=468.9000 y=1904.0000 rot=90
-# pcb:sch GND.4 x=329.2000 y=1916.7000 rot=90
-# pcb:sch GND.5 x=1294.4000 y=1129.3000 rot=0
-# pcb:sch GND.6 x=-242.3000 y=2056.4000 rot=0
-# pcb:sch GND.7 x=189.5000 y=1573.8000 rot=0
-# pcb:sch GND.8 x=202.2000 y=1891.3000 rot=0
+# pcb:sch C_OSC3.C x=461.2800 y=1840.5000 rot=90
+# pcb:sch C_OSC4.C x=461.2800 y=1942.1000 rot=90
+# pcb:sch R_OSC.R x=611.1400 y=2005.6000 rot=180
+# pcb:sch Y2.Y x=519.7000 y=1904.0000 rot=90
+# pcb:sch GND.4 x=291.1000 y=1929.4000 rot=90
+# pcb:sch GND.5 x=1256.3000 y=1142.0000 rot=0
+# pcb:sch GND.6 x=-140.7000 y=2056.4000 rot=0
+# pcb:sch GND.7 x=202.2000 y=1535.7000 rot=0
+# pcb:sch GND.8 x=189.5000 y=1904.0000 rot=0
 
-# pcb:sch C_VBUS.C x=-21.3200 y=1459.5000 rot=0
-# pcb:sch J_USB x=-305.8000 y=1624.6000 rot=0
-# pcb:sch R_USB_CC1.R x=26.9400 y=1662.7000 rot=270
-# pcb:sch R_USB_CC2.R x=26.9400 y=1688.1000 rot=270
-# pcb:sch U_USB_ESD x=164.1000 y=1751.6000 rot=0
-# pcb:sch U_USB_REG.C_IN.C x=67.5800 y=1459.5000 rot=0
-# pcb:sch U_USB_REG.C_OUT.C x=321.5800 y=1459.5000 rot=0
-# pcb:sch U_USB_REG.TLV70033_SOT23-5 x=126.0000 y=1424.5750 rot=0
-# pcb:sch GND.9 x=87.9000 y=1726.2000 rot=0
-# pcb:sch GND.10 x=735.6000 y=1307.1000 rot=0
+# pcb:sch C_VBUS.C x=-21.3200 y=1421.4000 rot=0
+# pcb:sch J_USB x=-153.4000 y=1624.6000 rot=0
+# pcb:sch R_USB_CC1.R x=306.3400 y=1624.6000 rot=270
+# pcb:sch R_USB_CC2.R x=306.3400 y=1688.1000 rot=270
+# pcb:sch U_USB_ESD x=151.4000 y=1751.6000 rot=0
+# pcb:sch U_USB_REG.C_IN.C x=67.5800 y=1421.4000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=334.2800 y=1421.4000 rot=0
+# pcb:sch U_USB_REG.TLV70033_SOT23-5 x=138.7000 y=1389.6500 rot=0
+# pcb:sch GND.9 x=367.3000 y=1738.9000 rot=0
+# pcb:sch GND.10 x=253.0000 y=1154.7000 rot=180
 # pcb:sch GND.11 x=1650.0000 y=1726.2000 rot=0
 # pcb:sch GND.12 x=824.5000 y=1142.0000 rot=0
 # pcb:sch GND.13 x=1472.2000 y=2310.4000 rot=0
-# pcb:sch GND.14 x=862.6000 y=1307.1000 rot=0
+# pcb:sch GND.14 x=811.8000 y=1307.1000 rot=0
 
 
 
@@ -670,31 +670,33 @@ if add_jtag_header:
 # pcb:sch 3V3.1 x=651.7800 y=1142.0000 rot=0
 # pcb:sch VDD.7 x=689.8800 y=989.6000 rot=0
 # pcb:sch VDD.8 x=1299.4800 y=989.6000 rot=0
-# pcb:sch GND.16 x=1396.0000 y=2119.9000 rot=0
+# pcb:sch GND.16 x=1396.0000 y=2107.2000 rot=0
 # pcb:sch C_FLASH.C x=1909.0800 y=1535.7000 rot=0
-# pcb:sch R_FLASH_HD.R x=1385.8400 y=1319.8000 rot=180
-# pcb:sch R_FLASH_WP.R x=1449.3400 y=1319.8000 rot=180
+# pcb:sch R_FLASH_HD.R x=1398.5400 y=1319.8000 rot=180
+# pcb:sch R_FLASH_WP.R x=1462.0400 y=1319.8000 rot=180
 # pcb:sch U_FLASH x=1561.1000 y=1446.8000 rot=0
 
 
-# pcb:sch C_VDD3V3_IN1.C x=651.7800 y=1218.2000 rot=0
-# pcb:sch C_VDD3V3_IN2.C x=727.9800 y=1218.2000 rot=0
-# pcb:sch C_VDD3V3_OUT.C x=918.4800 y=1218.2000 rot=0
-# pcb:sch L_VDD3V3.L x=872.1381 y=1167.4000 rot=270
-# pcb:sch C_VDD3V3_IN3.C x=804.1800 y=1218.2000 rot=0
+# pcb:sch C_VDD3V3_IN1.C x=639.0800 y=1205.5000 rot=0
+# pcb:sch C_VDD3V3_IN2.C x=727.9800 y=1205.5000 rot=0
+# pcb:sch C_VDD3V3_OUT.C x=905.7800 y=1205.5000 rot=0
+# pcb:sch L_VDD3V3.L x=875.2991 y=1154.7000 rot=270
+# pcb:sch C_VDD3V3_IN3.C x=804.1800 y=1205.5000 rot=0
 # pcb:sch C_VDDA_VDD.C x=854.9800 y=1040.4000 rot=0
 # pcb:sch C_RTC_VDD.C x=1032.7800 y=1040.4000 rot=0
 
 
 # pcb:sch GND.15 x=1510.3000 y=1192.8000 rot=0
-# pcb:sch ANT1 x=1529.3500 y=2084.9750 rot=0
+# pcb:sch ANT1 x=1548.4000 y=2075.4500 rot=0
 # pcb:sch C_ANT1.C x=1362.9800 y=2196.1000 rot=0
 # pcb:sch L_ANT1.L x=1303.9381 y=2145.3000 rot=270
 # pcb:sch R_ANT.R x=1474.7400 y=2145.3000 rot=270
 # pcb:sch L2.L x=1380.1381 y=2145.3000 rot=270
 # pcb:sch C_ANT_PORT1.C x=1248.6800 y=2208.8000 rot=0
 # pcb:sch C_ANT_PORT2.C x=1388.3800 y=2208.8000 rot=0
-# pcb:sch L_ANT_MATCH.L x=1342.0381 y=2145.3000 rot=270
-# pcb:sch J_JTAG.PH x=1529.3500 y=1015.0000 rot=0
-# pcb:sch R_GPIO3.R x=649.2400 y=1459.5000 rot=90
+# pcb:sch L_ANT_MATCH.L x=1345.1991 y=2145.3000 rot=270
+# pcb:sch J_JTAG.PH x=1535.7000 y=1015.0000 rot=0
+# pcb:sch R_GPIO3.R x=649.2400 y=1497.6000 rot=90
 # pcb:sch TP_RESET.TP x=1477.2800 y=1921.7800 rot=0
+# pcb:sch VUSB.1 x=-8.6200 y=1370.6000 rot=0
+# pcb:sch VUSB.2 x=194.5800 y=1611.9000 rot=0

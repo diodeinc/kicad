@@ -124,7 +124,7 @@ PF1 = io("PF1", Net)
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net)
+    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
     PA11 = usb.DM
     PA12 = usb.DP
 else:
@@ -412,8 +412,8 @@ if add_low_speed_oscillator:
         XOUT = _PC15,
         GND = GND,
     )
-    Capacitor(name = "C_OSC3", value = "12pF", voltage = "6.3V", package = passives_size, P1 = _PC14, P2 = GND)
-    Capacitor(name = "C_OSC4", value = "12pF", voltage = "6.3V", package = passives_size, P1 = _PC15, P2 = GND)
+    Capacitor(name = "C_OSC3", value = "12pF", package = passives_size, P1 = _PC14, P2 = GND)
+    Capacitor(name = "C_OSC4", value = "12pF", package = passives_size, P1 = _PC15, P2 = GND)
 
 # Status LED on PC13
 if add_status_led:
@@ -579,63 +579,63 @@ if add_fdcan:
 # pcb:sch C_RESET.C x=283.4800 y=799.1000 rot=0
 # pcb:sch C_OSC1.C x=194.5800 y=1294.4000 rot=0
 # pcb:sch C_OSC2.C x=385.0800 y=1294.4000 rot=0
-# pcb:sch C_OSC3.C x=258.0800 y=900.7000 rot=90
-# pcb:sch C_OSC4.C x=258.0800 y=1002.3000 rot=90
-# pcb:sch C_VBUS.C x=1807.4800 y=1091.2000 rot=0
-# pcb:sch C_CAN.C x=1693.1800 y=532.4000 rot=0
+# pcb:sch C_OSC3.C x=232.6800 y=900.7000 rot=90
+# pcb:sch C_OSC4.C x=232.6800 y=1002.3000 rot=90
+# pcb:sch C_VBUS.C x=1528.0800 y=900.7000 rot=0
+# pcb:sch C_CAN.C x=1782.0800 y=583.2000 rot=0
 # pcb:sch FB_VDDA.FB x=1101.6140 y=595.9000 rot=90
 # pcb:sch FB_VBAT.FB x=504.7140 y=532.4000 rot=270
 # pcb:sch FB_VREF.FB x=377.7140 y=621.3000 rot=270
-# pcb:sch J_SWD.PH x=1148.3500 y=1065.8000 rot=0
+# pcb:sch J_SWD.PH x=1154.7000 y=1065.8000 rot=0
 # pcb:sch J_USB x=1256.3000 y=1065.8000 rot=0
 # pcb:sch J_BOOT.PH x=-128.0000 y=1103.9000 rot=0
-# pcb:sch LED_STATUS.LED x=1040.4000 y=1242.3300 rot=0
-# pcb:sch LED_POWER.LED x=494.3000 y=378.7300 rot=0
-# pcb:sch LED_BOOT0.LED x=-267.7000 y=1026.4300 rot=270
+# pcb:sch LED_STATUS.LED x=1040.4000 y=1238.5200 rot=0
+# pcb:sch LED_POWER.LED x=494.3000 y=374.9200 rot=0
+# pcb:sch LED_BOOT0.LED x=-267.7000 y=1022.6200 rot=270
 # pcb:sch NT_VSSA.NT x=862.6000 y=1510.3000 rot=180
 # pcb:sch R_RESET.R x=293.6400 y=684.8000 rot=180
-# pcb:sch R_BOOT0.R x=-138.1600 y=1040.4000 rot=0
+# pcb:sch R_BOOT0.R x=-138.1600 y=1065.8000 rot=0
 # pcb:sch R_BOOT0_SERIES.R x=-176.2600 y=1027.7000 rot=0
 # pcb:sch R_LED.R x=979.4400 y=1294.4000 rot=0
 # pcb:sch R_POWER_LED.R x=458.7400 y=405.4000 rot=0
-# pcb:sch R_LED_BOOT0.R x=-239.7600 y=1103.9000 rot=0
+# pcb:sch R_LED_BOOT0.R x=-252.4600 y=1103.9000 rot=0
 # pcb:sch R_XTAL.R x=395.2400 y=1192.8000 rot=180
-# pcb:sch R_OSC.R x=382.5400 y=1180.1000 rot=180
-# pcb:sch R_USB_CC1.R x=1665.2400 y=1091.2000 rot=270
-# pcb:sch R_USB_CC2.R x=1665.2400 y=1142.0000 rot=270
-# pcb:sch R_USB_DM.R x=1779.5400 y=1192.8000 rot=270
-# pcb:sch R_USB_DP.R x=1779.5400 y=1243.6000 rot=270
-# pcb:sch R_CAN_S.R x=1347.7400 y=684.8000 rot=0
-# pcb:sch R_CAN_TERM.R x=1766.8400 y=608.6000 rot=0
-# pcb:sch SW_RESET x=164.1000 y=743.2200 rot=0
-# pcb:sch SW_BOOT0 x=-191.5000 y=832.1200 rot=270
+# pcb:sch R_OSC.R x=395.2400 y=1180.1000 rot=180
+# pcb:sch R_USB_CC1.R x=1792.2400 y=1065.8000 rot=270
+# pcb:sch R_USB_CC2.R x=1792.2400 y=1129.3000 rot=270
+# pcb:sch R_USB_DM.R x=1754.1400 y=1192.8000 rot=270
+# pcb:sch R_USB_DP.R x=1754.1400 y=1256.3000 rot=270
+# pcb:sch R_CAN_S.R x=1347.7400 y=697.5000 rot=0
+# pcb:sch R_CAN_TERM.R x=1716.0400 y=608.6000 rot=0
+# pcb:sch SW_RESET x=164.1000 y=755.9200 rot=0
+# pcb:sch SW_BOOT0 x=-178.8000 y=832.1200 rot=270
 # pcb:sch TP_RESET.TP x=194.5800 y=766.0800 rot=270
 # pcb:sch U_USB_ESD x=1573.8000 y=1192.8000 rot=0
-# pcb:sch U_USB_REG.C_IN.C x=1528.0800 y=888.0000 rot=0
-# pcb:sch U_USB_REG.C_OUT.C x=1832.8800 y=888.0000 rot=0
+# pcb:sch U_USB_REG.C_IN.C x=1604.2800 y=888.0000 rot=0
+# pcb:sch U_USB_REG.C_OUT.C x=1870.9800 y=888.0000 rot=0
 # pcb:sch U_USB_REG.AP2112K-3.3 x=1624.6000 y=853.0750 rot=0
 # pcb:sch U_CAN x=1421.4000 y=545.1000 rot=0
 # pcb:sch Y_HSE.Y x=265.7000 y=1230.9000 rot=0
-# pcb:sch Y2.Y x=278.4000 y=964.2000 rot=90
+# pcb:sch Y2.Y x=329.2000 y=964.2000 rot=90
 # pcb:sch VDD.1 x=448.5800 y=532.4000 rot=0
 # pcb:sch VDD.2 x=296.1800 y=634.0000 rot=0
 # pcb:sch VDD.3 x=-72.1200 y=735.6000 rot=0
 # pcb:sch VDD.4 x=664.4800 y=341.9000 rot=0
 # pcb:sch VDD.5 x=753.3800 y=595.9000 rot=0
 # pcb:sch VDD.6 x=1172.4800 y=595.9000 rot=0
-# pcb:sch VDD.7 x=1845.5800 y=837.2000 rot=0
+# pcb:sch VDD.7 x=1883.6800 y=837.2000 rot=0
 # pcb:sch VDD.8 x=1134.3800 y=1015.0000 rot=0
 # pcb:sch VDD.9 x=-72.1200 y=938.8000 rot=0
 # pcb:sch VDD.10 x=1540.7800 y=481.6000 rot=0
 # pcb:sch VDD.11 x=346.9800 y=583.2000 rot=0
 # pcb:sch VDDA.1 x=804.1800 y=595.9000 rot=0
 # pcb:sch VBAT.1 x=702.5800 y=595.9000 rot=0
-# pcb:sch VSSA.1 x=773.7000 y=1523.0000 rot=0
-# pcb:sch VSSA.2 x=1167.4000 y=735.6000 rot=0
-# pcb:sch VSSA.3 x=481.6000 y=773.7000 rot=0
-# pcb:sch GND.1 x=1688.1000 y=1015.0000 rot=0
+# pcb:sch VSSA.1 x=773.7000 y=1535.7000 rot=0
+# pcb:sch VSSA.2 x=1167.4000 y=748.3000 rot=0
+# pcb:sch VSSA.3 x=481.6000 y=786.4000 rot=0
+# pcb:sch GND.1 x=1738.9000 y=1002.3000 rot=0
 # pcb:sch GND.2 x=291.1000 y=1396.0000 rot=0
-# pcb:sch GND.3 x=202.2000 y=926.1000 rot=90
+# pcb:sch GND.3 x=176.8000 y=938.8000 rot=90
 # pcb:sch GND.4 x=138.7000 y=1053.1000 rot=0
 # pcb:sch GND.5 x=976.9000 y=1408.7000 rot=0
 # pcb:sch GND.6 x=-77.2000 y=1205.5000 rot=0
@@ -645,12 +645,14 @@ if add_fdcan:
 # pcb:sch GND.10 x=659.4000 y=519.7000 rot=0
 # pcb:sch GND.11 x=595.9000 y=672.1000 rot=0
 # pcb:sch GND.12 x=1611.9000 y=1421.4000 rot=0
-# pcb:sch GND.13 x=1307.1000 y=1484.9000 rot=0
-# pcb:sch GND.14 x=1713.5000 y=1192.8000 rot=0
+# pcb:sch GND.13 x=1307.1000 y=1497.6000 rot=0
+# pcb:sch GND.14 x=1891.3000 y=1167.4000 rot=270
 # pcb:sch GND.15 x=291.1000 y=888.0000 rot=0
-# pcb:sch GND.16 x=202.2000 y=1027.7000 rot=90
+# pcb:sch GND.16 x=176.8000 y=1040.4000 rot=90
 # pcb:sch GND.17 x=1535.7000 y=773.7000 rot=0
-# pcb:sch GND.18 x=748.3000 y=1523.0000 rot=0
-# pcb:sch U_USB_REG.U1 x=1624.6000 y=853.0750 rot=0
+# pcb:sch GND.18 x=748.3000 y=1535.7000 rot=0
+# pcb:sch U_USB_REG.U1 x=1675.4000 y=856.2500 rot=0
 # pcb:sch GND.19 x=1116.6000 y=1523.0000 rot=0
 # pcb:sch GND.20 x=684.8000 y=303.8000 rot=0
+# pcb:sch VUSB.1 x=1540.7800 y=837.2000 rot=0
+# pcb:sch VUSB.2 x=1616.9800 y=1040.4000 rot=0
