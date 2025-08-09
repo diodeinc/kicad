@@ -42,7 +42,7 @@ enable_sense_connection = config("connect_sense_to_output", bool, default = True
 
 # External IO
 VIN = io("VIN", Power)
-VOUT = io("VOUT", Power) 
+VOUT = io("VOUT", Power)
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Enable pin - conditionally exposed based on enable_control
@@ -68,7 +68,7 @@ Component(
         "NC": _NC,
         "OUT": VOUT.NET,
         "SENSE": _SENSE,
-        "BYP": _BYP
+        "BYP": _BYP,
     },
 )
 
@@ -83,13 +83,13 @@ if add_output_cap:
         out_cap_package = "0805"
     else:
         out_cap_package = "1206"
-    
+
     Capacitor(
         name = "C_OUT",
         value = output_cap_value,
         package = out_cap_package,
         P1 = VOUT.NET,
-        P2 = GND
+        P2 = GND,
     )
 
 # Bypass capacitor for low noise operation
@@ -99,7 +99,7 @@ if add_bypass_cap:
         value = bypass_cap_value,
         package = "0402",
         P1 = VOUT.NET,
-        P2 = _BYP
+        P2 = _BYP,
     )
 
 # Enable control
@@ -109,7 +109,7 @@ if enable_control and add_enable_pullup:
         value = enable_pullup_value,
         package = "0402",
         P1 = SHDN,
-        P2 = VIN.NET
+        P2 = VIN.NET,
     )
 
 # pcb:sch C_BYP.C x=385.0800 y=202.2000 rot=0
@@ -118,7 +118,7 @@ if enable_control and add_enable_pullup:
 # pcb:sch R_EN.R x=52.3400 y=214.9000 rot=180
 # pcb:sch U1 x=151.4000 y=151.4000 rot=0
 # pcb:sch GND.1 x=240.3000 y=354.6000 rot=0
-# pcb:sch IN.VCC.1 x=-72.1200 y=100.6000 rot=0
-# pcb:sch OUT.VCC.1 x=562.8800 y=100.6000 rot=0
-# pcb:sch SENSE.VCC.1 x=562.8800 y=100.6000 rot=0
+# pcb:sch VIN_VCC.1 x=-72.1200 y=100.6000 rot=0
+# pcb:sch VOUT_VCC.1 x=562.8800 y=100.6000 rot=0
+# pcb:sch SENSE_VCC.1 x=562.8800 y=100.6000 rot=0
 # pcb:sch TP_VOUT.TP x=549.1800 y=202.2000 rot=0

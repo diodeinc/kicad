@@ -20,7 +20,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Spi")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -86,15 +86,15 @@ Component(
     symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "BME680"),
     footprint = File("@kicad-footprints/Package_LGA.pretty/Bosch_LGA-8_3x3mm_P0.8mm_ClockwisePinNumbering.kicad_mod"),
     pins = {
-        "GND": GND,      # Pin 1
-        "CSB": _CSB,     # Pin 2
-        "SDI": _SDI,     # Pin 3
-        "SCK": _SCK,     # Pin 4
-        "SDO": _SDO,     # Pin 5
+        "GND": GND,  # Pin 1
+        "CSB": _CSB,  # Pin 2
+        "SDI": _SDI,  # Pin 3
+        "SCK": _SCK,  # Pin 4
+        "SDO": _SDO,  # Pin 5
         "VDDIO": VDDIO.NET,  # Pin 6
-        "VDD": VDD.NET       # Pin 8
+        "VDD": VDD.NET,  # Pin 8
         # Pin 7 is also GND but not exposed in symbol
-    }
+    },
 )
 
 # I2C pull-up resistors (required for I2C operation)
@@ -106,7 +106,7 @@ if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
 if add_power_decoupling:
     # VDD decoupling - place close to pin 8
     Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
-    
+
     # VDDIO decoupling - place close to pin 6
     if add_vddio_separation:
         Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO.NET, P2 = GND)
@@ -129,8 +129,8 @@ if add_test_points:
 # pcb:sch GND.1 x=456.2000 y=392.7000 rot=0
 # pcb:sch VCC.1 x=461.2800 y=-1.0000 rot=0
 # pcb:sch C_VDDIO.C x=156.4800 y=164.1000 rot=0
-# pcb:sch VDD.VCC.1 x=486.6800 y=-26.4000 rot=0
-# pcb:sch VDDIO.VCC.1 x=169.1800 y=-26.4000 rot=0
+# pcb:sch VDD_VCC.1 x=486.6800 y=-26.4000 rot=0
+# pcb:sch VDDIO_VCC.1 x=169.1800 y=-26.4000 rot=0
 # pcb:sch TP_SCL.TP x=715.2800 y=313.9600 rot=180
 # pcb:sch TP_SDA.TP x=791.4800 y=313.9600 rot=180
 # pcb:sch TP_CSB.TP x=854.9800 y=219.9800 rot=0

@@ -19,7 +19,7 @@ load("@stdlib/interfaces.zen", "Power")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
-Capacitor = Module("@stdlib/generics/Capacitor.zen") 
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration options
@@ -48,7 +48,7 @@ Component(
     pins = {
         "VI": _VIN,
         "GND": GND,
-        "VO": _VOUT
+        "VO": _VOUT,
     },
 )
 
@@ -60,7 +60,7 @@ if add_input_cap:
         value = input_cap_value,
         package = "0805",
         P1 = _VIN,
-        P2 = GND
+        P2 = GND,
     )
 
 # Output capacitor (required for stability - minimum 3.3μF with ESR < 2Ω)
@@ -71,7 +71,7 @@ if add_output_cap:
         value = output_cap_value,
         package = "0805",
         P1 = _VOUT,
-        P2 = GND
+        P2 = GND,
     )
 
 # Test points for debugging
@@ -79,19 +79,19 @@ if add_test_points:
     TestPoint(
         name = "TP_VIN",
         variant = "Pad_D1.0mm",
-        P1 = _VIN
+        P1 = _VIN,
     )
-    
+
     TestPoint(
-        name = "TP_VOUT", 
+        name = "TP_VOUT",
         variant = "Pad_D1.0mm",
-        P1 = _VOUT  
+        P1 = _VOUT,
     )
-    
+
     TestPoint(
         name = "TP_GND",
         variant = "Pad_D1.0mm",
-        P1 = GND
+        P1 = GND,
     )
 
 # PCB placement hints for thermal management
@@ -100,13 +100,13 @@ if add_test_points:
 # Power dissipation: P = (VIN - VOUT) × IOUT + VIN × IGND
 # Max junction temp: 125°C
 
-# pcb:sch U1 x=1002.3000 y=1005.4750 rot=0
-# pcb:sch C_IN.C x=918.4800 y=1040.4000 rot=0
-# pcb:sch C_OUT.C x=1197.8800 y=1040.4000 rot=0
-# pcb:sch GND.1 x=1065.8000 y=1129.3000 rot=0
-# pcb:sch VI.VCC.1 x=931.1800 y=976.9000 rot=0
-# pcb:sch VO.VCC.1 x=1210.5800 y=976.9000 rot=0
-
 # pcb:sch TP_GND.TP x=1007.3800 y=1159.7800 rot=180
 # pcb:sch TP_VIN.TP x=956.5800 y=956.5800 rot=0
 # pcb:sch TP_VOUT.TP x=1172.4800 y=956.5800 rot=0
+
+# pcb:sch C_IN.C x=918.4800 y=1040.4000 rot=0
+# pcb:sch C_OUT.C x=1197.8800 y=1040.4000 rot=0
+# pcb:sch U1 x=1002.3000 y=1008.6500 rot=0
+# pcb:sch GND.1 x=1065.8000 y=1142.0000 rot=0
+# pcb:sch VIN_VCC.1 x=931.1800 y=976.9000 rot=0
+# pcb:sch VOUT_VCC.1 x=1210.5800 y=976.9000 rot=0

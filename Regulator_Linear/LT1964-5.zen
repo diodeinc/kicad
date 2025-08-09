@@ -40,7 +40,7 @@ if add_input_cap:
     input_cap_value = config("input_cap_value", str, default = "10uF")
     input_cap_voltage = config("input_cap_voltage", str, default = "16V")
 
-add_output_cap = config("add_output_cap", bool, default = True)  
+add_output_cap = config("add_output_cap", bool, default = True)
 if add_output_cap:
     output_cap_value = config("output_cap_value", str, default = "10uF")
     output_cap_voltage = config("output_cap_voltage", str, default = "10V")
@@ -56,8 +56,8 @@ if shutdown_logic != ShutdownLogic("AlwaysOn"):
         shutdown_pullup_value = config("shutdown_pullup_value", str, default = "100kohms")
 
 # External IOs
-VIN = io("VIN", Power, default = Power())
-VOUT = io("VOUT", Power, default = Power())
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # Shutdown control
@@ -84,11 +84,11 @@ Component(
         "VIN": VIN.NET,
         "GND": GND,
         "BYP": _BYP,
-        "VOUT": VOUT.NET
-    }
+        "VOUT": VOUT.NET,
+    },
 )
 
-# Input capacitor 
+# Input capacitor
 if add_input_cap:
     Capacitor(
         name = "C_IN",
@@ -96,7 +96,7 @@ if add_input_cap:
         voltage = input_cap_voltage,
         package = "0805",
         P1 = VIN.NET,
-        P2 = GND
+        P2 = GND,
     )
 
 # Output capacitor
@@ -107,7 +107,7 @@ if add_output_cap:
         voltage = output_cap_voltage,
         package = "0805",
         P1 = VOUT.NET,
-        P2 = GND
+        P2 = GND,
     )
 
 # Bypass capacitor for noise reduction
@@ -118,12 +118,11 @@ if add_bypass_cap:
         voltage = "10V",
         package = "0603",
         P1 = VOUT.NET,
-        P2 = _BYP
+        P2 = _BYP,
     )
 
 # Shutdown control circuit
 if shutdown_logic == ShutdownLogic("AlwaysOn"):
-
     pass
 elif shutdown_logic == ShutdownLogic("Positive"):
     # Positive logic: SHDN > +1.6V (relative to GND) = ON, SHDN within ±0.8V of GND = OFF
@@ -137,7 +136,7 @@ elif shutdown_logic == ShutdownLogic("Positive"):
             value = shutdown_pullup_value,
             package = "0603",
             P1 = _SHDN,
-            P2 = VDD_POS
+            P2 = VDD_POS,
         )
 elif shutdown_logic == ShutdownLogic("Negative"):
     # Negative logic: SHDN < -1.9V (relative to GND) = ON, SHDN within ±0.8V of GND = OFF
@@ -146,11 +145,11 @@ elif shutdown_logic == ShutdownLogic("Negative"):
     if add_shutdown_pullup:
         # Add pull-down to VIN for default-on behavior
         Resistor(
-            name = "R_SHDN_PD", 
+            name = "R_SHDN_PD",
             value = shutdown_pullup_value,
             package = "0603",
             P1 = _SHDN,
-            P2 = VIN.NET
+            P2 = VIN.NET,
         )
 
 # pcb:sch C_BYP.C x=397.7800 y=202.2000 rot=180
@@ -158,9 +157,9 @@ elif shutdown_logic == ShutdownLogic("Negative"):
 # pcb:sch C_OUT.C x=524.7800 y=189.5000 rot=180
 # pcb:sch LT1964-5 x=164.1000 y=189.5000 rot=0
 # pcb:sch GND.1 x=253.0000 y=100.6000 rot=180
-# pcb:sch VOUT.VCC.1 x=537.4800 y=303.8000 rot=180
-# pcb:sch ~{SHDN}.VCC.1 x=-46.7200 y=291.1000 rot=180
-# pcb:sch VIN.VCC.1 x=-46.7200 y=291.1000 rot=180
+# pcb:sch VOUT_VCC.1 x=537.4800 y=303.8000 rot=180
+# pcb:sch ~{SHDN}_VCC.1 x=-46.7200 y=291.1000 rot=180
+# pcb:sch VIN_VCC.1 x=-46.7200 y=291.1000 rot=180
 # pcb:sch R_SHDN_PU.R x=90.4400 y=189.5000 rot=0
 # pcb:sch VDD_POS.1 x=92.9800 y=303.8000 rot=180
 # pcb:sch R_SHDN_PD.R x=90.4400 y=189.5000 rot=0

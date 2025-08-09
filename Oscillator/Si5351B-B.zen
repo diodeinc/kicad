@@ -162,7 +162,7 @@ Component(
         "CLK4": CLK4,
         "CLK5": CLK5,
         "CLK6": CLK6,
-        "CLK7": CLK7
+        "CLK7": CLK7,
     },
 )
 
@@ -178,7 +178,7 @@ Crystal(
     package = "3225_4Pin",
     XIN = _XA,
     XOUT = _XB,
-    GND = GND
+    GND = GND,
 )
 
 # Crystal load capacitors
@@ -189,7 +189,7 @@ if add_external_load_caps:
 # Core power supply decoupling
 if add_core_decoupling:
     Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
-    
+
     if add_bulk_cap:
         Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD.NET, P2 = GND)
 
@@ -224,11 +224,11 @@ if add_ssen_pulldown and not SSEN:
 if vcxo_config == VcxoConfig("Basic"):
     # Basic VCXO input with decoupling
     Capacitor(name = "C_VC", value = "100nF", package = "0402", P1 = VC, P2 = GND)
-    
+
 elif vcxo_config == VcxoConfig("Filtered"):
     # Filtered VCXO input for better noise performance
     _VC_FILT = Net("VC_FILT")
-    
+
     # RC filter for VCXO control voltage
     Resistor(name = "R_VC", value = "100ohms", package = "0402", P1 = VC, P2 = _VC_FILT)
     Capacitor(name = "C_VC1", value = "100nF", package = "0402", P1 = _VC_FILT, P2 = GND)
@@ -271,7 +271,7 @@ if add_vcxo_test_point and vcxo_config != VcxoConfig("None"):
 # pcb:sch VDDOD.1 x=1134.3800 y=583.6000 rot=0
 # pcb:sch VC.1 x=372.3800 y=735.6000 rot=0
 # pcb:sch C_BULK.C x=105.6800 y=443.5000 rot=0
-# pcb:sch VDDOA.VCC.1 x=829.5800 y=126.0000 rot=0
-# pcb:sch VDDOB.VCC.1 x=918.4800 y=151.4000 rot=0
-# pcb:sch VDDOC.VCC.1 x=1020.0800 y=176.8000 rot=0
-# pcb:sch VDDOD.VCC.1 x=1108.9800 y=202.2000 rot=0
+# pcb:sch VDDOA_VCC.1 x=829.5800 y=126.0000 rot=0
+# pcb:sch VDDOB_VCC.1 x=918.4800 y=151.4000 rot=0
+# pcb:sch VDDOC_VCC.1 x=1020.0800 y=176.8000 rot=0
+# pcb:sch VDDOD_VCC.1 x=1108.9800 y=202.2000 rot=0

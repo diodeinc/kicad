@@ -92,7 +92,7 @@ Component(
         "GATE": _GATE,
         "GND": GND,
         "OUT": VOUT.NET,
-        "VS": _VS
+        "VS": _VS,
     },
 )
 
@@ -124,8 +124,8 @@ Component(
     pins = {
         "G": _GATE,
         "D": VOUT.NET,
-        "S": VIN.NET
-    }
+        "S": VIN.NET,
+    },
 )
 
 # Gate capacitor for controlled turn-off time
@@ -140,11 +140,11 @@ if protection_level == ProtectionLevel("Basic"):
         variant = "Schottky",
         package = "SMA",
         v_r = "60V",  # Reverse voltage rating
-        i_f = "1A",    # Forward current rating
+        i_f = "1A",  # Forward current rating
         K = VIN.NET,
-        A = GND
+        A = GND,
     )
-    
+
 elif protection_level == ProtectionLevel("Enhanced"):
     # Enhanced protection - input diode and output capacitor
     Diode(
@@ -152,14 +152,14 @@ elif protection_level == ProtectionLevel("Enhanced"):
         variant = "Schottky",
         package = "SMA",
         v_r = "60V",  # Reverse voltage rating
-        i_f = "1A",    # Forward current rating
+        i_f = "1A",  # Forward current rating
         K = VIN.NET,
-        A = GND
+        A = GND,
     )
-    
+
     # Output capacitor to absorb reverse recovery energy
     Capacitor(name = "C_OUT", value = "10uF", package = "1206", P1 = VOUT.NET, P2 = GND)
-    
+
 elif protection_level == ProtectionLevel("Full"):
     # Full protection - input diode, output TVS, and capacitors
     Diode(
@@ -167,11 +167,11 @@ elif protection_level == ProtectionLevel("Full"):
         variant = "Schottky",
         package = "SMA",
         v_r = "60V",  # Reverse voltage rating
-        i_f = "1A",    # Forward current rating
+        i_f = "1A",  # Forward current rating
         K = VIN.NET,
-        A = GND
+        A = GND,
     )
-    
+
     # Output TVS for transient protection (96.8V Clamp 4.1A Ipp DO-214AC/SMA)
     Component(
         name = "D2",
@@ -179,13 +179,13 @@ elif protection_level == ProtectionLevel("Full"):
         footprint = File("@kicad-footprints/Diode_SMD.pretty/D_SMA.kicad_mod"),
         pins = {
             "A1": VOUT.NET,
-            "A2": GND
-        }
+            "A2": GND,
+        },
     )
-    
+
     # Output capacitor
     Capacitor(name = "C_OUT", value = "10uF", package = "1206", P1 = VOUT.NET, P2 = GND)
-    
+
     # Additional ceramic capacitor for high frequency
     Capacitor(name = "C_OUT_HF", value = "100nF", package = "0603", P1 = VOUT.NET, P2 = GND)
 
@@ -213,10 +213,10 @@ if add_test_points:
 # pcb:sch TP_VOUT.TP x=854.9800 y=682.2600 rot=0
 # pcb:sch U1 x=507.0000 y=761.0000 rot=0
 # pcb:sch GND.1 x=570.5000 y=1015.0000 rot=0
-# pcb:sch IN.VCC.1 x=385.0800 y=684.8000 rot=0
-# pcb:sch OUT.VCC.1 x=727.9800 y=697.5000 rot=0
+# pcb:sch VIN_VCC.1 x=385.0800 y=684.8000 rot=0
+# pcb:sch VOUT_VCC.1 x=727.9800 y=697.5000 rot=0
 # pcb:sch C_VS_EXT.C x=715.2800 y=875.3000 rot=0
 # pcb:sch TP_VS.TP x=1274.0800 y=47.2600 rot=0
 # pcb:sch C_OUT_HF.C x=1020.0800 y=824.5000 rot=0
 # pcb:sch D2 x=913.4000 y=849.9000 rot=90
-# pcb:sch VS.VCC.1 x=689.8800 y=697.5000 rot=0
+# pcb:sch VS_VCC.1 x=689.8800 y=697.5000 rot=0

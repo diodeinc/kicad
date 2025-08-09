@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Spi")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -93,8 +93,8 @@ Component(
         "SCK": _SCK,
         "SDI": _SDI,
         "SDO": _SDO,
-        "CSB": _CSB
-    }
+        "CSB": _CSB,
+    },
 )
 
 # I2C pull-up resistors (required for I2C operation)
@@ -106,15 +106,14 @@ if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
 if add_power_decoupling:
     # VDD decoupling - place close to pin 8
     Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
-    
+
     # VDDIO decoupling - place close to pin 6
     if add_vddio_separation:
         Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO.NET, P2 = GND)
-    
+
     # Additional bulk capacitor for better power supply filtering
     if power_mode == PowerMode("HighPerformance"):
         Capacitor(name = "C_BULK", value = "10uF", package = "0603", P1 = VDD.NET, P2 = GND)
-
 
 # Test Points (optional)
 if add_test_points:
@@ -134,17 +133,11 @@ if add_test_points:
 # pcb:note The metal lid is internally connected to GND - ensure proper PCB grounding
 # pcb:note Avoid placing heat sources near the sensor for accurate temperature measurement
 # pcb:note For humidity sensing, ensure the sensor has adequate ventilation
-# pcb:sch BME280 x=24.4000 y=202.2000 rot=0
-# pcb:sch C_VDD.C x=-97.5200 y=316.5000 rot=0
-# pcb:sch R_SCL.R x=382.5400 y=214.9000 rot=180
-# pcb:sch R_SDA.R x=484.1400 y=214.9000 rot=180
-# pcb:sch GND.1 x=113.3000 y=545.1000 rot=0
 # pcb:sch VDD.1 x=118.3800 y=138.7000 rot=0
 # pcb:sch VCC.1 x=118.3800 y=100.6000 rot=0
 # pcb:sch C_VDDIO.C x=524.7800 y=240.3000 rot=0
-# pcb:sch CSB.VCC.1 x=92.9800 y=100.6000 rot=0
-# pcb:sch VDD.VCC.1 x=-84.8200 y=151.4000 rot=0
-# pcb:sch VDDIO.VCC.1 x=219.9800 y=126.0000 rot=0
+# pcb:sch CSB_VCC.1 x=92.9800 y=100.6000 rot=0
+# pcb:sch VDDIO_VCC.1 x=219.9800 y=126.0000 rot=0
 
 # pcb:sch TP_SCL.TP x=346.9800 y=54.8800 rot=0
 # pcb:sch TP_SDA.TP x=423.1800 y=54.8800 rot=0
@@ -152,3 +145,11 @@ if add_test_points:
 # pcb:sch TP_SCK.TP x=321.5800 y=143.7800 rot=0
 # pcb:sch TP_SDI.TP x=359.6800 y=143.7800 rot=0
 # pcb:sch TP_SDO.TP x=283.4800 y=143.7800 rot=0
+
+# pcb:sch BME280 x=24.4000 y=202.2000 rot=0
+# pcb:sch C_BULK.C x=766.0800 y=303.8000 rot=0
+# pcb:sch C_VDD.C x=-97.5200 y=316.5000 rot=0
+# pcb:sch R_SCL.R x=382.5400 y=214.9000 rot=180
+# pcb:sch R_SDA.R x=484.1400 y=214.9000 rot=180
+# pcb:sch GND.1 x=113.3000 y=545.1000 rot=0
+# pcb:sch VDD_VCC.1 x=-84.8200 y=151.4000 rot=0

@@ -128,8 +128,8 @@ Component(
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
         "VREF": _VREF,
-        "VOUT": VOUT
-    }
+        "VOUT": VOUT,
+    },
 )
 
 # Power supply decoupling
@@ -139,16 +139,16 @@ if add_power_decoupling:
         value = "100nF",
         package = passives_size,
         P1 = VDD.NET,
-        P2 = GND
+        P2 = GND,
     )
-    
+
     if add_vlogic_supply:
         Capacitor(
             name = "C_VLOGIC",
             value = "100nF",
             package = passives_size,
             P1 = _VLOGIC,
-            P2 = GND
+            P2 = GND,
         )
 
 # Bulk capacitor
@@ -158,7 +158,7 @@ if add_bulk_capacitor:
         value = "10uF",
         package = bulk_cap_size,
         P1 = VDD.NET,
-        P2 = GND
+        P2 = GND,
     )
 
 # Reference decoupling
@@ -168,7 +168,7 @@ if add_reference_decoupling:
         value = reference_cap_value,
         package = passives_size,
         P1 = _VREF,
-        P2 = GND
+        P2 = GND,
     )
 
 # I2C pull-up resistors
@@ -178,7 +178,7 @@ if add_i2c_pullups:
         value = "4.7kohms",
         package = passives_size,
         P1 = i2c.SCL,
-        P2 = VDD.NET
+        P2 = VDD.NET,
     )
 
     Resistor(
@@ -186,7 +186,7 @@ if add_i2c_pullups:
         value = "4.7kohms",
         package = passives_size,
         P1 = i2c.SDA,
-        P2 = VDD.NET
+        P2 = VDD.NET,
     )
 
 # A0 address pin is internally connected based on i2c_address config
@@ -199,7 +199,7 @@ if reset_config == ResetConfig("Pullup"):
         value = "10kohms",
         package = passives_size,
         P1 = _RESET,
-        P2 = _VLOGIC if add_vlogic_supply else VDD.NET
+        P2 = _VLOGIC if add_vlogic_supply else VDD.NET,
     )
 elif reset_config == ResetConfig("PullDown"):
     # Pull-down resistor to GND
@@ -208,8 +208,9 @@ elif reset_config == ResetConfig("PullDown"):
         value = "10kohms",
         package = passives_size,
         P1 = _RESET,
-        P2 = GND
+        P2 = GND,
     )
+
 # else: None - external control
 
 # LDAC pin configuration
@@ -220,7 +221,7 @@ if ldac_config == LDACConfig("PullDown"):
         value = "10kohms",
         package = passives_size,
         P1 = _LDAC,
-        P2 = GND
+        P2 = GND,
     )
 elif ldac_config == LDACConfig("Pullup"):
     # Pull-up resistor for asynchronous mode
@@ -229,66 +230,68 @@ elif ldac_config == LDACConfig("Pullup"):
         value = "10kohms",
         package = passives_size,
         P1 = _LDAC,
-        P2 = VDD.NET
+        P2 = VDD.NET,
     )
+
 # else: None - external control
 
 # Output filtering (optional)
 if add_output_filtering:
     _VOUT_FILTERED = Net("VOUT_FILTERED")
-    
+
     # Series resistor
     Resistor(
         name = "R_OUT",
         value = output_filter_r,
         package = passives_size,
         P1 = VOUT,
-        P2 = _VOUT_FILTERED
+        P2 = _VOUT_FILTERED,
     )
-    
+
     # Filter capacitor
     Capacitor(
         name = "C_OUT",
         value = output_filter_c,
         package = passives_size,
         P1 = _VOUT_FILTERED,
-        P2 = GND
+        P2 = GND,
     )
-    
+
 # Test points (optional)
 if add_test_points:
     TestPoint(
         name = "TP_VOUT",
         variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = VOUT
+        P1 = VOUT,
     )
-    
+
     if reference_mode != ReferenceMode("Internal"):
         TestPoint(
             name = "TP_VREF",
             variant = "THTPad_D1.0mm_Drill0.5mm",
-            P1 = _VREF
+            P1 = _VREF,
         )
 
 # PCB placement hints
+# pcb:sch NT_A0.NT x=850.0 y=950.0 rot=0
+# pcb:sch VDD.1 x=1150.0 y=800.0 rot=0
+# pcb:sch NT_VOUT.NT x=1878.6000 y=443.5000 rot=0
+# pcb:sch A0_VCC.1 x=1045.4800 y=888.0000 rot=0
+
 # pcb:sch AD5692R x=951.5000 y=976.9000 rot=0
-# pcb:sch C_VDD.C x=562.8800 y=1040.4000 rot=0
 # pcb:sch C_BULK.C x=664.4800 y=1040.4000 rot=0
+# pcb:sch C_OUT.C x=1337.5800 y=1116.6000 rot=0
 # pcb:sch C_REF.C x=1159.7800 y=1129.3000 rot=0
+# pcb:sch C_VDD.C x=562.8800 y=1040.4000 rot=0
+# pcb:sch C_VLOGIC.C x=1439.1800 y=1065.8000 rot=0
+# pcb:sch R_LDAC.R x=788.9400 y=1103.9000 rot=90
+# pcb:sch R_OUT.R x=1271.5400 y=1040.4000 rot=270
+# pcb:sch R_RESET.R x=776.2400 y=938.8000 rot=180
 # pcb:sch R_SCL.R x=903.2400 y=938.8000 rot=180
 # pcb:sch R_SDA.R x=839.7400 y=938.8000 rot=180
-# pcb:sch NT_A0.NT x=850.0 y=950.0 rot=0
-# pcb:sch GND.1 x=1040.4000 y=1243.6000 rot=0
-# pcb:sch VDD.1 x=1150.0 y=800.0 rot=0
-# pcb:sch C_OUT.C x=1337.5800 y=1116.6000 rot=0
-# pcb:sch C_VLOGIC.C x=1439.1800 y=1065.8000 rot=0
-# pcb:sch NT_VOUT.NT x=1878.6000 y=443.5000 rot=0
-# pcb:sch R_OUT.R x=1271.5400 y=1040.4000 rot=270
 # pcb:sch TP_VOUT.TP x=1210.5800 y=999.7600 rot=0
 # pcb:sch TP_VREF.TP x=1210.5800 y=910.8600 rot=0
-# pcb:sch VDD.VCC.1 x=1070.8800 y=888.0000 rot=0
-# pcb:sch VLOGIC.VCC.1 x=1045.4800 y=888.0000 rot=0
-# pcb:sch VREF.VCC.1 x=1172.4800 y=888.0000 rot=0
-# pcb:sch R_RESET.R x=776.2400 y=938.8000 rot=180
-# pcb:sch A0.VCC.1 x=1045.4800 y=888.0000 rot=0
-# pcb:sch R_LDAC.R x=788.9400 y=1103.9000 rot=90
+# pcb:sch GND.1 x=1040.4000 y=1243.6000 rot=0
+# pcb:sch VDD_VCC.1 x=1070.8800 y=888.0000 rot=0
+# pcb:sch VLOGIC_VCC.1 x=1045.4800 y=824.5000 rot=0
+# pcb:sch VREF_VCC.1 x=1172.4800 y=888.0000 rot=0
