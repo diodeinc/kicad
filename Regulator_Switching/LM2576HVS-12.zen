@@ -17,8 +17,8 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
-Inductor = Module("@stdlib:zen-symbols/generics/Inductor.zen")
-Diode = Module("@stdlib:zen-symbols/generics/Diode.zen")
+Inductor = Module("@stdlib/generics/Inductor.zen")
+Diode = Module("@stdlib/generics/Diode.zen")
 
 # Types
 InductorValue = enum("68uH", "100uH", "150uH", "220uH", "330uH")
