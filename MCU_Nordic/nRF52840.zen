@@ -97,20 +97,20 @@ else:
     _XC2 = Net("XC2")
 
 if add_lf_clock:
-    _XL1 = Net("XL1/P0.00")
-    _XL2 = Net("XL2/P0.01")
+    _XL1 = Net("XL1_P0_00")
+    _XL2 = Net("XL2_P0_01")
 else:
-    XL1_P0_00 = io("XL1/P0.00", Net)
-    XL2_P0_01 = io("XL2/P0.01", Net)
+    XL1_P0_00 = io("XL1_P0_00", Net)
+    XL2_P0_01 = io("XL2_P0_01", Net)
     _XL1 = XL1_P0_00
     _XL2 = XL2_P0_01
 
 # Reset pin
 if reset_configuration == ResetConfiguration("None") or reset_configuration == ResetConfiguration("Pullup"):
-    RESET = io("P0.18/RESET", Net)
+    RESET = io("P0_18_RESET", Net)
     _RESET = RESET
 else:
-    _RESET = Net("P0.18/RESET")
+    _RESET = Net("P0_18_RESET")
 
 # DCDC pins (always using DCDC mode)
 _DCC = Net("DCC")
@@ -125,18 +125,18 @@ else:
 
 # NFC pins
 if add_nfc_antenna:
-    _NFC1 = Net("NFC1/P0.09")
-    _NFC2 = Net("NFC2/P0.10")
+    _NFC1 = Net("NFC1_P0_09")
+    _NFC2 = Net("NFC2_P0_10")
 else:
-    NFC1_P0_09 = io("NFC1/P0.09", Net)
-    NFC2_P0_10 = io("NFC2/P0.10", Net)
+    NFC1_P0_09 = io("NFC1_P0_09", Net)
+    NFC2_P0_10 = io("NFC2_P0_10", Net)
     _NFC1 = NFC1_P0_09
     _NFC2 = NFC2_P0_10
 
 # USB pins
 if add_usb:
-    _USB_DM = usb.DM
-    _USB_DP = usb.DP
+    _USB_DM = usb.D.N
+    _USB_DP = usb.D.P
 else:
     USB_DM = io("D-", Net)
     USB_DP = io("D+", Net)
@@ -154,49 +154,49 @@ else:
     _SWDIO = SWDIO
 
 # GPIO pins - expose remaining pins
-P0_02 = io("AIN0/P0.02", Net)
-P0_03 = io("AIN1/P0.03", Net)
-P0_04 = io("AIN2/P0.04", Net)
-P0_05 = io("AIN3/P0.05", Net)
-P0_06 = io("P0.06", Net)
-P0_07 = io("TRACECLK/P0.07", Net)
-P0_08 = io("P0.08", Net)
-P0_11 = io("TRACEDATA2/P0.11", Net)
-P0_12 = io("TRACEDATA1/P0.12", Net)
-P0_13 = io("P0.13", Net)
-P0_14 = io("P0.14", Net)
-P0_15 = io("P0.15", Net)
-P0_16 = io("P0.16", Net)
-P0_17 = io("P0.17", Net)
-P0_19 = io("P0.19", Net)
-P0_20 = io("P0.20", Net)
-P0_21 = io("P0.21", Net)
-P0_22 = io("P0.22", Net)
-P0_23 = io("P0.23", Net)
-P0_24 = io("P0.24", Net)
-P0_25 = io("P0.25", Net)
-P0_26 = io("P0.26", Net)
-P0_27 = io("P0.27", Net)
-P0_28 = io("AIN4/P0.28", Net)
-P0_29 = io("AIN5/P0.29", Net)
-P0_30 = io("AIN6/P0.30", Net)
-P0_31 = io("AIN7/P0.31", Net)
-P1_00 = io("TRACEDATA0/P1.00", Net)
-P1_01 = io("P1.01", Net)
-P1_02 = io("P1.02", Net)
-P1_03 = io("P1.03", Net)
-P1_04 = io("P1.04", Net)
-P1_05 = io("P1.05", Net)
-P1_06 = io("P1.06", Net)
-P1_07 = io("P1.07", Net)
-P1_08 = io("P1.08", Net)
-P1_09 = io("TRACEDATA3/P1.09", Net)
-P1_10 = io("P1.10", Net)
-P1_11 = io("P1.11", Net)
-P1_12 = io("P1.12", Net)
-P1_13 = io("P1.13", Net)
-P1_14 = io("P1.14", Net)
-P1_15 = io("P1.15", Net)
+P0_02 = io("AIN0_P0_02", Net)
+P0_03 = io("AIN1_P0_03", Net)
+P0_04 = io("AIN2_P0_04", Net)
+P0_05 = io("AIN3_P0_05", Net)
+P0_06 = io("P0_06", Net)
+P0_07 = io("TRACECLK_P0_07", Net)
+P0_08 = io("P0_08", Net)
+P0_11 = io("TRACEDATA2_P0_11", Net)
+P0_12 = io("TRACEDATA1_P0_12", Net)
+P0_13 = io("P0_13", Net)
+P0_14 = io("P0_14", Net)
+P0_15 = io("P0_15", Net)
+P0_16 = io("P0_16", Net)
+P0_17 = io("P0_17", Net)
+P0_19 = io("P0_19", Net)
+P0_20 = io("P0_20", Net)
+P0_21 = io("P0_21", Net)
+P0_22 = io("P0_22", Net)
+P0_23 = io("P0_23", Net)
+P0_24 = io("P0_24", Net)
+P0_25 = io("P0_25", Net)
+P0_26 = io("P0_26", Net)
+P0_27 = io("P0_27", Net)
+P0_28 = io("AIN4_P0_28", Net)
+P0_29 = io("AIN5_P0_29", Net)
+P0_30 = io("AIN6_P0_30", Net)
+P0_31 = io("AIN7_P0_31", Net)
+P1_00 = io("TRACEDATA0_P1_00", Net)
+P1_01 = io("P1_01", Net)
+P1_02 = io("P1_02", Net)
+P1_03 = io("P1_03", Net)
+P1_04 = io("P1_04", Net)
+P1_05 = io("P1_05", Net)
+P1_06 = io("P1_06", Net)
+P1_07 = io("P1_07", Net)
+P1_08 = io("P1_08", Net)
+P1_09 = io("TRACEDATA3_P1_09", Net)
+P1_10 = io("P1_10", Net)
+P1_11 = io("P1_11", Net)
+P1_12 = io("P1_12", Net)
+P1_13 = io("P1_13", Net)
+P1_14 = io("P1_14", Net)
+P1_15 = io("P1_15", Net)
 
 # Main component
 Component(
@@ -430,8 +430,8 @@ if add_usb:
         # VBUS decoupling
         Capacitor(name = "C_VBUS", value = "4.7uF", package = "0603", P1 = VUSB, P2 = GND)
         # Series resistors on USB data lines
-        Resistor(name = "R_USB_DP", value = "27ohms", package = "0402", P1 = _USB_DP, P2 = usb.DP)
-        Resistor(name = "R_USB_DM", value = "27ohms", package = "0402", P1 = _USB_DM, P2 = usb.DM)
+        Resistor(name = "R_USB_DP", value = "27ohms", package = "0402", P1 = _USB_DP, P2 = usb.D.P)
+        Resistor(name = "R_USB_DM", value = "27ohms", package = "0402", P1 = _USB_DM, P2 = usb.D.N)
     
     # USB Power Regulation
     if power_from_usb and add_usb_c_connector:

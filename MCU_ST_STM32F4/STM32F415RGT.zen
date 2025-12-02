@@ -164,8 +164,8 @@ PD2 = io("PD2", Net)
 if add_usb:
     usb = io("USB", Usb2)
     VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
-    PA11 = usb.DM
-    PA12 = usb.DP
+    PA11 = usb.D.N
+    PA12 = usb.D.P
 else:
     PA11 = io("PA11", Net)
     PA12 = io("PA12", Net)

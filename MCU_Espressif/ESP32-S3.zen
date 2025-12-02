@@ -179,8 +179,8 @@ else:
 
 # USB pins
 if add_usb_circuit:
-    _GPIO19 = usb.DM
-    _GPIO20 = usb.DP
+    _GPIO19 = usb.D.N
+    _GPIO20 = usb.D.P
 else:
     _GPIO19 = Net("GPIO19/USB_D-")
     _GPIO20 = Net("GPIO20/USB_D+")

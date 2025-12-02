@@ -110,8 +110,8 @@ Component(
     footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm.kicad_mod"),
     pins = {
         "RUN": RUN,
-        "USB_DP": _usb.DP if add_usb_series_resistors else usb.DP,
-        "USB_DM": _usb.DM if add_usb_series_resistors else usb.DM,
+        "USB_DP": _usb.D.P if add_usb_series_resistors else usb.D.P,
+        "USB_DM": _usb.D.N if add_usb_series_resistors else usb.D.N,
         "QSPI_SS": qspi.CS,
         "QSPI_SD0": qspi.IO0,
         "QSPI_SD1": qspi.IO1,
@@ -257,15 +257,15 @@ if add_usb_series_resistors:
         name = "r_usb_dp",
         value = "27ohm 5%",
         package = "0402",
-        P1 = _usb.DP,
-        P2 = usb.DP,
+        P1 = _usb.D.P,
+        P2 = usb.D.P,
     )
     Resistor(
         name = "r_usb_dm",
         value = "27ohm 5%",
         package = "0402",  
-        P1 = _usb.DM,
-        P2 = usb.DM,
+        P1 = _usb.D.N,
+        P2 = usb.D.N,
     )
 
 if add_qspi_flash:

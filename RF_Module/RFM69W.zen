@@ -27,7 +27,7 @@ add_bulk_caps = config("add_bulk_caps", bool, default = True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
 
 # External IO
-VDD = io("3.3V", Power, default = Power("3.3V"))
+VDD = io("VDD_3V3", Power, default = Power("VDD_3V3"))
 GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
 
 # SPI Interface
@@ -110,5 +110,5 @@ elif antenna_connector == AntennaConnector("SMA"):
 # pcb:sch C_VDD2.C x=778.7800 y=557.8000 rot=0
 # pcb:sch J_ANT x=1243.6000 y=501.4343 rot=0
 # pcb:sch RFM69W x=938.8000 y=468.9000 rot=0
-# pcb:sch 3.3V_VCC.1 x=1058.1800 y=392.7000 rot=0
+# pcb:sch VDD_3V3_VCC.1 x=1058.1800 y=392.7000 rot=0
 # pcb:sch GND.1 x=1078.5000 y=786.4000 rot=0

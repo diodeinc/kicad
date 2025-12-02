@@ -28,7 +28,7 @@ GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.
 
 # 1A Low Dropout regulator, positive, 5.0V fixed output, TO-252
 Component(
-    name = "AMS1117CD-5.0",
+    name = "AMS1117CD_5V0",
     symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AMS1117CD-5.0"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-252-3_TabPin2.kicad_mod"),
     pins = {
@@ -68,7 +68,7 @@ if add_protection_diode:
         },
     )
 
-# pcb:sch AMS1117CD-5.0 x=279.4000 y=342.9000 rot=0
+# pcb:sch AMS1117CD_5V0 x=279.4000 y=342.9000 rot=0
 # pcb:sch C_IN_BULK.C x=88.9000 y=381.0000 rot=0
 # pcb:sch C_IN_HF.C x=177.8000 y=381.0000 rot=0
 # pcb:sch C_OUT.C x=495.3000 y=381.0000 rot=0

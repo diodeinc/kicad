@@ -98,7 +98,7 @@ if power_supply_config == PowerSupplyConfiguration("Noisy"):
     FerriteBead(
         name = "FB_VCC",
         frequency = "100MHz",
-        resistance = "600ohm",
+        value = "600ohm",
         package = "0603",
         P1 = VCC,
         P2 = _VCC_CHIP,  # Connect filtered output to chip power net

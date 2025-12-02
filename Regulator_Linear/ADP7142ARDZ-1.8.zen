@@ -38,7 +38,7 @@ _SS = Net("SS")
 
 # 200mA, Low Noise, CMOS Low Dropout Regulator, Positive, 1.8V Fixed Output, SOIC-8
 Component(
-    name = "ADP7142ARDZ-1.8",
+    name = "ADP7142ARDZ_1V8",
     symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "ADP7142ARDZ-1.8"),
     footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.29x3mm.kicad_mod"),
     pins = {
@@ -95,7 +95,7 @@ if add_sense_resistor:
     # Low value resistor for Kelvin sensing at the load
     Resistor(name = "R_SENSE", value = "10ohms", package = "0402", P1 = VOUT, P2 = _SENSE)
 
-# pcb:sch ADP7142ARDZ-1.8 x=-50.8000 y=-177.8000 rot=0
+# pcb:sch ADP7142ARDZ_1V8 x=-50.8000 y=-177.8000 rot=0
 # pcb:sch C_IN.C x=-304.8000 y=-165.1000 rot=0
 # pcb:sch C_IN_HF.C x=-215.9000 y=-165.1000 rot=0
 # pcb:sch C_OUT.C x=292.1000 y=-165.1000 rot=0

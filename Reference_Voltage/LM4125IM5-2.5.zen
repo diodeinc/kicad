@@ -31,7 +31,7 @@ _NC = Net("NC")
 
 # 2.5V ±0.5% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
 Component(
-    name = "LM4125IM5-2.5",
+    name = "LM4125IM5_2V5",
     symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "LM4125IM5-2.5"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
     pins = {
@@ -53,7 +53,7 @@ if add_input_cap:
     # 100nF ceramic helps prevent line transients from affecting output
     Capacitor(name = "C_IN", value = "100nF", package = "0603", P1 = VIN, P2 = GND)
 
-# pcb:sch LM4125IM5-2.5 x=152.4000 y=127.0000 rot=0
+# pcb:sch LM4125IM5_2V5 x=152.4000 y=127.0000 rot=0
 # pcb:sch C_OUT x=50.8000 y=0.0000 rot=0
 # pcb:sch C_IN x=-50.8000 y=0.0000 rot=0
 # pcb:sch C_OUT.C x=368.3000 y=177.8000 rot=0

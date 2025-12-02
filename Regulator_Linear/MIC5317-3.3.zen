@@ -34,7 +34,7 @@ _NC = Net("NC")
 
 # 150mA Low-dropout Voltage Regulator, Vout 3.3V, Vin up to 6V, SOT23-5
 Component(
-    name = "MIC5317-3.3",
+    name = "MIC5317_3V3",
     symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MIC5317-3.3xM5"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
     pins = {
@@ -60,7 +60,7 @@ if enable_control:
     if add_enable_pullup:
         Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN, P2 = VIN)
 
-# pcb:sch MIC5317-3.3 x=-50.8000 y=-101.6000 rot=0
+# pcb:sch MIC5317_3V3 x=-50.8000 y=-101.6000 rot=0
 # pcb:sch C_IN.C x=-203.2000 y=-63.5000 rot=0
 # pcb:sch C_OUT.C x=165.1000 y=-63.5000 rot=0
 # pcb:sch R_EN.R x=-114.3000 y=-63.5000 rot=180

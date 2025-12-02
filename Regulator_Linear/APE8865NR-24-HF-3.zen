@@ -49,9 +49,9 @@ Component(
 # Input Capacitor - Recommended for improved transient response
 if add_input_cap:
     # Determine bulk capacitor package based on passive_size
-    if passive_size == "0402":
+    if passive_size == PackageSize("0402"):
         bulk_package = "0603"  # Minimum size for bulk caps
-    elif passive_size == "1206":
+    elif passive_size == PackageSize("1206"):
         bulk_package = "1206"
     else:
         bulk_package = "0805"  # Default for 0603 and 0805 configs
@@ -60,14 +60,14 @@ if add_input_cap:
     Capacitor(name = "C_IN_BULK", value = "10uF", package = bulk_package, P1 = VIN, P2 = GND)
     
     # High-frequency decoupling
-    Capacitor(name = "C_IN_HF", value = "100nF", package = passive_size, P1 = VIN, P2 = GND)
+    Capacitor(name = "C_IN_HF", value = "100nF", package = passive_size.value, P1 = VIN, P2 = GND)
 
 # Output Capacitor - Required 1µF minimum for stability
 if add_output_cap:
     # Determine output capacitor package based on passive_size
-    if passive_size == "0402":
+    if passive_size == PackageSize("0402"):
         out_package = "0805"  # Minimum size for 22uF
-    elif passive_size == "0603":
+    elif passive_size == PackageSize("0603"):
         out_package = "1206"  # Standard for 22uF
     else:
         out_package = "1210"  # Larger sizes for better performance
@@ -76,7 +76,7 @@ if add_output_cap:
     Capacitor(name = "C_OUT", value = "22uF", package = out_package, P1 = VOUT, P2 = GND)
     
     # Additional ceramic for improved high-frequency response
-    Capacitor(name = "C_OUT_HF", value = "100nF", package = passive_size, P1 = VOUT, P2 = GND)
+    Capacitor(name = "C_OUT_HF", value = "100nF", package = passive_size.value, P1 = VOUT, P2 = GND)
 
 # Protection Diode - Optional for high-value output capacitors
 if add_protection_diode:
@@ -101,7 +101,7 @@ if add_power_led:
     Led(
         name = "LED_PWR",
         color = "green",
-        package = passive_size,
+        package = passive_size.value,
         A = VOUT,
         K = _LED_K
     )
@@ -112,7 +112,7 @@ if add_power_led:
     Resistor(
         name = "R_LED",
         value = "390ohms",
-        package = passive_size,
+        package = passive_size.value,
         P1 = _LED_K,
         P2 = GND
     )

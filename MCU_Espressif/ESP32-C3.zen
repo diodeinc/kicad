@@ -196,8 +196,8 @@ U0RXD = io("U0RXD", Net)
 
 # USB pins
 if add_usb_circuit:
-    _GPIO18 = usb.DM
-    _GPIO19 = usb.DP
+    _GPIO18 = usb.D.N
+    _GPIO19 = usb.D.P
 else:
     GPIO18 = io("GPIO18", Net)
     GPIO19 = io("GPIO19", Net)

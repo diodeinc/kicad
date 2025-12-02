@@ -1,3 +1,6 @@
+[packages]
+stdlib = "@github/diodeinc/stdlib:v0.4.0"
+
 [workspace]
 
 [[workspace.INA138]]

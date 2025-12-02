@@ -52,7 +52,7 @@ _FB = VOUT  # For fixed 3.3V version, FB connects directly to output
 
 # 2.5A Synchronous Buck Regulator, 4.5-16.5V Input Voltage, 3.3V Fixed Output Voltage, SO-20W
 Component(
-    name = "MIC2178-3.3",
+    name = "MIC2178_3V3",
     symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "MIC2178-3.3"),
     footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-20W_7.5x12.8mm_P1.27mm.kicad_mod"),
     pins = {
@@ -130,7 +130,7 @@ if add_sync_pulldown:
 # Power Good Pull-up
 Resistor(name = "R_PWRGD", value = "20kohms", package = "0402", P1 = PWRGD, P2 = VOUT)
 
-# pcb:sch MIC2178-3.3 x=342.9000 y=203.2000 rot=0
+# pcb:sch MIC2178_3V3 x=342.9000 y=203.2000 rot=0
 # pcb:sch C_IN.C x=-88.9000 y=254.0000 rot=0
 # pcb:sch C_IN_HF.C x=-25.4000 y=254.0000 rot=0
 # pcb:sch L_OUT.L x=660.4000 y=152.4000 rot=270

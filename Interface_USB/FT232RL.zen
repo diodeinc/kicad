@@ -103,8 +103,8 @@ Component(
     footprint = File("@kicad-footprints/Package_SO.pretty/SSOP-28_5.3x10.2mm_P0.65mm.kicad_mod"),
     pins = {
         "3V3OUT": VOUT_3V3,
-        "USBD+": usb.DP,
-        "USBD-": usb.DM,
+        "USBD+": usb.D.P,
+        "USBD-": usb.D.N,
         "~{RESET}": NRESET,
         "OSCI": Net("NC_OSCI"),  # Using internal oscillator
         "OSCO": Net("NC_OSCO"),  # Not connected when using internal oscillator

@@ -35,7 +35,7 @@ GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.
 
 # -200mA, Low Noise, CMOS Low Dropout Regulator, Negative, -5.0V Fixed Output, TSOT-23-5
 Component(
-    name = "ADP7182AUJZ-5.0",
+    name = "ADP7182AUJZ_5V0",
     symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "ADP7182AUJZ-5.0"),
     footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-5.kicad_mod"),
     pins = {
@@ -146,7 +146,7 @@ if add_output_discharge:
         P2 = GND
     )
 
-# pcb:sch ADP7182AUJZ-5.0 x=621.3000 y=303.8000 rot=0
+# pcb:sch ADP7182AUJZ_5V0 x=621.3000 y=303.8000 rot=0
 # pcb:sch C_BULK_IN.C x=423.1800 y=316.5000 rot=180
 # pcb:sch C_BULK_OUT.C x=1312.1800 y=316.5000 rot=180
 # pcb:sch C_IN.C x=67.5800 y=316.5000 rot=180

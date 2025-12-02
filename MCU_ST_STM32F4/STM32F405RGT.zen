@@ -77,8 +77,8 @@ GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.
 if add_usb:
     VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
     usb = io("USB", Usb2, default = Usb2("USB"))
-    USB_DM = usb.DM
-    USB_DP = usb.DP
+    USB_DM = usb.D.N
+    USB_DP = usb.D.P
 
 # SWD IO (if enabled)
 if add_swd_header:
@@ -204,7 +204,7 @@ if add_vdda_filter:
     FerriteBead(
         name = "FB_VDDA",
         frequency = "100MHz",
-        resistance = "600 ohm",
+        value = "600ohm",
         package = passives_size.value,
         P1 = VDD,
         P2 = _VDDA,

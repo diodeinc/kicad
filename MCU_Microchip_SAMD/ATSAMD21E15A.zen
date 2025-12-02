@@ -125,8 +125,8 @@ if not add_usb:
     PA24 = io("PA24", Net)
     PA25 = io("PA25", Net)
 else:
-    PA24 = usb.DM
-    PA25 = usb.DP
+    PA24 = usb.D.N
+    PA25 = usb.D.P
 
 if not add_swd_header:
     PA30 = io("PA30", Net)
