@@ -164,43 +164,17 @@ if add_test_points:
     TestPoint(name = "TP_VCCB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VCCB)
     TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
 
-# Schematic Layout
-# pcb:sch TCA9802 x=-64.5000 y=189.5000 rot=0
 
-# Power supply decoupling capacitors - VCCA side (left)
-# pcb:sch C_VCCA.C x=-101.6000 y=50.8000 rot=0
-# pcb:sch C_VCCA1.C x=-478.5200 y=278.4000 rot=0
-# pcb:sch C_VCCA2.C x=-376.9200 y=278.4000 rot=0
-# pcb:sch C_VCCA3.C x=-288.0200 y=278.4000 rot=0
-
-# Power supply decoupling capacitors - VCCB side (right)
-# pcb:sch C_VCCB.C x=101.6000 y=50.8000 rot=0
-# pcb:sch C_VCCB1.C x=270.7800 y=265.7000 rot=0
-# pcb:sch C_VCCB2.C x=385.0800 y=265.7000 rot=0
-# pcb:sch C_VCCB3.C x=486.6800 y=265.7000 rot=0
-
-# A-side pull-up resistors (left side)
-# pcb:sch R_SCLA_PU.R x=-112.7600 y=202.2000 rot=180
-# pcb:sch R_SDAA_PU.R x=-176.2600 y=202.2000 rot=180
-
-# Enable control (bottom)
-# pcb:sch R_EN_PU.R x=-239.7600 y=202.2000 rot=180
-
-# Test points - A-side
-# pcb:sch TP_SCLA.TP x=-127.0000 y=-101.6000 rot=0
-# pcb:sch TP_SDAA.TP x=-127.0000 y=-76.2000 rot=0
-
-# Test points - B-side
-# pcb:sch TP_SCLB.TP x=127.0000 y=-101.6000 rot=0
-# pcb:sch TP_SDAB.TP x=127.0000 y=-76.2000 rot=0
-
-# Test points - Power
-# pcb:sch TP_VCCA.TP x=-177.8000 y=0.0000 rot=0
-# pcb:sch TP_VCCB.TP x=177.8000 y=0.0000 rot=0
-# pcb:sch TP_GND.TP x=0.0000 y=152.4000 rot=0
-# pcb:sch TP_EN.TP x=0.0000 y=-127.0000 rot=0
-
-# Power symbols
-# pcb:sch VCCA.1 x=-8.6200 y=100.6000 rot=0
-# pcb:sch VCCB.1 x=67.5800 y=100.6000 rot=0
-# pcb:sch GND.1 x=24.4000 y=468.9000 rot=0
+# pcb:sch C_VCCA1.C x=-211.8200 y=240.3000 rot=0
+# pcb:sch C_VCCA2.C x=-97.5200 y=240.3000 rot=0
+# pcb:sch C_VCCA3.C x=4.0800 y=240.3000 rot=0
+# pcb:sch C_VCCB1.C x=702.5800 y=240.3000 rot=0
+# pcb:sch C_VCCB2.C x=829.5800 y=240.3000 rot=0
+# pcb:sch C_VCCB3.C x=956.5800 y=240.3000 rot=0
+# pcb:sch GND.2 x=443.5000 y=481.6000 rot=0
+# pcb:sch R_EN_PU.R x=103.1400 y=227.6000 rot=180
+# pcb:sch R_SCLA_PU.R x=280.9400 y=176.8000 rot=180
+# pcb:sch R_SDAA_PU.R x=192.0400 y=227.6000 rot=180
+# pcb:sch TCA9802 x=354.6000 y=202.2000 rot=0
+# pcb:sch VCCA.2 x=410.4800 y=87.9000 rot=0
+# pcb:sch VCCB.2 x=486.6800 y=87.9000 rot=0
