@@ -106,9 +106,10 @@ if add_output_cap:
 
 # Compensation Network - RC network on COMP pin
 if add_compensation:
-    # Series RC compensation
-    Resistor(name = "R_COMP", value = "10kohms", package = "0402", P1 = _COMP, P2 = Net("COMP_C"))
-    Capacitor(name = "C_COMP", value = "6.8nF", package = "0402", P1 = Net("COMP_C"), P2 = GND)
+    # Series RC compensatio
+    COMP_C = Net("COMP_C")
+    Resistor(name = "R_COMP", value = "10kohms", package = "0402", P1 = _COMP, P2 = COMP_C)
+    Capacitor(name = "C_COMP", value = "6.8nF", package = "0402", P1 = COMP_C, P2 = GND)
 
 # BIAS Pin Bypass Capacitor & Resistor - Required per datasheet
 Capacitor(name = "C_BIAS", value = "10nF", package = "0402", P1 = _BIAS, P2 = GND)

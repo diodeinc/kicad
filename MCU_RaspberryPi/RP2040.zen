@@ -68,7 +68,7 @@ RUN = io("RUN", Net)
 TESTEN = io("TESTEN", Net)
 
 if add_usb_series_resistors:
-    _usb = Usb2("usb")
+    _usb = Usb2("RP_USB")
 
 # GPIO pins
 gpio0 = io("gpio0", Gpio)
