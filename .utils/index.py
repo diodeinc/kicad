@@ -192,16 +192,13 @@ def main(argv: list[str] | None = None) -> None:
     argv = argv or sys.argv[1:]
     root = Path(argv[0]).resolve() if argv else Path.cwd().resolve()
 
-    pcb_toml = root / "pcb.toml"
-    if not pcb_toml.exists():
-        print(f"error: {pcb_toml} not found", file=sys.stderr)
-        sys.exit(1)
+    index_toml = root / "index.toml"
 
     components = collect_components(root)
     toml_text = build_toml(components)
 
-    pcb_toml.write_text(toml_text, encoding="utf-8")
-    print(f"Updated {pcb_toml} with {len(components)} components.")
+    index_toml.write_text(toml_text, encoding="utf-8")
+    print(f"Updated {index_toml} with {len(components)} components.")
 
 
 if __name__ == "__main__":

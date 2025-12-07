@@ -1,0 +1,1824 @@
+[workspace]
+
+[[workspace.INA138]]
+name = "INA138"
+path = "Amplifier_Current/INA138.zen"
+category = "Amplifier_Current"
+description = "High-Side Measurement Current Shunt Monitor"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina138.pdf"
+
+
+[[workspace.INA139]]
+name = "INA139"
+path = "Amplifier_Current/INA139.zen"
+category = "Amplifier_Current"
+description = "High-Side Measurement Current Shunt Monitor"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina139.pdf"
+
+
+[[workspace.INA168]]
+name = "INA168"
+path = "Amplifier_Current/INA168.zen"
+category = "Amplifier_Current"
+description = "High-Side Measurement Current Shunt Monitor"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina168.pdf"
+
+
+[[workspace.INA169]]
+name = "INA169"
+path = "Amplifier_Current/INA169.zen"
+category = "Amplifier_Current"
+description = "High-Side Measurement Current Shunt Monitor"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina169.pdf"
+
+
+[[workspace.PGA112]]
+name = "PGA112"
+path = "Analog/PGA112.zen"
+category = "Analog"
+description = "Zero-Drift Programmable Gain Amplifier With MUX"
+datasheet = "https://www.ti.com/lit/ds/symlink/pga112.pdf"
+
+
+[[workspace.PGA113]]
+name = "PGA113"
+path = "Analog/PGA113.zen"
+category = "Analog"
+description = "Zero-Drift Programmable Gain Amplifier with 2-Channel Mux"
+datasheet = "https://www.ti.com/lit/ds/symlink/pga113.pdf"
+
+
+[[workspace.AD7171]]
+name = "AD7171"
+path = "Analog_ADC/AD7171.zen"
+category = "Analog_ADC"
+description = "16-Bit Sigma-Delta ADC with SPI Interface"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf"
+
+
+[[workspace.ADS1013]]
+name = "ADS1013"
+path = "Analog_ADC/ADS1013IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1013.pdf"
+
+
+[[workspace.ADS1014]]
+name = "ADS1014"
+path = "Analog_ADC/ADS1014IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface and Comparator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1014.pdf"
+
+
+[[workspace.ADS1015]]
+name = "ADS1015"
+path = "Analog_ADC/ADS1015IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1015.pdf"
+
+
+[[workspace.ADS1113]]
+name = "ADS1113"
+path = "Analog_ADC/ADS1113IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, I2C-Compatible, 860-SPS, 16-Bit ADC with Internal Reference and Oscillator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1113.pdf"
+
+
+[[workspace.ADS1114]]
+name = "ADS1114"
+path = "Analog_ADC/ADS1114IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, 16-Bit, 860-SPS ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1114.pdf"
+
+
+[[workspace.ADS1115]]
+name = "ADS1115"
+path = "Analog_ADC/ADS1115IDGS.zen"
+category = "Analog_ADC"
+description = "Ultra-Small, Low-Power, I2C-Compatible, 860-SPS, 16-Bit ADC with Internal Reference, Oscillator, and Programmable Comparator"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads1115.pdf"
+
+
+[[workspace.ADS7029]]
+name = "ADS7029"
+path = "Analog_ADC/ADS7029.zen"
+category = "Analog_ADC"
+description = "Small-Size, Low-Power, 8-Bit, 2-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7029-q1.pdf"
+
+
+[[workspace.ADS7039]]
+name = "ADS7039"
+path = "Analog_ADC/ADS7039.zen"
+category = "Analog_ADC"
+description = "Small-Size, Low-Power, 10-Bit, 2-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7039-q1.pdf"
+
+
+[[workspace.ADS7040]]
+name = "ADS7040"
+path = "Analog_ADC/ADS7040.zen"
+category = "Analog_ADC"
+description = "Ultra-Low Power, Ultra-Small Size, 8-Bit, 1-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7040.pdf"
+
+
+[[workspace.ADS7041]]
+name = "ADS7041"
+path = "Analog_ADC/ADS7041.zen"
+category = "Analog_ADC"
+description = "Ultra-Low Power, Ultra-Small Size, 10-Bit, 1-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7041.pdf"
+
+
+[[workspace.ADS7042]]
+name = "ADS7042"
+path = "Analog_ADC/ADS7042.zen"
+category = "Analog_ADC"
+description = "Ultra-Low Power, Ultra-Small Size, 12-Bit, 1-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7042.pdf"
+
+
+[[workspace.ADS7043]]
+name = "ADS7043"
+path = "Analog_ADC/ADS7043.zen"
+category = "Analog_ADC"
+description = "Ultra-Low Power, Ultra-Small Size, 12-Bit, 1-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7043.pdf"
+
+
+[[workspace.ADS7044]]
+name = "ADS7044"
+path = "Analog_ADC/ADS7044.zen"
+category = "Analog_ADC"
+description = "Ultra-Low Power, Ultra-Small Size, 12-Bit, 1-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7044.pdf"
+
+
+[[workspace.ADS7049]]
+name = "ADS7049"
+path = "Analog_ADC/ADS7049.zen"
+category = "Analog_ADC"
+description = "Small-Size, Low-Power, 12-Bit, 2-MSPS, SAR ADC"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7049-q1.pdf"
+
+
+[[workspace.ADS7866]]
+name = "ADS7866"
+path = "Analog_ADC/ADS7866.zen"
+category = "Analog_ADC"
+description = "12-Bit, 200-kSPS, Micro-Power SAR ADC with SPI Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7866.pdf"
+
+
+[[workspace.ADS7867]]
+name = "ADS7867"
+path = "Analog_ADC/ADS7867.zen"
+category = "Analog_ADC"
+description = "10-Bit, 240-kSPS, Micro-Power SAR ADC with SPI Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7867.pdf"
+
+
+[[workspace.ADS7868]]
+name = "ADS7868"
+path = "Analog_ADC/ADS7868.zen"
+category = "Analog_ADC"
+description = "8-Bit, 280-kSPS, Micro-Power SAR ADC with SPI Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7868.pdf"
+
+
+[[workspace.AD5691R]]
+name = "AD5691R"
+path = "Analog_DAC/AD5691R.zen"
+category = "Analog_DAC"
+description = "12-Bit I2C nanoDAC+ with 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD5693R-AD5692R-AD5691R-AD5693.pdf"
+
+
+[[workspace.AD5692R]]
+name = "AD5692R"
+path = "Analog_DAC/AD5692R.zen"
+category = "Analog_DAC"
+description = "14-Bit I2C nanoDAC+ with 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ad5693r-5692r-5691r-5693.pdf"
+
+
+[[workspace.AD5693R]]
+name = "AD5693R"
+path = "Analog_DAC/AD5693R.zen"
+category = "Analog_DAC"
+description = "Tiny 16-Bit I2C nanoDAC+ with ±2 LSB INL and 2 ppm/°C Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/AD5693R_AD5692R_AD5691R_AD5693.pdf"
+
+
+[[workspace.ADS7830]]
+name = "ADS7830"
+path = "Analog_DAC/ADS7830.zen"
+category = "Analog_DAC"
+description = "8-Bit, 8-Channel Sampling ADC with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ads7830.pdf"
+
+
+[[workspace.DAC5311]]
+name = "DAC5311"
+path = "Analog_DAC/DAC5311.zen"
+category = "Analog_DAC"
+description = "8-Bit, Single-Channel, Voltage Output, Serial Interface Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac5311.pdf"
+
+
+[[workspace.DAC6311]]
+name = "DAC6311"
+path = "Analog_DAC/DAC6311.zen"
+category = "Analog_DAC"
+description = "10-Bit, Single-Channel, Voltage Output, Serial Interface Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac6311.pdf"
+
+
+[[workspace.DAC7311]]
+name = "DAC7311"
+path = "Analog_DAC/DAC7311.zen"
+category = "Analog_DAC"
+description = "12-Bit, Single-Channel, Voltage Output, Serial Interface Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac7311.pdf"
+
+
+[[workspace.DAC7513]]
+name = "DAC7513"
+path = "Analog_DAC/DAC7513.zen"
+category = "Analog_DAC"
+description = "12-Bit, Low-Power, Rail-to-Rail Output, Serial Input Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac7513.pdf"
+
+
+[[workspace.DAC8531E]]
+name = "DAC8531E"
+path = "Analog_DAC/DAC8531E.zen"
+category = "Analog_DAC"
+description = "Low-Power, Rail-to-Rail Output, 16-Bit Serial Input Digital-to-Analog Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/dac8531.pdf"
+
+
+[[workspace.MCP4725]]
+name = "MCP4725"
+path = "Analog_DAC/MCP4725.zen"
+category = "Analog_DAC"
+description = "12-Bit Digital-to-Analog Converter with EEPROM Memory"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+
+
+[[workspace.MCP4728]]
+name = "MCP4728"
+path = "Analog_DAC/MCP4728.zen"
+category = "Analog_DAC"
+description = "12-Bit, Quad Digital-to-Analog Converter with EEPROM Memory"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/22187E.pdf"
+
+
+[[workspace.DW01A]]
+name = "DW01A"
+path = "Battery_Management/DW01A.zen"
+category = "Battery_Management"
+description = "Battery Protection IC for Single-Cell Li-Ion/Li-Polymer Batteries"
+datasheet = "https://www.ic-fortune.com/upload/Download/DW01A-DS-17_EN.pdf"
+
+
+[[workspace.LTC3553]]
+name = "LTC3553"
+path = "Battery_Management/LTC3553.zen"
+category = "Battery_Management"
+description = "Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf"
+
+
+[[workspace.LTC3555]]
+name = "LTC3555"
+path = "Battery_Management/LTC3555.zen"
+category = "Battery_Management"
+description = "High Efficiency USB Power Manager + Triple Step-Down DC/DC"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/3555fc.pdf"
+
+
+[[workspace.TP4057]]
+name = "TP4057"
+path = "Battery_Management/TP4057.zen"
+category = "Battery_Management"
+description = "500mA Linear Li-Ion Battery Charger"
+datasheet = "https://datasheet.lcsc.com/lcsc/2304140030_TOPPOWER-Nanjing-Extension-Microelectronics-TP4057-42-SNT_C2832435.pdf"
+
+
+[[workspace.CDCV304]]
+name = "CDCV304"
+path = "Buffer/CDCV304.zen"
+category = "Buffer"
+description = "200-MHz General-Purpose Clock Buffer, PCI-X Compliant"
+datasheet = "https://www.ti.com/lit/ds/symlink/cdcv304.pdf"
+
+
+[[workspace.EA_T123X_I2C]]
+name = "EA T123X-I2C"
+path = "Display_Character/EA_T123X-I2C.zen"
+category = "Display_Character"
+description = "3x12 Character LCD Display with I²C Interface"
+datasheet = "https://www.lcd-module.de/eng/pdf/doma/t123-i2c.pdf"
+
+
+[[workspace.EA_DOGL128X_6]]
+name = "EA DOGL128X-6"
+path = "Display_Graphic/EA_DOGL128X-6.zen"
+category = "Display_Graphic"
+description = "128x64 Graphic Display with ST7565R Controller"
+datasheet = "https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf"
+
+
+[[workspace.PCA9685BS]]
+name = "PCA9685BS"
+path = "Driver_LED/PCA9685BS.zen"
+category = "Driver_LED"
+description = "16-channel 12-bit PWM Fm+ I2C-bus LED controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf"
+
+
+[[workspace.PCA9685PW]]
+name = "PCA9685PW"
+path = "Driver_LED/PCA9685PW.zen"
+category = "Driver_LED"
+description = "16-channel 12-bit PWM Fm+ I2C-bus LED controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf"
+
+
+[[workspace.TPS61165DBV]]
+name = "TPS61165DBV"
+path = "Driver_LED/TPS61165DBV.zen"
+category = "Driver_LED"
+description = "High-Brightness White LED Driver"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps61165.pdf"
+
+
+[[workspace.TCA9801]]
+name = "TCA9801"
+path = "Interface/TCA9801.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 1.1mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9801.pdf"
+
+
+[[workspace.TCA9802]]
+name = "TCA9802"
+path = "Interface/TCA9802.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 2.2mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9802.pdf"
+
+
+[[workspace.TCA9803]]
+name = "TCA9803"
+path = "Interface/TCA9803.zen"
+category = "Interface"
+description = "Level-Translating I2C Bus Buffer/Repeater with 3.3mA Current Source"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9803.pdf"
+
+
+[[workspace.LTC4317]]
+name = "LTC4317"
+path = "Interface_Expansion/LTC4317.zen"
+category = "Interface_Expansion"
+description = "Dual I²C/SMBus Address Translator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf"
+
+
+[[workspace.PCA9548ADB]]
+name = "PCA9548ADB"
+path = "Interface_Expansion/PCA9548ADB.zen"
+category = "Interface_Expansion"
+description = "Low voltage 8-channel I2C switch with reset"
+datasheet = "https://www.ti.com/lit/ds/symlink/pca9548a.pdf"
+
+
+[[workspace.PCA9548ADW]]
+name = "PCA9548ADW"
+path = "Interface_Expansion/PCA9548ADW.zen"
+category = "Interface_Expansion"
+description = "Low voltage 8-channel I2C switch with reset"
+datasheet = "https://www.ti.com/lit/ds/symlink/pca9548a.pdf"
+
+
+[[workspace.PCA9548APW]]
+name = "PCA9548APW"
+path = "Interface_Expansion/PCA9548APW.zen"
+category = "Interface_Expansion"
+description = "Low voltage 8-channel I2C switch with reset"
+datasheet = "https://www.ti.com/lit/ds/symlink/pca9548a.pdf"
+
+
+[[workspace.PCA9548ARGE]]
+name = "PCA9548ARGE"
+path = "Interface_Expansion/PCA9548ARGE.zen"
+category = "Interface_Expansion"
+description = "Low voltage 8-channel I2C switch with reset"
+datasheet = "https://www.ti.com/lit/ds/symlink/pca9548a.pdf"
+
+
+[[workspace.TCA9535MRGER]]
+name = "TCA9535MRGER"
+path = "Interface_Expansion/TCA9535MRGER.zen"
+category = "Interface_Expansion"
+description = "Low-Voltage 16-Bit I2C and SMBus Low-Power I/O Expander"
+datasheet = "https://www.ti.com/lit/ds/symlink/tca9535.pdf"
+
+
+[[workspace.ISL3172E]]
+name = "ISL3172E"
+path = "Interface_UART/ISL3172E.zen"
+category = "Interface_UART"
+description = "3.3V, ±15kV ESD Protected, 250kbps, Half-Duplex RS-485/RS-422 Transceiver"
+datasheet = "https://www.renesas.com/us/en/www/doc/datasheet/isl3170e-71e-72e-73e-74e-75e-76e-77e-78e.pdf"
+
+
+[[workspace.AP33771]]
+name = "AP33771"
+path = "Interface_USB/AP33771.zen"
+category = "Interface_USB"
+description = "USB Type-C PD Sink Controller"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP33771.pdf"
+
+
+[[workspace.FT232RL]]
+name = "FT232RL"
+path = "Interface_USB/FT232RL.zen"
+category = "Interface_USB"
+description = "USB to Serial UART Interface IC"
+datasheet = "https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf"
+
+
+[[workspace.WS2812B]]
+name = "WS2812B"
+path = "LED/WS2812B.zen"
+category = "LED"
+description = "Intelligent RGB LED with integrated controller"
+datasheet = "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf"
+
+
+[[workspace.ESP32_C3]]
+name = "ESP32-C3"
+path = "MCU_Espressif/ESP32-C3.zen"
+category = "MCU_Espressif"
+description = "Ultra-Low-Power SoC with RISC-V Single-Core CPU, 2.4 GHz Wi-Fi and Bluetooth 5 (LE)"
+datasheet = "https://www.espressif.com/documentation/esp32-c3_datasheet_en.pdf"
+
+
+[[workspace.ESP32_S3]]
+name = "ESP32-S3"
+path = "MCU_Espressif/ESP32-S3.zen"
+category = "MCU_Espressif"
+description = "Xtensa® 32-bit LX7 dual-core microprocessor with Wi-Fi and Bluetooth® 5 (LE)"
+datasheet = "https://www.espressif.com/documentation/esp32-s3_datasheet_en.pdf"
+
+
+[[workspace.ATmega328_A]]
+name = "ATmega328-A"
+path = "MCU_Microchip_ATmega/ATmega328-A.zen"
+category = "MCU_Microchip_ATmega"
+description = "8-bit AVR Microcontroller with 32K Bytes In-System Programmable Flash"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf"
+
+
+[[workspace.ATtiny85_20S]]
+name = "ATtiny85-20S"
+path = "MCU_Microchip_ATtiny/ATtiny85-20S.zen"
+category = "MCU_Microchip_ATtiny"
+description = "8-bit AVR Microcontroller with 8KB Flash, 512B SRAM, 512B EEPROM"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf"
+
+
+[[workspace.ATSAMD21E15A]]
+name = "ATSAMD21E15A"
+path = "MCU_Microchip_SAMD/ATSAMD21E15A.zen"
+category = "MCU_Microchip_SAMD"
+description = "ARM Cortex-M0+ 32-bit MCU, 48MHz, 32KB Flash, 4KB SRAM"
+datasheet = "https://www.microchip.com/en-us/product/ATSAMD21E15"
+
+
+[[workspace.ATSAMD21E18A]]
+name = "ATSAMD21E18A"
+path = "MCU_Microchip_SAMD/ATSAMD21E18A.zen"
+category = "MCU_Microchip_SAMD"
+description = "ARM Cortex-M0+ 32-bit MCU, 48MHz, 256KB Flash, 32KB SRAM"
+datasheet = "https://www.microchip.com/en-us/product/ATSAMD21E18"
+
+
+[[workspace.nRF52840]]
+name = "nRF52840"
+path = "MCU_Nordic/nRF52840.zen"
+category = "MCU_Nordic"
+description = "Multiprotocol BLE/ANT/2.4 GHz/802.15.4 Cortex-M4F SoC"
+datasheet = "https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html"
+
+
+[[workspace.RP2040]]
+name = "RP2040"
+path = "MCU_RaspberryPi/RP2040.zen"
+category = "MCU_RaspberryPi"
+description = "A microcontroller by Raspberry Pi"
+datasheet = "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf"
+
+
+[[workspace.STM32F072CBT]]
+name = "STM32F072CBT"
+path = "MCU_ST_STM32F0/STM32F072CBT.zen"
+category = "MCU_ST_STM32F0"
+description = "ARM Cortex-M0 32b MCU, 128KB Flash, 16KB RAM, USB, CAN"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f072cb.pdf"
+
+
+[[workspace.STM32F103C8T]]
+name = "STM32F103C8T"
+path = "MCU_ST_STM32F1/STM32F103C8T.zen"
+category = "MCU_ST_STM32F1"
+description = "Medium-density performance line ARM Cortex-M3 MCU"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f103c8.pdf"
+
+
+[[workspace.STM32F405RGT]]
+name = "STM32F405RGT"
+path = "MCU_ST_STM32F4/STM32F405RGT.zen"
+category = "MCU_ST_STM32F4"
+description = "ARM Cortex-M4 MCU with FPU, 1024KB Flash, 192KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f405rg.pdf"
+
+
+[[workspace.STM32F411CEU]]
+name = "STM32F411CEU"
+path = "MCU_ST_STM32F4/STM32F411CEU.zen"
+category = "MCU_ST_STM32F4"
+description = "ARM Cortex-M4 32b MCU+FPU, 125 DMIPS, 512KB Flash, 128KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f411ce.pdf"
+
+
+[[workspace.STM32F415RGT]]
+name = "STM32F415RGT"
+path = "MCU_ST_STM32F4/STM32F415RGT.zen"
+category = "MCU_ST_STM32F4"
+description = "ARM Cortex-M4 MCU with FPU, crypto, 1024KB Flash, 192KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32f415rg.pdf"
+
+
+[[workspace.STM32G030F6P]]
+name = "STM32G030F6P"
+path = "MCU_ST_STM32G0/STM32G030F6P.zen"
+category = "MCU_ST_STM32G0"
+description = "Arm® Cortex®-M0+ 32-bit MCU, 32KB Flash, 8KB RAM, 2x USART, timers, ADC"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32g030c6.pdf"
+
+
+[[workspace.STM32G431CBT]]
+name = "STM32G431CBT"
+path = "MCU_ST_STM32G4/STM32G431CBT.zen"
+category = "MCU_ST_STM32G4"
+description = "ARM Cortex-M4 32-bit MCU+FPU, 170MHz, 128KB Flash, 32KB RAM"
+datasheet = "https://www.st.com/resource/en/datasheet/stm32g431cb.pdf"
+
+
+[[workspace.W25Q128JVE]]
+name = "W25Q128JVE"
+path = "Memory_Flash/W25Q128JVE.zen"
+category = "Memory_Flash"
+description = "128Mbit Serial Flash Memory with Dual/Quad SPI"
+datasheet = "https://www.winbond.com/resource-files/w25q128jv%20revf%2003272018%20plus.pdf"
+
+
+[[workspace.W25Q128JVS]]
+name = "W25Q128JVS"
+path = "Memory_Flash/W25Q128JVS.zen"
+category = "Memory_Flash"
+description = "128Mbit Serial Flash Memory with Dual/Quad SPI"
+datasheet = "http://www.winbond.com/resource-files/w25q128jv_dtr%20revc%2003272018%20plus.pdf"
+
+
+[[workspace.W25Q32JVSS]]
+name = "W25Q32JVSS"
+path = "Memory_Flash/W25Q32JVSS.zen"
+category = "Memory_Flash"
+description = "32Mbit / 4MiB Serial Flash Memory with Dual, Quad SPI"
+datasheet = "https://www.winbond.com/resource-files/w25q32jv%20revg%2003272018%20plus.pdf"
+
+
+[[workspace.W25X20CLSN]]
+name = "W25X20CLSN"
+path = "Memory_Flash/W25X20CLSN.zen"
+category = "Memory_Flash"
+description = "2Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
+datasheet = "http://www.winbond.com/resource-files/w25x20cl_f%2020140325.pdf"
+
+
+[[workspace.W25X40CLSN]]
+name = "W25X40CLSN"
+path = "Memory_Flash/W25X40CLSN.zen"
+category = "Memory_Flash"
+description = "4Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
+[[workspace.MAX7375AXR105]]
+name = "MAX7375AXR105"
+path = "Oscillator/MAX7375AXR105.zen"
+category = "Oscillator"
+description = "1MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR185]]
+name = "MAX7375AXR185"
+path = "Oscillator/MAX7375AXR185.zen"
+category = "Oscillator"
+description = "1.8432MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR365]]
+name = "MAX7375AXR365"
+path = "Oscillator/MAX7375AXR365.zen"
+category = "Oscillator"
+description = "3.6864MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR375]]
+name = "MAX7375AXR375"
+path = "Oscillator/MAX7375AXR375.zen"
+category = "Oscillator"
+description = "3.69MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR405]]
+name = "MAX7375AXR405"
+path = "Oscillator/MAX7375AXR405.zen"
+category = "Oscillator"
+description = "4MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR425]]
+name = "MAX7375AXR425"
+path = "Oscillator/MAX7375AXR425.zen"
+category = "Oscillator"
+description = "4.19MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.MAX7375AXR805]]
+name = "MAX7375AXR805"
+path = "Oscillator/MAX7375AXR805.zen"
+category = "Oscillator"
+description = "8MHz Silicon Clock Oscillator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX7375.pdf"
+
+
+[[workspace.Si5351A_B]]
+name = "Si5351A-B"
+path = "Oscillator/Si5351A-B.zen"
+category = "Oscillator"
+description = "I²C-Programmable Any-Frequency CMOS Clock Generator"
+datasheet = "https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/data-sheets/Si5351-B.pdf"
+
+
+[[workspace.Si5351B_B]]
+name = "Si5351B-B"
+path = "Oscillator/Si5351B-B.zen"
+category = "Oscillator"
+description = "I²C Programmable Any-Frequency CMOS Clock Generator with VCXO"
+datasheet = "https://www.skyworksinc.com/Products/Timing/CMOS-Clock-Generators"
+
+
+[[workspace.LM5050_1]]
+name = "LM5050-1"
+path = "Power_Management/LM5050-1.zen"
+category = "Power_Management"
+description = "High-Side OR-ing FET Controller"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm5050-1.pdf"
+
+
+[[workspace.LM5050_2]]
+name = "LM5050-2"
+path = "Power_Management/LM5050-2.zen"
+category = "Power_Management"
+description = "High-Side OR-ing FET Controller"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm5050-2.pdf"
+
+
+[[workspace.MAX9612]]
+name = "MAX9612"
+path = "Power_Management/MAX9612.zen"
+category = "Power_Management"
+description = "High-Side Current-Sense Amplifier with 12-Bit ADC and Op Amp/Comparator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX9612.pdf"
+
+
+[[workspace.TPS2065CDBV]]
+name = "TPS2065CDBV"
+path = "Power_Management/TPS2065CDBV.zen"
+category = "Power_Management"
+description = "1A Current Limited Power Switch with Reverse Blocking"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps2065c.pdf"
+
+
+[[workspace.PGA_102_]]
+name = "PGA-102+"
+path = "RF_Amplifier/PGA-102.zen"
+category = "RF_Amplifier"
+description = "High Dynamic Range Monolithic Amplifier"
+datasheet = "https://www.minicircuits.com/pdfs/PGA-102+.pdf"
+
+
+[[workspace.PGA_1021_]]
+name = "PGA-1021+"
+path = "RF_Amplifier/PGA-1021.zen"
+category = "RF_Amplifier"
+description = "High Dynamic Range Monolithic Amplifier"
+datasheet = "https://www.minicircuits.com/pdfs/PGA-1021+.pdf"
+
+
+[[workspace.PGA_103_]]
+name = "PGA-103+"
+path = "RF_Amplifier/PGA-103.zen"
+category = "RF_Amplifier"
+description = "Wideband Low Noise Monolithic Amplifier"
+datasheet = "https://www.minicircuits.com/pdfs/PGA-103+.pdf"
+
+
+[[workspace.PGA_106_75_]]
+name = "PGA-106-75+"
+path = "RF_Amplifier/PGA-106-75.zen"
+category = "RF_Amplifier"
+description = "50MHz to 1.5GHz High Dynamic Range CATV Amplifier"
+datasheet = "https://www.minicircuits.com/pdfs/PGA-106-75+.pdf"
+
+
+[[workspace.PGA_106R_75]]
+name = "PGA-106R-75"
+path = "RF_Amplifier/PGA-106R-75.zen"
+category = "RF_Amplifier"
+description = "High Dynamic Range 75Ω CATV Amplifier"
+datasheet = "https://www.minicircuits.com/pdfs/PGA-106R-75+.pdf"
+
+
+[[workspace.NEO_M8M]]
+name = "NEO-M8M"
+path = "RF_GPS/NEO-M8M.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8N]]
+name = "NEO-M8N"
+path = "RF_GPS/NEO-M8N.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://www.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8P]]
+name = "NEO-M8P"
+path = "RF_GPS/NEO-M8P.zen"
+category = "RF_GPS"
+description = "u-blox M8 high precision GNSS module with RTK"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8P_DataSheet_UBX-15016656.pdf"
+
+
+[[workspace.NEO_M8Q]]
+name = "NEO-M8Q"
+path = "RF_GPS/NEO-M8Q.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf"
+
+
+[[workspace.NEO_M8T]]
+name = "NEO-M8T"
+path = "RF_GPS/NEO-M8T.zen"
+category = "RF_GPS"
+description = "u-blox M8 concurrent GNSS timing module"
+datasheet = "https://content.u-blox.com/sites/default/files/NEO-LEA-M8T-FW3_DataSheet_UBX-15025193.pdf"
+
+
+[[workspace.NEO_M9N]]
+name = "NEO-M9N"
+path = "RF_GPS/NEO-M9N.zen"
+category = "RF_GPS"
+description = "Standard precision GNSS module"
+datasheet = "https://www.u-blox.com/sites/default/files/NEO-M9N-00B_DataSheet_UBX-19014285.pdf"
+
+
+[[workspace.SAM_M8Q]]
+name = "SAM-M8Q"
+path = "RF_GPS/SAM-M8Q.zen"
+category = "RF_GPS"
+description = "Easy-to-use u-blox M8 GNSS antenna module"
+datasheet = "https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-16012619.pdf"
+
+
+[[workspace.RFM69HW]]
+name = "RFM69HW"
+path = "RF_Module/RFM69HW.zen"
+category = "RF_Module"
+description = "ISM TRANSCEIVER MODULE"
+datasheet = "https://www.hoperf.com/data/upload/portal/20190307/RFM69HW-V1.3.pdf"
+
+
+[[workspace.RFM69W]]
+name = "RFM69W"
+path = "RF_Module/RFM69W.zen"
+category = "RF_Module"
+description = "ISM TRANSCEIVER MODULE"
+datasheet = "https://www.hoperf.com/data/upload/portal/20190307/RFM69W-V1.3.pdf"
+
+
+[[workspace.LM4125IM5_2_5]]
+name = "LM4125IM5-2.5"
+path = "Reference_Voltage/LM4125IM5-2.5.zen"
+category = "Reference_Voltage"
+description = "Precision Micropower Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4125.pdf"
+
+
+[[workspace.LM4128]]
+name = "LM4128"
+path = "Reference_Voltage/LM4128.zen"
+category = "Reference_Voltage"
+description = "Precision Micropower Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4128.pdf"
+
+
+[[workspace.LM4132]]
+name = "LM4132"
+path = "Reference_Voltage/LM4132.zen"
+category = "Reference_Voltage"
+description = "Precision Low Dropout Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm4132.pdf"
+
+
+[[workspace.MAX6001]]
+name = "MAX6001"
+path = "Reference_Voltage/MAX6001.zen"
+category = "Reference_Voltage"
+description = "Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf"
+
+
+[[workspace.MAX6002]]
+name = "MAX6002"
+path = "Reference_Voltage/MAX6002.zen"
+category = "Reference_Voltage"
+description = "Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf"
+
+
+[[workspace.MAX6003]]
+name = "MAX6003"
+path = "Reference_Voltage/MAX6003.zen"
+category = "Reference_Voltage"
+description = "Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf"
+
+
+[[workspace.MAX6004]]
+name = "MAX6004"
+path = "Reference_Voltage/MAX6004.zen"
+category = "Reference_Voltage"
+description = "Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf"
+
+
+[[workspace.MAX6005]]
+name = "MAX6005"
+path = "Reference_Voltage/MAX6005.zen"
+category = "Reference_Voltage"
+description = "Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf"
+
+
+[[workspace.REF3240AMDBVREP]]
+name = "REF3240AMDBVREP"
+path = "Reference_Voltage/REF3240AMDBVREP.zen"
+category = "Reference_Voltage"
+description = "4.096V 100μA Micropower Precision Voltage Reference"
+datasheet = "https://www.ti.com/lit/ds/symlink/ref3240-ep.pdf"
+
+
+[[workspace.REF6050]]
+name = "REF6050"
+path = "Reference_Voltage/REF6050.zen"
+category = "Reference_Voltage"
+description = "5.0V High-Precision Voltage Reference with Integrated ADC Drive Buffer"
+datasheet = "https://www.ti.com/lit/ds/symlink/ref6050.pdf"
+
+
+[[workspace.ADP7142ARDZ_1_8]]
+name = "ADP7142ARDZ-1.8"
+path = "Regulator_Linear/ADP7142ARDZ-1.8.zen"
+category = "Regulator_Linear"
+description = "40V, 200mA, Low Noise, CMOS LDO Linear Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf"
+
+
+[[workspace.ADP7182AUJZ_5_0]]
+name = "ADP7182AUJZ-5.0"
+path = "Regulator_Linear/ADP7182AUJZ-5.0.zen"
+category = "Regulator_Linear"
+description = "-28V, -200mA, Low Noise, Linear Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7182.pdf"
+
+
+[[workspace.AMS1117CD_5_0]]
+name = "AMS1117CD-5.0"
+path = "Regulator_Linear/AMS1117CD-5.0.zen"
+category = "Regulator_Linear"
+description = "1A Low Dropout Linear Voltage Regulator, 5.0V Fixed Output"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
+[[workspace.AMS1117CD_ADJ]]
+name = "AMS1117CD-ADJ"
+path = "Regulator_Linear/AMS1117CD-ADJ.zen"
+category = "Regulator_Linear"
+description = "1A Low Dropout Adjustable Linear Voltage Regulator"
+datasheet = "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
+
+
+[[workspace.AP130_35Y]]
+name = "AP130-35Y"
+path = "Regulator_Linear/AP130-35Y.zen"
+category = "Regulator_Linear"
+description = "300mA Low Dropout Linear Regulator, 3.5V Fixed Output"
+datasheet = "http://www.diodes.com/datasheets/AP130.pdf"
+
+
+[[workspace.AP2112K_3_3]]
+name = "AP2112K-3.3"
+path = "Regulator_Linear/AP2112K-3.3.zen"
+category = "Regulator_Linear"
+description = "600mA Low Dropout Linear Regulator with Enable"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP2112.pdf"
+
+
+[[workspace.AP7361C_28E]]
+name = "AP7361C-28E"
+path = "Regulator_Linear/AP7361C-28E.zen"
+category = "Regulator_Linear"
+description = "1A Low Dropout Linear Regulator, 2.8V Fixed Output"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP7361C.pdf"
+
+
+[[workspace.AP7370_12FDC]]
+name = "AP7370-12FDC"
+path = "Regulator_Linear/AP7370-12FDC.zen"
+category = "Regulator_Linear"
+description = "200mA Low-Dropout Linear Regulator, 1.2V Fixed Output"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP7370.pdf"
+
+
+[[workspace.AP7381_28SA_7]]
+name = "AP7381-28SA-7"
+path = "Regulator_Linear/AP7381-28SA-7.zen"
+category = "Regulator_Linear"
+description = "150mA Low Dropout Linear Regulator, 2.8V Fixed Output"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP7381.pdf"
+
+
+[[workspace.AP7381_70SA_7]]
+name = "AP7381-70SA-7"
+path = "Regulator_Linear/AP7381-70SA-7.zen"
+category = "Regulator_Linear"
+description = "150mA Low Dropout Linear Regulator, 7.0V Fixed Output"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP7381.pdf"
+
+
+[[workspace.AP7384_70Y]]
+name = "AP7384-70Y"
+path = "Regulator_Linear/AP7384-70Y.zen"
+category = "Regulator_Linear"
+description = "50mA Low Dropout Linear Regulator, 7.0V Fixed Output"
+datasheet = "https://www.diodes.com/assets/Datasheets/AP7384.pdf"
+
+
+[[workspace.APE8865NR_24_HF_3]]
+name = "APE8865NR-24-HF-3"
+path = "Regulator_Linear/APE8865NR-24-HF-3.zen"
+category = "Regulator_Linear"
+description = "300mA Low Dropout Linear Regulator, 2.4V Fixed Output"
+datasheet = "https://www.a-powerusa.com/docs/APE8865-3.pdf"
+
+
+[[workspace.APE8865U5_32_HF_3]]
+name = "APE8865U5-32-HF-3"
+path = "Regulator_Linear/APE8865U5-32-HF-3.zen"
+category = "Regulator_Linear"
+description = "300mA Low Dropout Linear Regulator, 3.2V Fixed Output"
+datasheet = "https://www.apec-usa.com/datasheet/APE8865-3.pdf"
+
+
+[[workspace.APE8865Y5_27_HF_3]]
+name = "APE8865Y5-27-HF-3"
+path = "Regulator_Linear/APE8865Y5-27-HF-3.zen"
+category = "Regulator_Linear"
+description = "300mA Low Dropout Linear Regulator, 2.7V Fixed Output"
+datasheet = "https://www.alldatasheet.com/datasheet-pdf/pdf/1131828/APEC/APE8865Y5-27-HF-3.html"
+
+
+[[workspace.LM317]]
+name = "LM317"
+path = "Regulator_Linear/LM317_SOT-223.zen"
+category = "Regulator_Linear"
+description = "3-Pin Adjustable Linear Regulator in SOT-223 Package"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm317.pdf"
+
+
+[[workspace.LM337]]
+name = "LM337"
+path = "Regulator_Linear/LM337_SOT223.zen"
+category = "Regulator_Linear"
+description = "Adjustable Negative Linear Voltage Regulator (SOT-223 Package)"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm337.pdf"
+
+
+[[workspace.LM3480_12]]
+name = "LM3480-12"
+path = "Regulator_Linear/LM3480-12.zen"
+category = "Regulator_Linear"
+description = "100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm3480.pdf"
+
+
+[[workspace.LM3480_15]]
+name = "LM3480-15"
+path = "Regulator_Linear/LM3480-15.zen"
+category = "Regulator_Linear"
+description = "100mA, SOT-23, Quasi Low-Dropout Linear Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm3480.pdf"
+
+
+[[workspace.LT1129_3_3]]
+name = "LT1129-3.3"
+path = "Regulator_Linear/LT1129-3.3_SOT223.zen"
+category = "Regulator_Linear"
+description = "700mA Micropower Low Dropout Regulator with Shutdown, Fixed Output 3.3V, SOT-223"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1129335fa.pdf"
+
+
+[[workspace.LT1129_5_0]]
+name = "LT1129-5.0"
+path = "Regulator_Linear/LT1129-5.0_SOT223.zen"
+category = "Regulator_Linear"
+description = "700mA Micropower Low Dropout Regulator with Shutdown, Fixed Output 5.0V, SOT-223"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/112935ff.pdf"
+
+
+[[workspace.LT1175_ADJ]]
+name = "LT1175-ADJ"
+path = "Regulator_Linear/LT1175-ADJ_SOT223.zen"
+category = "Regulator_Linear"
+description = "500mA Negative Low Dropout Micropower Regulator, Adjustable Output Voltage, SOT-223"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1175ff.pdf"
+
+
+[[workspace.LT1962_3]]
+name = "LT1962-3"
+path = "Regulator_Linear/LT1962-3.zen"
+category = "Regulator_Linear"
+description = "3.0V, 300mA, Low Noise, Micropower LDO Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1962fb.pdf"
+
+
+[[workspace.LT1964_5]]
+name = "LT1964-5"
+path = "Regulator_Linear/LT1964-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low Noise, Low Dropout Negative Micropower Regulator, Fixed -5V Output"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1964fb.pdf"
+
+
+[[workspace.MAX38908]]
+name = "MAX38908"
+path = "Regulator_Linear/MAX38908.zen"
+category = "Regulator_Linear"
+description = "4A High-Performance LDO Linear Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX38908.pdf"
+
+
+[[workspace.MAX38909]]
+name = "MAX38909"
+path = "Regulator_Linear/MAX38909.zen"
+category = "Regulator_Linear"
+description = "2A High-Performance LDO Linear Regulator"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX38909.pdf"
+
+
+[[workspace.MCP1727_2502]]
+name = "MCP1727-2502"
+path = "Regulator_Linear/MCP1727-2502.zen"
+category = "Regulator_Linear"
+description = "1.5A Low Voltage Low Quiescent Current LDO Regulator"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf"
+
+
+[[workspace.MCP1804]]
+name = "MCP1804"
+path = "Regulator_Linear/MCP1804.zen"
+category = "Regulator_Linear"
+description = "150mA Low Dropout Linear Voltage Regulator with Shutdown"
+datasheet = "http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf"
+
+
+[[workspace.MIC5317_3_3]]
+name = "MIC5317-3.3"
+path = "Regulator_Linear/MIC5317-3.3.zen"
+category = "Regulator_Linear"
+description = "150mA Low Dropout Linear Voltage Regulator with 3.3V Fixed Output"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/MIC5317-High-Performance-Single-150mA-LDO-DS20006195B.pdf"
+
+
+[[workspace.NCP1117_ADJ]]
+name = "NCP1117-ADJ"
+path = "Regulator_Linear/NCP1117-ADJ_SOT223.zen"
+category = "Regulator_Linear"
+description = "1.0A Low-Dropout Positive Adjustable Voltage Regulator (SOT-223 Package)"
+datasheet = "https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf"
+
+
+[[workspace.TLV70030_SOT353]]
+name = "TLV70030_SOT353"
+path = "Regulator_Linear/TLV70030_SOT353.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.0V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70032_SOT23_5]]
+name = "TLV70032_SOT23-5"
+path = "Regulator_Linear/TLV70032_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.2V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70033_SOT23_5]]
+name = "TLV70033_SOT23-5"
+path = "Regulator_Linear/TLV70033_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.3V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70036_SOT23_5]]
+name = "TLV70036_SOT23-5"
+path = "Regulator_Linear/TLV70036_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "200mA Low-IQ Low-Dropout Regulator with 3.6V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv700.pdf"
+
+
+[[workspace.TLV70212_SOT23_5]]
+name = "TLV70212_SOT23-5"
+path = "Regulator_Linear/TLV70212_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Low-IQ Low-Dropout Regulator with 1.2V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv702.pdf"
+
+
+[[workspace.TLV70228_SOT23_5]]
+name = "TLV70228_SOT23-5"
+path = "Regulator_Linear/TLV70228_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Low-IQ Low-Dropout Regulator with 2.8V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv702.pdf"
+
+
+[[workspace.TLV71209_SOT23_5]]
+name = "TLV71209_SOT23-5"
+path = "Regulator_Linear/TLV71209_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Low-IQ Low-Dropout Regulator with 0.9V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv712.pdf"
+
+
+[[workspace.TLV71211_SOT23_5]]
+name = "TLV71211_SOT23-5"
+path = "Regulator_Linear/TLV71211_SOT23-5.zen"
+category = "Regulator_Linear"
+description = "300mA Sub-Bandgap Output LDO with 1.1V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tlv712.pdf"
+
+
+[[workspace.TPS7A0508PDBV]]
+name = "TPS7A0508PDBV"
+path = "Regulator_Linear/TPS7A0508PDBV.zen"
+category = "Regulator_Linear"
+description = "200mA Ultra-Low-Iq Linear Regulator, 0.8V Fixed Output"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps7a05.pdf"
+
+
+[[workspace.LM2775DSG]]
+name = "LM2775DSG"
+path = "Regulator_SwitchedCapacitor/LM2775DSG.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Switched Capacitor 5V Boost Converter"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2776.pdf"
+
+
+[[workspace.LTC1502_3_3]]
+name = "LTC1502-3.3"
+path = "Regulator_SwitchedCapacitor/LTC1502.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Single Cell to 3.3V Regulated Charge Pump DC/DC Converter"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/1502f.pdf"
+
+
+[[workspace.TPS60400DBV]]
+name = "TPS60400DBV"
+path = "Regulator_SwitchedCapacitor/TPS60400DBV.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Unregulated 60-mA Charge Pump Voltage Inverter"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps60400.pdf"
+
+
+[[workspace.TPS60403DBV]]
+name = "TPS60403DBV"
+path = "Regulator_SwitchedCapacitor/TPS60403DBV.zen"
+category = "Regulator_SwitchedCapacitor"
+description = "Unregulated 60-mA Charge Pump Voltage Inverter with Fixed 250kHz Switching Frequency"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps60403.pdf"
+
+
+[[workspace.LM2576HVS_12]]
+name = "LM2576HVS-12"
+path = "Regulator_Switching/LM2576HVS-12.zen"
+category = "Regulator_Switching"
+description = "12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2576.pdf"
+
+
+[[workspace.LM2672M_12]]
+name = "LM2672M-12"
+path = "Regulator_Switching/LM2672M-12.zen"
+category = "Regulator_Switching"
+description = "SIMPLE SWITCHER® 12V, 1A Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2672.pdf"
+
+
+[[workspace.LM2672N_12]]
+name = "LM2672N-12"
+path = "Regulator_Switching/LM2672N-12.zen"
+category = "Regulator_Switching"
+description = "SIMPLE SWITCHER® 12V, 1A Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2672.pdf"
+
+
+[[workspace.LM2674N_12]]
+name = "LM2674N-12"
+path = "Regulator_Switching/LM2674N-12.zen"
+category = "Regulator_Switching"
+description = "12V, 500mA SIMPLE SWITCHER® Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2674.pdf"
+
+
+[[workspace.LM2675N_5]]
+name = "LM2675N-5"
+path = "Regulator_Switching/LM2675N-5.zen"
+category = "Regulator_Switching"
+description = "5V, 1A SIMPLE SWITCHER® Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm2576.pdf"
+
+
+[[workspace.MIC2178_3_3]]
+name = "MIC2178-3.3"
+path = "Regulator_Switching/MIC2178-3.3.zen"
+category = "Regulator_Switching"
+description = "2.5A Synchronous Buck Regulator, 3.3V Fixed Output"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/mic2178.pdf"
+
+
+[[workspace.NBM7100A]]
+name = "NBM7100A"
+path = "Regulator_Switching/NBM7100A.zen"
+category = "Regulator_Switching"
+description = "Coin Cell Battery Life Booster with Adaptive Power Optimization"
+datasheet = "https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html"
+
+
+[[workspace.TPS562200]]
+name = "TPS562200"
+path = "Regulator_Switching/TPS562200.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562200.pdf"
+
+
+[[workspace.TPS562202]]
+name = "TPS562202"
+path = "Regulator_Switching/TPS562202.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562202.pdf"
+
+
+[[workspace.TPS562202S]]
+name = "TPS562202S"
+path = "Regulator_Switching/TPS562202S.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562202s.pdf"
+
+
+[[workspace.TPS562203]]
+name = "TPS562203"
+path = "Regulator_Switching/TPS562203.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562203.pdf"
+
+
+[[workspace.TPS562206]]
+name = "TPS562206"
+path = "Regulator_Switching/TPS562206.zen"
+category = "Regulator_Switching"
+description = "2A Synchronous Step-Down Voltage Regulator with FCCM"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps562206.pdf"
+
+
+[[workspace.TPS563200]]
+name = "TPS563200"
+path = "Regulator_Switching/TPS563200.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563200.pdf"
+
+
+[[workspace.TPS563202S]]
+name = "TPS563202S"
+path = "Regulator_Switching/TPS563202S.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563202s.pdf"
+
+
+[[workspace.TPS563203]]
+name = "TPS563203"
+path = "Regulator_Switching/TPS563203.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563203.pdf"
+
+
+[[workspace.TPS563206]]
+name = "TPS563206"
+path = "Regulator_Switching/TPS563206.zen"
+category = "Regulator_Switching"
+description = "3A Synchronous Step-Down Voltage Regulator with FCCM"
+datasheet = "https://www.ti.com/lit/ds/symlink/tps563206.pdf"
+
+
+[[workspace.BME280]]
+name = "BME280"
+path = "Sensor/BME280.zen"
+category = "Sensor"
+description = "Combined humidity, pressure and temperature sensor with I²C/SPI interface"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf"
+
+
+[[workspace.BME680]]
+name = "BME680"
+path = "Sensor/BME680.zen"
+category = "Sensor"
+description = "Low power gas, pressure, temperature & humidity sensor"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf"
+
+
+[[workspace.INA260]]
+name = "INA260"
+path = "Sensor/INA260.zen"
+category = "Sensor"
+description = "Precision Digital Current and Power Monitor With Low-Drift, Precision Integrated Shunt"
+datasheet = "https://www.ti.com/lit/ds/sbos893c/sbos893c.pdf"
+
+
+[[workspace.LTC2990]]
+name = "LTC2990"
+path = "Sensor/LTC2990.zen"
+category = "Sensor"
+description = "Quad I²C Voltage, Current and Temperature Monitor"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/2990fg.pdf"
+
+
+[[workspace.MAX30102]]
+name = "MAX30102"
+path = "Sensor/MAX30102.zen"
+category = "Sensor"
+description = "High-Sensitivity Pulse Oximeter and Heart-Rate Sensor for Wearable Health"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30102.pdf"
+
+
+[[workspace.VL53L0X]]
+name = "VL53L0X"
+path = "Sensor_Distance/VL53L0CXV0DH1.zen"
+category = "Sensor_Distance"
+description = "Time-of-Flight (ToF) ranging sensor with 2m range capability"
+datasheet = "https://www.st.com/resource/en/datasheet/vl53l0x.pdf"
+
+
+[[workspace.VL53L1CXV0FY1]]
+name = "VL53L1CXV0FY1"
+path = "Sensor_Distance/VL53L1CXV0FY1.zen"
+category = "Sensor_Distance"
+description = "4m distance ranging Time-of-Flight sensor"
+datasheet = "https://www.espressif.com/sites/default/files/documentation/vl53l1x_datasheet.pdf"
+
+
+[[workspace.INA219A]]
+name = "INA219A"
+path = "Sensor_Energy/INA219A.zen"
+category = "Sensor_Energy"
+description = "Zero-Drift, Bidirectional Current/Power Monitor With I²C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina219.pdf"
+
+
+[[workspace.INA226]]
+name = "INA226"
+path = "Sensor_Energy/INA226.zen"
+category = "Sensor_Energy"
+description = "36V, 16-Bit, Ultra-Precise I²C Output Current, Voltage, and Power Monitor With Alert"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina226.pdf"
+
+
+[[workspace.INA228]]
+name = "INA228"
+path = "Sensor_Energy/INA228.zen"
+category = "Sensor_Energy"
+description = "85V, 20-Bit, Ultra-Precise Power/Energy/Charge Monitor With I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina228.pdf"
+
+
+[[workspace.INA233]]
+name = "INA233"
+path = "Sensor_Energy/INA233.zen"
+category = "Sensor_Energy"
+description = "36V, 16-Bit, Ultra-Precise I²C and PMBus Output Current, Voltage, Power, and Energy Monitor With Alert"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina233.pdf"
+
+
+[[workspace.INA237]]
+name = "INA237"
+path = "Sensor_Energy/INA237.zen"
+category = "Sensor_Energy"
+description = "85-V, 16-Bit, Precision Power Monitor With I²C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina237.pdf"
+
+
+[[workspace.INA238]]
+name = "INA238"
+path = "Sensor_Energy/INA238.zen"
+category = "Sensor_Energy"
+description = "85V, 16-Bit, High-Precision Power Monitor With I²C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/ina238.pdf"
+
+
+[[workspace.SCD40_D_R2]]
+name = "SCD40-D-R2"
+path = "Sensor_Gas/SCD40-D-R2.zen"
+category = "Sensor_Gas"
+description = "Photoacoustic CO2 Sensor, 0-40,000 ppm, I2C, 2.4-5.5V, ±(50ppm+5%)"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/9.5_CO2/Datasheets/Sensirion_CO2_Sensors_SCD4x_Datasheet.pdf"
+
+
+[[workspace.SCD41_D_R2]]
+name = "SCD41-D-R2"
+path = "Sensor_Gas/SCD41-D-R2.zen"
+category = "Sensor_Gas"
+description = "Photoacoustic CO2 sensor, 40,000 ppm, I2C, 2.4-5.5V, High accuracy 400-5000 ppm"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SCD4x_Datasheet.pdf"
+
+
+[[workspace.SHT30_DIS]]
+name = "SHT30-DIS"
+path = "Sensor_Humidity/SHT30.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT30A]]
+name = "SHT30A"
+path = "Sensor_Humidity/SHT30A.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT31_DIS]]
+name = "SHT31-DIS"
+path = "Sensor_Humidity/SHT31.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT31A_DIS]]
+name = "SHT31A-DIS"
+path = "Sensor_Humidity/SHT31A.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT35_DIS]]
+name = "SHT35-DIS"
+path = "Sensor_Humidity/SHT35.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±1.5%RH, ±0.1°C, I2C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT35A]]
+name = "SHT35A"
+path = "Sensor_Humidity/SHT35A.zen"
+category = "Sensor_Humidity"
+description = "I²C Humidity and Temperature Sensor, ±1.5%RH, ±0.1°C, 2.15-5.5V, DFN-8"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT3x_Datasheet_digital.pdf"
+
+
+[[workspace.SHT4x]]
+name = "SHT4x"
+path = "Sensor_Humidity/SHT4x.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±1%RH, ±0.1°C, I2C, 1.08-3.6V, 16bit, DFN-4"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHT4x_Datasheet.pdf"
+
+
+[[workspace.SHTC1]]
+name = "SHTC1"
+path = "Sensor_Humidity/SHTC1.zen"
+category = "Sensor_Humidity"
+description = "Ultra-low power, high accuracy digital humidity and temperature sensor"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHTC1_Datasheet.pdf"
+
+
+[[workspace.SHTC3]]
+name = "SHTC3"
+path = "Sensor_Humidity/SHTC3.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 1.62-3.6V, DFN-4"
+datasheet = "https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SHTC3_Datasheet.pdf"
+
+
+[[workspace.Si7020_A20]]
+name = "Si7020-A20"
+path = "Sensor_Humidity/Si7020-A20.zen"
+category = "Sensor_Humidity"
+description = "I²C Humidity and Temperature Sensor, ±4%RH, ±0.4°C, 1.9-3.6V, DFN-6"
+datasheet = "https://www.silabs.com/documents/public/data-sheets/Si7020-A20.pdf"
+
+
+[[workspace.Si7021_A20]]
+name = "Si7021-A20"
+path = "Sensor_Humidity/Si7021-A20.zen"
+category = "Sensor_Humidity"
+description = "Digital Humidity and Temperature Sensor, ±3%RH, ±0.4°C, I2C, 1.9-3.6V, DFN-6"
+datasheet = "https://www.silabs.com/documents/public/data-sheets/Si7021-A20.pdf"
+
+
+[[workspace.LIS3MDL]]
+name = "LIS3MDL"
+path = "Sensor_Magnetic/LIS3MDL.zen"
+category = "Sensor_Magnetic"
+description = "Ultra-low-power, high-performance 3-axis digital output magnetometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis3mdl.pdf"
+
+
+[[workspace.TLV493D]]
+name = "TLV493D"
+path = "Sensor_Magnetic/TLV493D.zen"
+category = "Sensor_Magnetic"
+description = "Low Power 3D Magnetic Sensor with I²C Interface"
+datasheet = "http://www.infineon.com/dgdl/Infineon-TLV493D-A1B6-DS-v01_00-EN.pdf?fileId=5546d462525dbac40152a6b85c760e80"
+
+
+[[workspace.ADXL343]]
+name = "ADXL343"
+path = "Sensor_Motion/ADXL343.zen"
+category = "Sensor_Motion"
+description = "3-Axis, ±2g/±4g/±8g/±16g Digital MEMS Accelerometer"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL343.pdf"
+
+
+[[workspace.ADXL363]]
+name = "ADXL363"
+path = "Sensor_Motion/ADXL363.zen"
+category = "Sensor_Motion"
+description = "Micropower 3-Axis Digital MEMS Accelerometer"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL363.pdf"
+
+
+[[workspace.BMI160]]
+name = "BMI160"
+path = "Sensor_Motion/BMI160.zen"
+category = "Sensor_Motion"
+description = "Small, low power inertial measurement unit"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi160-ds000.pdf"
+
+
+[[workspace.BNO055]]
+name = "BNO055"
+path = "Sensor_Motion/BNO055.zen"
+category = "Sensor_Motion"
+description = "Intelligent 9-axis absolute orientation sensor"
+datasheet = "https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf"
+
+
+[[workspace.ICM_20602]]
+name = "ICM-20602"
+path = "Sensor_Motion/ICM-20602.zen"
+category = "Sensor_Motion"
+description = "High Performance 6-Axis MEMS MotionTracking Device"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-20602-v1.0.pdf"
+
+
+[[workspace.ICM_20948]]
+name = "ICM-20948"
+path = "Sensor_Motion/ICM-20948.zen"
+category = "Sensor_Motion"
+description = "World's Lowest Power 9-Axis MEMS MotionTracking Device"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-20948-v1.3.pdf"
+
+
+[[workspace.ISM330DHCX]]
+name = "ISM330DHCX"
+path = "Sensor_Motion/ISM330DHCX.zen"
+category = "Sensor_Motion"
+description = "iNEMO inertial module with embedded Machine Learning Core"
+datasheet = "https://www.st.com/resource/en/datasheet/ism330dhcx.pdf"
+
+
+[[workspace.LIS331HH]]
+name = "LIS331HH"
+path = "Sensor_Motion/LIS331HH.zen"
+category = "Sensor_Motion"
+description = "MEMS digital output motion sensor ultra low-power high full-scale 3-axes \"nano\" accelerometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis331hh.pdf"
+
+
+[[workspace.LIS3DH]]
+name = "LIS3DH"
+path = "Sensor_Motion/LIS3DH.zen"
+category = "Sensor_Motion"
+description = "MEMS digital output motion sensor: ultra-low-power high-performance 3-axis \"nano\" accelerometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lis3dh.pdf"
+
+
+[[workspace.LSM303C]]
+name = "LSM303C"
+path = "Sensor_Motion/LSM303C.zen"
+category = "Sensor_Motion"
+description = "Ultra-compact high-performance eCompass module: 3D accelerometer and 3D magnetometer"
+datasheet = "https://www.st.com/resource/en/datasheet/lsm303c.pdf"
+
+
+[[workspace.MPU_6050]]
+name = "MPU-6050"
+path = "Sensor_Motion/MPU-6050.zen"
+category = "Sensor_Motion"
+description = "6-Axis Motion Sensor with Gyroscope and Accelerometer"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf"
+
+
+[[workspace.MPU_9250]]
+name = "MPU-9250"
+path = "Sensor_Motion/MPU-9250.zen"
+category = "Sensor_Motion"
+description = "9-Axis Motion Sensor with Accelerometer, Gyroscope, and Magnetometer"
+datasheet = "https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf"
+
+
+[[workspace.ISL29035]]
+name = "ISL29035"
+path = "Sensor_Optical/ISL29035.zen"
+category = "Sensor_Optical"
+description = "Integrated Ambient Light Sensor with I2C Interface"
+datasheet = "https://www.renesas.com/us/en/www/doc/datasheet/isl29035.pdf"
+
+
+[[workspace.LM20BIM7]]
+name = "LM20BIM7"
+path = "Sensor_Temperature/LM20BIM7.zen"
+category = "Sensor_Temperature"
+description = "Precision Temperature Sensor, ±1.5°C to ±4°C accuracy, -55°C to +130°C range"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm20.pdf"
+
+
+[[workspace.LM20CIM7]]
+name = "LM20CIM7"
+path = "Sensor_Temperature/LM20CIM7.zen"
+category = "Sensor_Temperature"
+description = "Precision Temperature Sensor, ±4°C to ±5°C accuracy, -55°C to +130°C range"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm20.pdf"
+
+
+[[workspace.LM73_1]]
+name = "LM73-1"
+path = "Sensor_Temperature/LM73-1.zen"
+category = "Sensor_Temperature"
+description = "2.7V, SOT-23, 11- to 14-Bit Digital Temperature Sensor with 2-Wire Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/lm73.pdf"
+
+
+[[workspace.MAX31820]]
+name = "MAX31820"
+path = "Sensor_Temperature/MAX31820.zen"
+category = "Sensor_Temperature"
+description = "1-Wire Ambient Temperature Sensor, ±0.5°C accuracy, TO-92"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31820.pdf"
+
+
+[[workspace.MAX31826]]
+name = "MAX31826"
+path = "Sensor_Temperature/MAX31826.zen"
+category = "Sensor_Temperature"
+description = "1-Wire Digital Temperature Sensor with 1Kb Lockable EEPROM"
+datasheet = "https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31826.pdf"
+
+
+[[workspace.MCP9808]]
+name = "MCP9808"
+path = "Sensor_Temperature/MCP9808.zen"
+category = "Sensor_Temperature"
+description = "±0.5°C Maximum Accuracy Digital Temperature Sensor"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf"
+
+
+[[workspace.MCP9844]]
+name = "MCP9844"
+path = "Sensor_Temperature/MCP9844.zen"
+category = "Sensor_Temperature"
+description = "±1°C Accurate, 1.8V Digital Temperature Sensor"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf"
+
+
+[[workspace.TMP114]]
+name = "TMP114"
+path = "Sensor_Temperature/TMP114.zen"
+category = "Sensor_Temperature"
+description = "Ultra-Thin, 1.2-V to 1.98-V Supply, High Accuracy Digital Temperature Sensor with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/tmp114.pdf"
+
+
+[[workspace.TMP116]]
+name = "TMP116"
+path = "Sensor_Temperature/TMP116.zen"
+category = "Sensor_Temperature"
+description = "High-Accuracy, Low-Power, Digital Temperature Sensor With SMBus- and I²C-Compatible Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/tmp116.pdf"
+
+
+[[workspace.TMP117]]
+name = "TMP117"
+path = "Sensor_Temperature/TMP117.zen"
+category = "Sensor_Temperature"
+description = "High-Accuracy, Low-Power, Digital Temperature Sensor with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/tmp117.pdf"
+
+
+[[workspace.TMP119AIYBGR]]
+name = "TMP119AIYBGR"
+path = "Sensor_Temperature/TMP119AIYBGR.zen"
+category = "Sensor_Temperature"
+description = "Ultra-High Accuracy, Low-Power, Digital Temperature Sensor with I2C Interface"
+datasheet = "https://www.ti.com/lit/ds/symlink/tmp119.pdf"
+
+
+[[workspace.CAP1206]]
+name = "CAP1206"
+path = "Sensor_Touch/CAP1206-.zen"
+category = "Sensor_Touch"
+description = "6-Channel Capacitive Touch Sensor Controller (DFN Package)"
+datasheet = "https://ww1.microchip.com/downloads/en/DeviceDoc/00001567B.pdf"
+
+
+[[workspace.MPR121QR2]]
+name = "MPR121QR2"
+path = "Sensor_Touch/MPR121QR2.zen"
+category = "Sensor_Touch"
+description = "12-channel Proximity Capacitive Touch Sensor Controller"
+datasheet = "https://www.nxp.com/docs/en/data-sheet/MPR121.pdf"
+
+
+[[workspace.CS2000]]
+name = "CS2000"
+path = "Timer_PLL/CS2000.zen"
+category = "Timer_PLL"
+description = "Fractional-N Clock Synthesizer & Clock Multiplier"
+datasheet = "https://www.cirrus.com/cn/pubs/proDatasheet/CS2000-CP_F3.pdf"
