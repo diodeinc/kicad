@@ -9,12 +9,43 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # needed for creating a release
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install pcb CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/diodeinc/pcb/releases/latest/download/pcb-installer.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Vendor dependencies
+        run: |
+          pcb vendor
+          echo "Vendored dependencies:"
+          ls -la vendor/ 2>/dev/null || echo "No vendor directory created"
+
+      - name: Create release zip
+        run: |
+          # Get tag name
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          
+          # Create zip with all relevant files (source + vendored deps)
+          zip -r "kicad-${TAG_NAME}.zip" . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "*.zip" \
+            -x ".gitignore" \
+            -x ".gitattributes" \
+            -x ".envrc" \
+            -x ".utils/*"
+          
+          echo "ZIP_NAME=kicad-${TAG_NAME}.zip" >> $GITHUB_ENV
+          echo "Created kicad-${TAG_NAME}.zip"
+          ls -lh "kicad-${TAG_NAME}.zip"
+
       - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
+          files: ${{ env.ZIP_NAME }}
           generate_release_notes: true
