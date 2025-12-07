@@ -441,7 +441,6 @@ if add_battery:
 # pcb:sch R_SAFEBOOT.R x=2033.5400 y=1484.9000 rot=180
 # pcb:sch R_USB_DM.R x=3544.8400 y=1675.4000 rot=270
 # pcb:sch R_USB_DP.R x=3544.8400 y=1738.9000 rot=270
-
 # pcb:sch BT_VBAT x=2630.4400 y=1230.9000 rot=0
 # pcb:sch TP_GND.TP x=2302.7800 y=1774.4600 rot=180
 # pcb:sch TP_TIMEPULSE_CFG.TP x=2671.0800 y=1723.6600 rot=180
@@ -456,18 +455,15 @@ if add_battery:
 # pcb:sch GND.6 x=2793.0000 y=1840.5000 rot=0
 # pcb:sch GND.7 x=3643.9000 y=1218.2000 rot=0
 # pcb:sch GND.8 x=2970.8000 y=1561.1000 rot=0
-
 # pcb:sch VCC.1 x=2404.3800 y=1205.5000 rot=0
 # pcb:sch VCC.2 x=2810.7800 y=1243.6000 rot=0
 # pcb:sch VCC.3 x=3763.2800 y=1040.4000 rot=0
-
 # pcb:sch C_VBUS.C x=3661.6800 y=1408.7000 rot=0
 # pcb:sch C_VBUS2.C x=3750.5800 y=1408.7000 rot=0
 # pcb:sch J_USB x=3085.1000 y=1307.1000 rot=0
 # pcb:sch R_USB_CC1.R x=3595.6400 y=1459.5000 rot=0
 # pcb:sch R_USB_CC2.R x=3532.1400 y=1459.5000 rot=0
 # pcb:sch VBUS.1 x=3420.3800 y=1294.4000 rot=0
-
 # pcb:sch U_USB_REG.C_IN.C x=3483.8800 y=1091.2000 rot=0
 # pcb:sch U_USB_REG.C_OUT.C x=3750.5800 y=1103.9000 rot=0
 # pcb:sch U_USB_REG.U1 x=3580.4000 y=1059.4500 rot=0
@@ -477,8 +473,6 @@ if add_battery:
 # pcb:sch C_RESET.C x=1972.5800 y=1662.7000 rot=0
 # pcb:sch SW_RESET x=1853.2000 y=1695.7200 rot=90
 # pcb:sch L_BIAS.FB x=2778.0140 y=1523.0000 rot=0
-
-# Additional positions for RTK and Geofence LEDs (if enabled)
 # pcb:sch LED_RTK.LED x=1535.7000 y=1517.9200 rot=270
 # pcb:sch R_LED_RTK.R x=1550.9400 y=1345.2000 rot=180
 # pcb:sch LED_GEOFENCE.LED x=1421.4000 y=1517.9200 rot=270
