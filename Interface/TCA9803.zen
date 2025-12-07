@@ -73,7 +73,7 @@ else:
 Component(
     name = "TCA9803",
     symbol = Symbol(library = "@kicad-symbols/Interface.kicad_sym", name = "TCA9803"),
-    footprint = "@kicad-footprints/Package_SO.pretty/VSSOP-8_3.0x3.0mm_P0.65mm.kicad_mod",
+    footprint = "@kicad-footprints/Package_SO.pretty/VSSOP-8_3x3mm_P0.65mm.kicad_mod",
     pins = {
         "VCCA": VCCA,
         "SCLA": i2c_a.SCL,
