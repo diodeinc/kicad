@@ -16,7 +16,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/AD5693R_AD5692R_AD5691R_AD5693.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -74,7 +74,7 @@ add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
 VDD = io("VDD", Power)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # VLOGIC supply for MSOP package
 if add_vlogic_supply:

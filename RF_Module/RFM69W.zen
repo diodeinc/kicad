@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.hoperf.com/data/upload/portal/20190307/RFM69W-V1.3.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "Power")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,7 +28,7 @@ add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
 
 # External IO
 VDD = io("VDD_3V3", Power, default = Power("VDD_3V3"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # SPI Interface
 spi = io("SPI", Spi)

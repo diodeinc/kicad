@@ -24,6 +24,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX38909.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -60,10 +61,10 @@ add_output_bulk_cap = config("add_output_bulk_cap", bool, default = True)
 add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VIN = io("VIN", Power)
 VBIAS = io("VBIAS", Net)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
-VOUT = io("VOUT", Net, default = Net("VOUT", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+GND = io("GND", Ground)
+VOUT = io("VOUT", Power)
 
 # Enable pin - conditionally exposed based on configuration
 if enable_configuration == EnableConfiguration("UserDefined"):

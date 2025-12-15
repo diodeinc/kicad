@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/pga113.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "Power")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,7 +46,7 @@ add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
 AVDD = io("AVDD", Power, default = Power("AVDD"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Digital supply - separate or tied to AVDD
 if split_supplies:

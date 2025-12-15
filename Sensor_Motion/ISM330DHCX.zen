@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/ism330dhcx.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,9 +54,9 @@ add_decoupling_caps = config("add_decoupling", bool, default = True, optional = 
 
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 VDDIO = io("VDDIO", Net, default = VDD)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Interrupt pins
 INT1 = io("INT1", Net, default = Net("INT1"))

@@ -10,7 +10,7 @@ Reviewer: Anand Kapadia
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f103c8.pdf
 """
 
-load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2")
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -73,8 +73,8 @@ if add_usb:
     power_from_usb = config("power_from_usb", bool, default = True, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
 # Port A pins
@@ -170,8 +170,8 @@ else:
     _NRST = Net("NRST")  # Internal net for reset circuit
 
 # Internal nets
-_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA"))
-_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VDDA = io("_VDDA", Power)
+_VSSA = io("_VSSA", Ground)
 _VBAT = Net("VBAT")
 _BOOT0 = Net("BOOT0")
 

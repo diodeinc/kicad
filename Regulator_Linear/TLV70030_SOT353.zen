@@ -12,6 +12,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tlv700.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,7 +29,7 @@ if enable_control:
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
 _NC = Net("NC")

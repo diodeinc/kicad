@@ -46,6 +46,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps61165.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -78,8 +79,8 @@ else:
 circuit_mode = config("circuit_mode", CircuitMode, default = "Typical")
 
 # External IO
-VDD = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))
-GND = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 LED_ANODE = io("LED_ANODE", Net, default = Net("LED_ANODE"))
 LED_CATHODE = io("LED_CATHODE", Net, default = Net("LED_CATHODE"))
 

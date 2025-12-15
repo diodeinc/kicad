@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.skyworksinc.com/Products/Timing/CMOS-Clock-Generators
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -66,8 +66,8 @@ add_oeb_pullup = config("add_oeb_pullup", bool, default = True)
 add_ssen_pulldown = config("add_ssen_pulldown", bool, default = True)
 
 # External IO
-VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)
@@ -125,9 +125,9 @@ def get_vddo_net(config_value, io_power):
     else:
         # Create internal supply if not exposed
         if config_value == OutputBankConfig("1.8V"):
-            return Net("VDDO_1V8", symbol = Symbol("@kicad-symbols/power.kicad_sym:+1V8"))
+            return Net("VDDO_1V8")
         elif config_value == OutputBankConfig("2.5V"):
-            return Net("VDDO_2V5", symbol = Symbol("@kicad-symbols/power.kicad_sym:+2V5"))
+            return Net("VDDO_2V5")
         else:  # 3.3V
             return VDD.NET
 

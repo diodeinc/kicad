@@ -23,7 +23,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ads7866.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "Power")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,8 +46,8 @@ if add_decoupling_caps:
     bulk_cap_value = config("bulk_cap_value", str, default = "10uF")
 
 # External power supply
-VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # SPI interface - using subset of standard SPI
 spi = io("SPI", Spi)

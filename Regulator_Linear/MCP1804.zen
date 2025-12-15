@@ -12,6 +12,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -30,7 +31,7 @@ output_voltage = config("output_voltage", OutputVoltage, default = "2.5")
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 SHDN = io("SHDN", Net, default = Net("SHDN"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
 _NC = Net("NC")

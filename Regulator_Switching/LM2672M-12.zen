@@ -11,6 +11,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2672.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,9 +46,9 @@ optimize_for_size = config("optimize_for_size", bool, default = False)
 add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-VOUT = io("VOUT", Net, default = Net("VOUT", symbol = Symbol("@kicad-symbols/power.kicad_sym:+12V")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Ground)
 
 # Shutdown control IO
 if shutdown_control == ShutdownControl("UserDefined"):

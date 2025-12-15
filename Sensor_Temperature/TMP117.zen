@@ -52,8 +52,8 @@ passives_size = config("passives_size", str, default = "0402")
 
 # External IO
 power = io("power", Power, default = Power())
-VDD = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))
-GND = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))
+VDD = power.NET
+GND = power.GND
 
 # I2C interface
 i2c = io("i2c", I2c)

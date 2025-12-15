@@ -10,6 +10,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps562202.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -35,7 +36,7 @@ enable_config = config("enable_config", EnableConfig, default = "AlwaysOn")
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Enable pin configuration
 if enable_config == EnableConfig("External"):

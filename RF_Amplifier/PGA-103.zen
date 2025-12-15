@@ -23,7 +23,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.minicircuits.com/pdfs/PGA-103+.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -68,7 +68,7 @@ add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
 VDD = io("VDD", Power, default = Power("VDD"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 RFIN = io("RFIN", Net)
 RFOUT = io("RFOUT", Net)
 

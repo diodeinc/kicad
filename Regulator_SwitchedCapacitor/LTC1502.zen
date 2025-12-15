@@ -12,6 +12,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1502f.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,7 +34,7 @@ add_output_filter = config("add_output_filter", bool, default = False)
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 if shutdown_control == ShutdownControl("External"):
     SHDN = io("SHDN", Net, default = Net("SHDN"))
 elif shutdown_control == ShutdownControl("Mosfet"):

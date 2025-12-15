@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f072cb.pdf
 """
 
-load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "CanTtl", "Usb2", "Power")
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "CanTtl", "Usb2", "Power", "Ground")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -78,8 +78,8 @@ if add_can:
     add_can_termination = config("add_can_termination", bool, default = True, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # Optional VDDIO2 supply for specific I/Os
 add_vddio2 = config("add_vddio2", bool, default = False, optional = True)
@@ -150,7 +150,7 @@ else:
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
@@ -201,8 +201,8 @@ else:
     _BOOT0 = Net("BOOT0")  # Internal net for boot circuit
 
 # Internal nets
-_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA")) if add_analog_decoupling else VDD
-_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VDDA = Net("VDDA") if add_analog_decoupling else VDD
+_VSSA = io("_VSSA", Ground)
 _VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
 
 # STMicroelectronics Arm Cortex-M0 MCU, 128KB flash, 16KB RAM, 48 MHz, 2.0-3.6V, 37 GPIO, LQFP48

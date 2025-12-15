@@ -15,7 +15,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/00001567B.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -52,8 +52,8 @@ if add_i2c_pullups:
 add_test_points = config("add_test_points", bool, default = True, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c, default = I2c("I2C"))

@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.diodes.com/assets/Datasheets/AP7370.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -30,9 +31,9 @@ add_test_points = config("add_test_points", bool, default = True)
 passive_size = config("passive_size", PackageSize, default = "0603")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VI", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VOUT = io("VOUT", Net, default = Net("VO", symbol = Symbol("@kicad-symbols/power.kicad_sym:+1V2")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Ground)
 
 # 200mA Low Dropout regulator, positive, 1.2V fixed output, DFN-6
 Component(

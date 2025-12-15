@@ -9,7 +9,7 @@ Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/AD7171.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -31,14 +31,14 @@ if add_input_filter:
 
 # External IO
 spi = io("SPI", Spi, default = Spi("SPI"))
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 AIN_P = io("AIN+", Net, default = Net("AIN+"))
 AIN_N = io("AIN-", Net, default = Net("AIN-"))
 PDRST_CTRL = io("PDRST", Net, default = Net("nPDRST"), optional = True)
 if use_external_ref:
     REFIN_P = io("REFIN+", Net, default = Net("VREF+"))
-    REFIN_N = io("REFIN-", Net, default = Net("VREF-", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+    REFIN_N = io("REFIN-", Ground)
+GND = io("GND", Ground)
 
 # Internal nets
 _VREF = REFIN_P if use_external_ref else VDD

@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,12 +42,12 @@ else:
 enable_interrupt = config("enable_interrupt", bool, default = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 if separate_vddio:
-    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDDIO = io("VDDIO", Power)
 else:
     VDDIO = io("VDDIO", Net, default = VDD)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Interface connections
 if interface_type == Interface("I2C"):

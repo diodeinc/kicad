@@ -24,7 +24,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31826.pdf
 """
 
-load("@stdlib/interfaces.zen", "OneWire")
+load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -100,8 +100,8 @@ add_test_points = config("add_test_points", bool, default = True)
 passives_size = config("passives_size", PassiveSize, default = "0603")
 
 # External IO
-VDD = (io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = (io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # 1-Wire interface
 onewire = io("onewire", OneWire)

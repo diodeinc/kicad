@@ -16,7 +16,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.microchip.com/en-us/product/ATSAMD21E18
 """
 
-load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power")
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -71,13 +71,13 @@ add_status_led = config("add_status_led", bool, default = True)
 add_spi_flash = config("add_spi_flash", bool, default = True, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
 
 # SWD IO (if enabled)
 if add_swd_header:

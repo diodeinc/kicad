@@ -22,7 +22,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30102.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -55,12 +55,12 @@ led_current_range = config("led_current_range", LEDCurrentRange, default = "Medi
 add_led_test_points = config("add_led_test_points", bool, default = False, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # Power supply for LEDs - conditionally exposed based on power configuration
 if power_configuration == PowerConfiguration("Separate"):
-    VLED = io("VLED", Net, default = Net("VLED", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
+    VLED = io("VLED", Power)
     _VLED_PLUS = VLED
 else:
     # Combined power - use VDD for LED power

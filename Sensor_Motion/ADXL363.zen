@@ -21,7 +21,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL363.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "Power")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -68,12 +68,12 @@ else:
 add_test_points = config("add_test_points", bool, default = False)
 
 # External IO
-VS = io("VS", Net, default = Net("VS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VS = io("VS", Power)
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDD_IO = io("VDD_IO", Power)
 else:
     VDD_IO = io("VDD_IO", Net, default = VS)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # SPI interface
 spi = io("SPI", Spi)

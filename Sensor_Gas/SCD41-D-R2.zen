@@ -16,7 +16,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Datasheets/Sensirion_Humidity_Sensors_SCD4x_Datasheet.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,7 +49,7 @@ passives_size = config("passives_size", str, default = "0402")
 # External IO
 power = io("power", Power)
 VDD = power.NET
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("i2c", I2c)

@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-15031086.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Usb2", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,9 +50,9 @@ add_bulk_caps = config("add_bulk_caps", bool, default = True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
 
 # External IO - Always create these power nets
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+VBUS = io("VBUS", Power)
+GND = io("GND", Ground)
 
 # Interface IO - conditional based on configuration
 if interface_mode == InterfaceMode("UART_I2C"):

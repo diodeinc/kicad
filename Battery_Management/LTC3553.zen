@@ -15,6 +15,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Anand Kapadia
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,10 +49,10 @@ if not enable_ldo and sequence_mode == SequenceMode("LDOFirst"):
     error("LDOFirst sequence mode requires LDO to be enabled")
 
 # External IO
-VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+VBUS = io("VBUS", Power)
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 BAT = io("BAT", Net, default = Net("BAT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 BUCK_OUT = io("BUCK_OUT", Net, default = Net("BUCK_OUT")) if enable_buck else None
 LDO_OUT = io("LDO_OUT", Net, default = Net("LDO_OUT")) if enable_ldo else None
 ON_BTN = io("ON_BTN", Net, default = Net("ON_BTN"))

@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps7a05.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,9 +33,9 @@ passive_size = config("passive_size", PackageSize, default = "0603")
 enable_config = config("enable_config", EnableConfig, default = "PullUp")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VI", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VOUT = io("VOUT", Net, default = Net("VO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Ground)
 
 # Enable pin - expose as IO if user defined, otherwise internal net
 if enable_config == EnableConfig("UserDefined"):

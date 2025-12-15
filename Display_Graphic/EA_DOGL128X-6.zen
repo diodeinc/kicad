@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -58,8 +58,8 @@ if add_backlight:
 add_test_points = config("add_test_points", bool, default = False)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # SPI Interface
 spi = io("SPI", Spi)

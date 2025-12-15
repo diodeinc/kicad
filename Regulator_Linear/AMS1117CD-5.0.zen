@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -24,7 +25,7 @@ add_protection_diode = config("add_protection_diode", bool, default = False)
 # External IO
 VIN = io("VIN", Net, default = Net("VI"))
 VOUT = io("VOUT", Net, default = Net("VO"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # 1A Low Dropout regulator, positive, 5.0V fixed output, TO-252
 Component(

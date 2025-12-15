@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: http://www.infineon.com/dgdl/Infineon-TLV493D-A1B6-DS-v01_00-EN.pdf?fileId=5546d462525dbac40152a6b85c760e80
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -35,8 +35,8 @@ if configure_i2c_address:
 i2c_speed = config("i2c_speed", I2cSpeed, default = "400kHz")
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 i2c = io("I2C", I2c, default = I2c())
 
 # Optional interrupt output

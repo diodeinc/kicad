@@ -21,7 +21,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-20602-v1.0.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -57,13 +57,13 @@ if use_interrupt:
 use_fsync = config("use_fsync", bool, default = False)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 # VDDIO - can be same as VDD or separate
 if separate_vddio:
-    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDDIO = io("VDDIO", Power)
 else:
     VDDIO = VDD
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Interface IO
 if interface_mode == InterfaceMode("I2C"):

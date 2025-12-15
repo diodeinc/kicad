@@ -13,6 +13,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,9 +40,9 @@ if add_power_good_delay:
     power_good_delay_cap = config("power_good_delay_cap", str, default = "1000pF")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VOUT = io("VOUT", Net, default = Net("VOUT_2V5", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Ground)
 
 # Conditional IO for SHDN based on configuration
 if shutdown_config == ShutdownConfig("UserDefined"):

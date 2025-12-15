@@ -22,6 +22,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,8 +51,8 @@ if output_config == OutputConfiguration("Filtered"):
 add_test_points = config("add_test_points", bool, default = True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+GND = io("GND", Ground)
 VREF = io("VREF", Net, default = Net("VREF_5V0"))
 
 # Internal nets

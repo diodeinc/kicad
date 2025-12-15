@@ -24,7 +24,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3555fc.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -74,10 +74,10 @@ add_external_ideal_diode = config("add_external_ideal_diode", bool, default = Tr
 add_charge_led = config("add_charge_led", bool, default = True)
 
 # External IO
-VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+VBUS = io("VBUS", Power)
 VOUT = io("VOUT", Net, default = Net("VOUT"))
 BAT = io("BAT", Net, default = Net("BAT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 if enable_i2c:
     i2c = io("I2C", I2c, default = I2c("I2C"))

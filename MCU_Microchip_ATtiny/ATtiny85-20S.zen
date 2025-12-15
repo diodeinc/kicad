@@ -18,7 +18,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "I2c", "Power")
+load("@stdlib/interfaces.zen", "Spi", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -56,12 +56,12 @@ else:
     power_from_usb = False
 
 # External IO
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
 
 # GPIO pins - conditionally exposed based on configuration
 # PB0 - AREF/MOSI/SDA
