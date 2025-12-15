@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html
 """
 
-load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground", "NotConnected")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -221,7 +221,7 @@ Component(
         "VSS": GND,
         "VDDH": _VDDH,
         "VSS_PA": _VSS_PA,
-        "VBUS": VUSB if add_usb else Net("NC_VBUS"),
+        "VBUS": VUSB if add_usb else NotConnected(),
         "DCC": _DCC,
         "DCCH": _DCCH,
         "XL1/P0.00": _XL1,

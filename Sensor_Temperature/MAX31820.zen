@@ -26,7 +26,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31820.pdf
 """
 
-load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground")
+load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -76,7 +76,7 @@ if power_mode == PowerMode("Parasite"):
     _PULLUP_CTRL = PULLUP_CTRL
     _PULLUP_GATE_VDD = PULLUP_GATE_VDD
 else:
-    _PULLUP_CTRL = Net("NC_PULLUP")
+    _PULLUP_CTRL = NotConnected()
     _PULLUP_GATE_VDD = VDD
 
 # Main component - 1-Wire Ambient Temperature Sensor TO-92

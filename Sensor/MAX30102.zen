@@ -22,7 +22,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30102.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -80,7 +80,7 @@ else:
 PGND = Net("PGND")
 
 # Create NC (No Connect) net for unused pins
-NC_NET = Net("NC")
+NC_NET = NotConnected()
 
 # Heart Rate Sensor, 14-OLGA
 Component(

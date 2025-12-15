@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl29035.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -43,7 +43,7 @@ i2c = io("I2C", I2c)
 INT = io("INT", Net)
 
 # Internal nets
-_NC = Net("NC")
+_NC = NotConnected()
 
 # Main sensor component
 Component(

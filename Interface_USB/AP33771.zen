@@ -9,7 +9,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.diodes.com/assets/Datasheets/AP33771.pdf
 """
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -73,7 +73,7 @@ _IFB = Net("IFB")
 _ISENP = VBUS_IN
 _GPIO1 = Net("GPIO1")
 _GPIO4 = Net("GPIO4")   
-_NC = Net("NC")
+_NC = NotConnected()
 _VBUS = Net("VBUS")  # Internal VBUS net for chip
 
 

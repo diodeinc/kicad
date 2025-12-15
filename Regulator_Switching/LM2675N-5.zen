@@ -11,7 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: <not_reviewed>
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 """
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -41,7 +41,7 @@ GND = io("GND", Ground)
 _VSW = Net("VSW")
 _CB = Net("CB")
 _FB = VOUT  # For fixed voltage version, FB connects directly to output
-_NC = Net("NC")
+_NC = NotConnected()
 
 # 5V, 1A Step-Down Voltage Regulator, DIP-8
 Component(

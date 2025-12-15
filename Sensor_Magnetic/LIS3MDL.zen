@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/lis3mdl.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -76,12 +76,12 @@ else:  # SPI modes
 if enable_interrupt:
     INT = io("INT", Net, default = Net("INT"))
 else:
-    INT = Net("NC_INT")
+    INT = NotConnected()
 
 if enable_data_ready:
     DRDY = io("DRDY", Net, default = Net("DRDY"))
 else:
-    DRDY = Net("NC_DRDY")
+    DRDY = NotConnected()
 
 # Internal nets
 _C1 = Net("C1")  # External capacitor connection

@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,7 +54,7 @@ Component(
         "V_{DD}": VDD,
         "GND": GND,
         "EP/GND": GND,
-        "Alert": ALERT if enable_alert else Net("NC_ALERT")
+        "Alert": ALERT if enable_alert else NotConnected()
     },
 )
 

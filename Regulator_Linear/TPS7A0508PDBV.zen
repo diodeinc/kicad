@@ -11,7 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps7a05.pdf
 """
-load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,7 +45,7 @@ else:
     _EN = Net("EN")
 
 # Internal net for NC pin
-_NC = Net("NC")
+_NC = NotConnected()
 
 # 200mA Ultra-Low-Iq regulator, positive, 0.8V fixed output, SOT-23-5
 Component(

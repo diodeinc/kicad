@@ -15,7 +15,7 @@ Reviewer: Anand Kapadia
 Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground")
+load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -106,8 +106,8 @@ Component(
         "USBD+": usb.D.P,
         "USBD-": usb.D.N,
         "~{RESET}": NRESET,
-        "OSCI": Net("NC_OSCI"),  # Using internal oscillator
-        "OSCO": Net("NC_OSCO"),  # Not connected when using internal oscillator
+        "OSCI": NotConnected(),  # Using internal oscillator
+        "OSCO": NotConnected(),  # Not connected when using internal oscillator
         "TEST": GND,  # Must be tied to GND for normal operation
         "AGND": GND,
         "VCCIO": _VCCIO_SUPPLY,

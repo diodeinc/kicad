@@ -20,7 +20,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-20948-v1.3.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -91,7 +91,7 @@ if use_aux_i2c:
 
 # Internal nets
 _REGOUT = Net("REGOUT")
-_NC = Net("NC")
+_NC = NotConnected()
 _RESV_19 = Net("RESV_19")
 _RESV_20 = Net("RESV_20")
 _ADO_SDO = Net("ADO_SDO")

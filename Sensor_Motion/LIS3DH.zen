@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/lis3dh.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -82,15 +82,15 @@ else:  # SPI modes
     else:  # SPI_3Wire
         # In 3-wire mode, SDA is bidirectional
         _SDA = spi.MOSI  # Also used for MISO in 3-wire mode
-        _SDO_SA0 = Net("NC_SDO")  # Not connected in 3-wire mode
+        _SDO_SA0 = NotConnected()  # Not connected in 3-wire mode
 
 # Interrupt pins
 if enable_interrupts:
     INT1 = io("INT1", Net, default = Net("INT1"))
     INT2 = io("INT2", Net, default = Net("INT2"))
 else:
-    INT1 = Net("NC_INT1")
-    INT2 = Net("NC_INT2")
+    INT1 = NotConnected()
+    INT2 = NotConnected()
 
 # ADC pins
 if enable_adc:
@@ -98,9 +98,9 @@ if enable_adc:
     ADC2 = io("ADC2", Net, default = Net("ADC2"))
     ADC3 = io("ADC3", Net, default = Net("ADC3"))
 else:
-    ADC1 = Net("NC_ADC1")
-    ADC2 = Net("NC_ADC2")
-    ADC3 = Net("NC_ADC3")
+    ADC1 = NotConnected()
+    ADC2 = NotConnected()
+    ADC3 = NotConnected()
 
 # Internal nets
 _RES = Net("RES")  # Reserved pin, must be connected to GND
@@ -120,7 +120,7 @@ Component(
         "INT2": INT2,
         "VDD": VDD,
         "GND": GND,
-        "NC": Net("NC_INTERNAL"),
+        "NC": NotConnected(),
         "ADC1": ADC1,
         "ADC2": ADC2,
         "ADC3": ADC3,

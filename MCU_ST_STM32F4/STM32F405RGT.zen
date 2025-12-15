@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f405rg.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground")
+load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -367,8 +367,8 @@ if add_usb:
             "D-": USB_DM,
             "CC1": _CC1,
             "CC2": _CC2,
-            "SBU1": Net("NC"),
-            "SBU2": Net("NC"),
+            "SBU1": NotConnected(),
+            "SBU2": NotConnected(),
             "SHIELD": GND,
         },
     )

@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -64,7 +64,7 @@ if crystal_mode == CrystalMode("EXTERNAL"):
     _XOUT32 = Net("XOUT32")
 else:
     _XIN32 = GND
-    _XOUT32 = Net("NC_XOUT32")
+    _XOUT32 = NotConnected()
 
 # Protocol select pins
 # PS1 PS0 Functionality

@@ -15,7 +15,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Anand Kapadia
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf
 """
-load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -95,11 +95,11 @@ Component(
         "BAT": BAT,
         "NTC": _NTC,
         "VINLDO": VOUT,
-        "LDO": LDO_OUT if enable_ldo else Net("NC_LDO"),
-        "LDO_FB": _LDO_FB if enable_ldo else Net("NC_LDO_FB"),
+        "LDO": LDO_OUT if enable_ldo else NotConnected(),
+        "LDO_FB": _LDO_FB if enable_ldo else NotConnected(),
         "BVIN": VOUT,
-        "SW": _SW if enable_buck else Net("NC_SW"),
-        "BUCK_FB": _BUCK_FB if enable_buck else Net("NC_BUCK_FB")
+        "SW": _SW if enable_buck else NotConnected(),
+        "BUCK_FB": _BUCK_FB if enable_buck else NotConnected()
     },
 )
 

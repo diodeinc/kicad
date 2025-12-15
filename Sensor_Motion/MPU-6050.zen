@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -56,9 +56,9 @@ _CPOUT = Net("CPOUT")
 _RESV = Net("RESV")
 
 # Handle conditional nets
-_INT = INT if enable_interrupt else Net("NC_INT")
-_AUX_DA = AUX_DA if AUX_DA else Net("NC_AUX_DA")
-_AUX_CL = AUX_CL if AUX_CL else Net("NC_AUX_CL")
+_INT = INT if enable_interrupt else NotConnected()
+_AUX_DA = AUX_DA if AUX_DA else NotConnected()
+_AUX_CL = AUX_CL if AUX_CL else NotConnected()
 
 # I2C interface nets
 _SDA = i2c.SDA
@@ -75,7 +75,7 @@ Component(
         "AD0": _AD0,
         "FSYNC": FSYNC,
         "CLKIN": CLKIN,
-        "NC": Net("NC"),
+        "NC": NotConnected(),
         "VLOGIC": VLOGIC,
         "GND": GND,
         "VDD": VDD,

@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ads1113.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -98,12 +98,12 @@ Component(
     footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-10_3x3mm_P0.5mm.kicad_mod"),
     pins = {
         "ADDR": _ADDR_NET,
-        "2": Net("NC_2"),  # NC pin
+        "2": NotConnected(),  # NC pin
         "GND": GND,
         "AIN0": _AIN0_FILTERED,
         "AIN1": _AIN1_FILTERED,
-        "6": Net("NC_6"),  # NC pin
-        "7": Net("NC_7"),  # NC pin
+        "6": NotConnected(),  # NC pin
+        "7": NotConnected(),  # NC pin
         "VDD": VDD.NET,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,

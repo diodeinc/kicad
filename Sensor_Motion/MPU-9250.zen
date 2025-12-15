@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -66,7 +66,7 @@ if enable_interrupt:
     INT = io("INT", Net, default = Net("INT"))
     _INT = INT
 else:
-    _INT = Net("NC_INT")
+    _INT = NotConnected()
 
 # Optional auxiliary I2C interface
 if add_aux_i2c:
@@ -76,8 +76,8 @@ if add_aux_i2c:
     _AUX_CL = AUX_CL
 else:
     # Per datasheet: "AUX_DA and AUX_CL should be left unconnected if the Auxiliary I2C mode is not used"
-    _AUX_DA = Net("NC_AUX_DA")
-    _AUX_CL = Net("NC_AUX_CL")
+    _AUX_DA = NotConnected()
+    _AUX_CL = NotConnected()
 
 # Frame sync input (optional)
 FSYNC = io("FSYNC", Net, default = GND.NET)

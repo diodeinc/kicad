@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ltc4317.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -121,8 +121,8 @@ else:  # Both channels
     ENABLE2 = io("ENABLE2", Net, default = Net("ENABLE2")) if enable_control else VCC
 
 # READY pins
-READY1 = io("READY1", Net, default = Net("READY1")) if channel_config != ChannelConfig("Channel2Only") else Net("NC_READY1")
-READY2 = io("READY2", Net, default = Net("READY2")) if channel_config != ChannelConfig("Channel1Only") else Net("NC_READY2")
+READY1 = io("READY1", Net, default = Net("READY1")) if channel_config != ChannelConfig("Channel2Only") else NotConnected()
+READY2 = io("READY2", Net, default = Net("READY2")) if channel_config != ChannelConfig("Channel1Only") else NotConnected()
 
 # Internal nets for XOR configuration - handle Open/Short cases
 # Channel 1 nets
@@ -130,7 +130,7 @@ if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("C
     if ch1_mode == TranslationMode("PassThrough"):
         # Pass-through mode: Connect XORH1 to VCC, leave XORL1 floating
         _XORH1 = VCC
-        _XORL1 = Net("NC_XORL1")  # XORL1 not used in pass-through mode
+        _XORL1 = NotConnected()  # XORL1 not used in pass-through mode
     else:
         # Translation mode: Configure based on resistor values
         # XORL1 net assignment
@@ -150,15 +150,15 @@ if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("C
             _XORH1 = Net("XORH1")
 else:
     # Leave XORL1 and XORH1 floating when channel 1 is not used
-    _XORL1 = Net("NC_XORL1")
-    _XORH1 = Net("NC_XORH1")
+    _XORL1 = NotConnected()
+    _XORH1 = NotConnected()
 
 # Channel 2 nets
 if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("Channel2Only"):
     if ch2_mode == TranslationMode("PassThrough"):
         # Pass-through mode: Connect XORH2 to VCC, leave XORL2 floating
         _XORH2 = VCC
-        _XORL2 = Net("NC_XORL2")  # XORL2 not used in pass-through mode
+        _XORL2 = NotConnected()  # XORL2 not used in pass-through mode
     else:
         # Translation mode: Configure based on resistor values
         # XORL2 net assignment
@@ -178,8 +178,8 @@ if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("C
             _XORH2 = Net("XORH2")
 else:
     # Leave XORL2 and XORH2 floating when channel 2 is not used
-    _XORL2 = Net("NC_XORL2")
-    _XORH2 = Net("NC_XORH2")
+    _XORL2 = NotConnected()
+    _XORH2 = NotConnected()
 
 # Dual I2C/SMBus Address-Translator, DFN-16
 Component(
@@ -200,10 +200,10 @@ Component(
         "EP": GND,
         "READY1": READY1,
         "READY2": READY2,
-        "SCLOUT1": i2c_out1.SCL if i2c_out1 else Net("NC_SCLOUT1"),
-        "SDAOUT1": i2c_out1.SDA if i2c_out1 else Net("NC_SDAOUT1"),
-        "SCLOUT2": i2c_out2.SCL if i2c_out2 else Net("NC_SCLOUT2"),
-        "SDAOUT2": i2c_out2.SDA if i2c_out2 else Net("NC_SDAOUT2")
+        "SCLOUT1": i2c_out1.SCL if i2c_out1 else NotConnected(),
+        "SDAOUT1": i2c_out1.SDA if i2c_out1 else NotConnected(),
+        "SCLOUT2": i2c_out2.SCL if i2c_out2 else NotConnected(),
+        "SDAOUT2": i2c_out2.SDA if i2c_out2 else NotConnected()
     },
 )
 

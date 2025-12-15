@@ -24,7 +24,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3555fc.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -105,21 +105,21 @@ _CLPROG = Net("CLPROG")
 _CLPROG_FILTER = Net("CLPROG_FILTER")  # Intermediate net for series connection
 _PROG = Net("PROG")
 _NTC = GND if not enable_ntc else Net("NTC")
-_GATE = Net("GATE") if add_external_ideal_diode else Net("NC_GATE")
+_GATE = Net("GATE") if add_external_ideal_diode else NotConnected()
 _LDO3V3 = Net("LDO3V3")
 
 # Buck internal nets
-_SW1 = Net("SW1") if enable_buck1 else Net("NC_SW1")
-_FB1 = Net("FB1") if enable_buck1 else Net("NC_FB1")
-_VIN1 = VOUT if enable_buck1 else Net("NC_VIN1")
+_SW1 = Net("SW1") if enable_buck1 else NotConnected()
+_FB1 = Net("FB1") if enable_buck1 else NotConnected()
+_VIN1 = VOUT if enable_buck1 else NotConnected()
 
-_SW2 = Net("SW2") if enable_buck2 else Net("NC_SW2")
-_FB2 = Net("FB2") if enable_buck2 else Net("NC_FB2")
-_VIN2 = VOUT if enable_buck2 else Net("NC_VIN2")
+_SW2 = Net("SW2") if enable_buck2 else NotConnected()
+_FB2 = Net("FB2") if enable_buck2 else NotConnected()
+_VIN2 = VOUT if enable_buck2 else NotConnected()
 
-_SW3 = Net("SW3") if enable_buck3 else Net("NC_SW3")
-_FB3 = Net("FB3") if enable_buck3 else Net("NC_FB3")
-_VIN3 = VOUT if enable_buck3 else Net("NC_VIN3")
+_SW3 = Net("SW3") if enable_buck3 else NotConnected()
+_FB3 = Net("FB3") if enable_buck3 else NotConnected()
+_VIN3 = VOUT if enable_buck3 else NotConnected()
 
 # I2C or manual control
 if enable_i2c:
@@ -171,7 +171,7 @@ Component(
         "SW3": _SW3,
         "EN3": _EN3,
         "FB3": _FB3,
-        "~{RST3}": RST3 if enable_buck3 else Net("NC_RST3"),
+        "~{RST3}": RST3 if enable_buck3 else NotConnected(),
         "EN1": _EN1,
         "SW1": _SW1,
         "V_{IN1}": _VIN1,

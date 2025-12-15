@@ -20,7 +20,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ads1015.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -122,7 +122,7 @@ Component(
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
         "ADDR": _ADDR_NET,
-        "ALERT/RDY": ALERT_RDY if alert_mode != AlertMode("Disabled") else Net("NC_ALERT"),
+        "ALERT/RDY": ALERT_RDY if alert_mode != AlertMode("Disabled") else NotConnected(),
     },
 )
 

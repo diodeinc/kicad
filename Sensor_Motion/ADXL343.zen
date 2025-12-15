@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL343.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -125,7 +125,7 @@ else:
 # Reserved pins - per datasheet requirements
 _RES1 = _VS    # Reserved pin 3 - connect to VS or leave open (we connect to VS)
 _RES2 = GND    # Reserved pin 11 - connect to GND or leave open (we connect to GND)
-_NC = Net("NC") # Not internally connected
+_NC = NotConnected() # Not internally connected
 
 # 3-Axis MEMS Accelerometer, 2/4/8/16g range, I2C/SPI, LGA-14
 Component(
