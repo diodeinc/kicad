@@ -55,7 +55,7 @@ add_decoupling_caps = config("add_decoupling", bool, default = True, optional = 
 
 # External IO
 VDD = io("VDD", Power)
-VDDIO = io("VDDIO", Net, default = VDD)
+VDDIO = io("VDDIO", Net, default = VDD.NET)
 GND = io("GND", Ground)
 
 # Interrupt pins

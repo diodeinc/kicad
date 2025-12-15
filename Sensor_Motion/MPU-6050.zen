@@ -33,15 +33,15 @@ enable_interrupt = config("enable_interrupt", bool, default = True)
 # External IO
 i2c = io("I2C", I2c, default = I2c("I2C"))
 VDD = io("VDD", Power)
-VLOGIC = io("VLOGIC", Net, default = VDD)
+VLOGIC = io("VLOGIC", Net, default = VDD.NET)
 GND = io("GND", Ground)
 INT = io("INT", Net, default = Net("INT")) if enable_interrupt else None
 
 # Optional external clock input
-CLKIN = io("CLKIN", Net, default = GND)
+CLKIN = io("CLKIN", Net, default = GND.NET)
 
 # Optional frame sync input
-FSYNC = io("FSYNC", Net, default = GND)
+FSYNC = io("FSYNC", Net, default = GND.NET)
 
 # Auxiliary I2C interface (optional)
 AUX_DA = io("AUX_DA", Net, default = Net("AUX_DA"), optional = True)

@@ -45,7 +45,7 @@ enable_safeboot_pins = config("enable_safeboot_pins", bool, default = True)
 
 # External IO
 VCC = io("VCC", Power)
-VCC_IO = io("VCC_IO", Net, default = VCC)
+VCC_IO = io("VCC_IO", Net, default = VCC.NET)
 GND = io("GND", Ground)
 
 # Interface IO

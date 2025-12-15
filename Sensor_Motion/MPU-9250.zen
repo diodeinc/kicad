@@ -46,7 +46,7 @@ VDD = io("VDD", Power)
 if separate_vddio:
     VDDIO = io("VDDIO", Power)
 else:
-    VDDIO = io("VDDIO", Net, default = VDD)
+    VDDIO = io("VDDIO", Net, default = VDD.NET)
 GND = io("GND", Ground)
 
 # Interface connections
@@ -80,7 +80,7 @@ else:
     _AUX_CL = Net("NC_AUX_CL")
 
 # Frame sync input (optional)
-FSYNC = io("FSYNC", Net, default = GND)
+FSYNC = io("FSYNC", Net, default = GND.NET)
 
 # Internal nets
 _AD0 = GND if interface_type == Interface("I2C") and i2c_address == I2cAddress("0x68") else VDDIO
