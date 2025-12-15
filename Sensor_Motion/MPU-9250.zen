@@ -46,7 +46,7 @@ VDD = io("VDD", Power)
 if separate_vddio:
     VDDIO = io("VDDIO", Power)
 else:
-    VDDIO = io("VDDIO", Net, default = VDD.NET)
+    VDDIO = io("VDDIO", Power, default = VDD)
 GND = io("GND", Ground)
 
 # Interface connections
