@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -51,8 +51,8 @@ use_us_symbols = config("use_us_symbols", bool, default = True)
 passives_size = config("passives_size", PassivesSize, default = "0402")
 
 # External IO
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+GND = io("GND", Ground)
 RESET = io("RESET", Net, default = Net("RESET"))
 
 # Port B IO

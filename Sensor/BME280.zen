@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Spi", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,7 +45,7 @@ add_test_points = config("add_test_points", bool, default = False)
 
 # External IO
 VDD = io("VDD", Power)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # VDDIO - can be same as VDD or separate
 if add_vddio_separation:

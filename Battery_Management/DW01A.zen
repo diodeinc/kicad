@@ -20,6 +20,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ic-fortune.com/upload/Download/DW01A-DS-17_EN.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,8 +40,8 @@ add_output_stabilization = config("add_output_stabilization", bool, default = Tr
 mosfet_mpn = config("mosfet_mpn", str, default = "SI2302CDS")  # Default: Vishay SI2302CDS (20V, 3.9A, 85mΩ)
 
 # External IO - Battery connections
-BATT_PLUS = io("BATT+", Net, default = Net("BATT+", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))   # Battery positive terminal
-BATT_MINUS = io("BATT-", Net, default = Net("BATT-", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))  # Battery negative terminal
+BATT_PLUS = io("BATT+", Power)   # Battery positive terminal
+BATT_MINUS = io("BATT-", Ground)  # Battery negative terminal
 BATT_INT = Net("BATT-INT")
 
 # Internal nets

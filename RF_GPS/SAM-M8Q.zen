@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-16012619.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Uart", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -44,9 +44,9 @@ add_decoupling = config("add_decoupling", bool, default = True)
 enable_safeboot_pins = config("enable_safeboot_pins", bool, default = True)
 
 # External IO
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
-VCC_IO = io("VCC_IO", Net, default = VCC)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+VCC_IO = io("VCC_IO", Net, default = VCC.NET)
+GND = io("GND", Ground)
 
 # Interface IO
 if interface_mode == InterfaceMode("UART") or interface_mode == InterfaceMode("Both"):
@@ -90,7 +90,7 @@ Component(
         "GND": GND,
         "VCC_IO": VCC_IO,
         "V_BCKP": _V_BCKP,
-        "TIMEPULSE": TIMEPULSE if TIMEPULSE else Net("NC_TIMEPULSE"),
+        "TIMEPULSE": TIMEPULSE if TIMEPULSE else NotConnected(),
         "~{SAFEBOOT}": _SAFEBOOT_N,
         "SDA": _SDA,
         "SCL": _SCL,
@@ -98,7 +98,7 @@ Component(
         "RXD": _RXD,
         "VCC": VCC,
         "~{RESET}": _RESET_N,
-        "EXTINT": EXTINT if EXTINT else Net("NC_EXTINT"),
+        "EXTINT": EXTINT if EXTINT else NotConnected(),
     }
 )
 

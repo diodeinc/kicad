@@ -14,6 +14,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7182.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,10 +29,10 @@ add_enable_pulldown = config("add_enable_pulldown", bool, default = True)
 add_output_discharge = config("add_output_discharge", bool, default = True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VOUT = io("VOUT", Net, default = Net("VOUT", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 EN = io("EN", Net, default = Net("EN")) if enable_control else VIN
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # -200mA, Low Noise, CMOS Low Dropout Regulator, Negative, -5.0V Fixed Output, TSOT-23-5
 Component(
@@ -42,7 +43,7 @@ Component(
         "GND": GND,
         "VIN": VIN,
         "EN": EN,
-        "NC": Net("NC"),  # No connect pin
+        "NC": NotConnected(),  # No connect pin
         "VOUT": VOUT
     },
 )

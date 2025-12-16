@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32g431cb.pdf
 """
 
-load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power")
+load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -77,8 +77,8 @@ if add_usb:
 add_fdcan = config("add_fdcan", bool, default = True, optional = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
 # Port A pins
@@ -124,7 +124,7 @@ PF1 = io("PF1", Net)
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
@@ -172,8 +172,8 @@ else:
 PG10 = _NRST
 
 # Internal nets
-_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA")) if add_analog_decoupling else VDD
-_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VDDA = Net("VDDA") if add_analog_decoupling else VDD
+_VSSA = io("_VSSA", Ground)
 _VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
 _VREF_PLUS = Net("VREF+") if add_vref_buffer else VDD
 

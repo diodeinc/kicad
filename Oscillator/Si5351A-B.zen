@@ -21,7 +21,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.skyworksinc.com/-/media/Skyworks/SL/documents/public/data-sheets/Si5351-B.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -63,12 +63,12 @@ add_decoupling = config("add_decoupling", bool, default = True)
 add_clock_test_points = config("add_clock_test_points", bool, default = True)
 
 # External IO
-VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+VDD = io("VDD", Power)
 if seperate_vdd_vddo:
-    VDDO = io("VDDO", Power, default = Power(NET = Net("VDDO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
+    VDDO = io("VDDO", Power)
 else:
     VDDO = VDD
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)

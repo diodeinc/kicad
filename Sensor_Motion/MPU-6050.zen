@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,16 +32,16 @@ enable_interrupt = config("enable_interrupt", bool, default = True)
 
 # External IO
 i2c = io("I2C", I2c, default = I2c("I2C"))
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VLOGIC = io("VLOGIC", Net, default = VDD)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+VLOGIC = io("VLOGIC", Net, default = VDD.NET)
+GND = io("GND", Ground)
 INT = io("INT", Net, default = Net("INT")) if enable_interrupt else None
 
 # Optional external clock input
-CLKIN = io("CLKIN", Net, default = GND)
+CLKIN = io("CLKIN", Net, default = GND.NET)
 
 # Optional frame sync input
-FSYNC = io("FSYNC", Net, default = GND)
+FSYNC = io("FSYNC", Net, default = GND.NET)
 
 # Auxiliary I2C interface (optional)
 AUX_DA = io("AUX_DA", Net, default = Net("AUX_DA"), optional = True)
@@ -56,9 +56,9 @@ _CPOUT = Net("CPOUT")
 _RESV = Net("RESV")
 
 # Handle conditional nets
-_INT = INT if enable_interrupt else Net("NC_INT")
-_AUX_DA = AUX_DA if AUX_DA else Net("NC_AUX_DA")
-_AUX_CL = AUX_CL if AUX_CL else Net("NC_AUX_CL")
+_INT = INT if enable_interrupt else NotConnected()
+_AUX_DA = AUX_DA if AUX_DA else NotConnected()
+_AUX_CL = AUX_CL if AUX_CL else NotConnected()
 
 # I2C interface nets
 _SDA = i2c.SDA
@@ -75,7 +75,7 @@ Component(
         "AD0": _AD0,
         "FSYNC": FSYNC,
         "CLKIN": CLKIN,
-        "NC": Net("NC"),
+        "NC": NotConnected(),
         "VLOGIC": VLOGIC,
         "GND": GND,
         "VDD": VDD,

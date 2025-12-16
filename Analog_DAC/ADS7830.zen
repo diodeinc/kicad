@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ads7830.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -63,8 +63,8 @@ if add_analog_filtering:
     filter_c_value = config("filter_c_value", str, default = "10pF")
 
 # External power supply
-VDD = io("VDD", Power, default = Power(NET = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)
@@ -84,7 +84,7 @@ COM = io("COM", Net, default = Net("COM"))
 
 # External reference input (if used)
 if reference_mode == ReferenceMode("External"):
-    REF_EXT = io("REF_EXT", Net, default = Net("REF_EXT", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+    REF_EXT = io("REF_EXT", Power)
 
 # Internal nets for filtered inputs
 if add_analog_filtering:

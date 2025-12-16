@@ -19,7 +19,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ads7042.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "Power")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -53,9 +53,9 @@ if filter_configuration == FilterConfiguration("AntiAliasing"):
 add_spi_pullup = config("add_spi_pullup", bool, default = True)
 
 # External power supplies
-AVDD = io("AVDD", Power, default = Power(NET = Net("AVDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-DVDD = io("DVDD", Power, default = Power(NET = Net("DVDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+AVDD = io("AVDD", Power)
+DVDD = io("DVDD", Power)
+GND = io("GND", Ground)
 
 # Analog inputs
 AINP = io("AINP", Net)

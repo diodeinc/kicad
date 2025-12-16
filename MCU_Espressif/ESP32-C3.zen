@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.espressif.com/documentation/esp32-c3_datasheet_en.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag")
+load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag", "Power", "Ground")
 
 # Import TLV70033 module from validated parts
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
@@ -91,13 +91,13 @@ if clock_source == ClockSource("Crystal"):
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb_circuit:
     usb = io("USB", Usb2, default = Usb2("USB"))
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
 
 # JTAG IO (if enabled)
 if add_jtag_header:

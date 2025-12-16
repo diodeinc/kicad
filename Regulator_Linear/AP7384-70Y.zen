@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.diodes.com/assets/Datasheets/AP7384.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -30,9 +31,9 @@ add_test_points = config("add_test_points", bool, default = True)
 passive_size = config("passive_size", PackageSize, default = "0603")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VI", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VOUT = io("VOUT", Net, default = Net("VO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+GND = io("GND", Ground)
 
 # 50mA Low Dropout regulator, positive, 7.0V fixed output, SOT-89-3
 Component(
@@ -128,16 +129,18 @@ if add_test_points:
 # pcb:sch C_IN_HF.C x=194.5800 y=380.0000 rot=0
 # pcb:sch C_OUT.C x=473.9800 y=380.0000 rot=0
 # pcb:sch C_OUT_HF.C x=588.2800 y=380.0000 rot=0
-# pcb:sch GND.1 x=341.9000 y=507.0000 rot=0
 # pcb:sch D_PROT x=317.5000 y=292.1000 rot=0
+# pcb:sch GND.1 x=341.9000 y=507.0000 rot=0
 # pcb:sch LED_PWR x=673.1000 y=431.8000 rot=0
-# pcb:sch R_LED.R x=750.8400 y=405.4000 rot=0
-# pcb:sch VI.1 x=105.6800 y=329.2000 rot=0
-# pcb:sch VO.1 x=600.9800 y=329.2000 rot=0
 # pcb:sch LED_PWR.LED x=672.1000 y=349.5200 rot=180
-# pcb:sch TP_VIN x=105.6800 y=280.0000 rot=0
-# pcb:sch TP_VOUT x=600.9800 y=280.0000 rot=0
+# pcb:sch R_LED.R x=750.8400 y=405.4000 rot=0
 # pcb:sch TP_GND x=341.9000 y=550.0000 rot=0
 # pcb:sch TP_GND.TP x=486.6800 y=479.0600 rot=180
+# pcb:sch TP_VIN x=105.6800 y=280.0000 rot=0
 # pcb:sch TP_VIN.TP x=207.2800 y=301.2600 rot=0
+# pcb:sch TP_VOUT x=600.9800 y=280.0000 rot=0
 # pcb:sch TP_VOUT.TP x=486.6800 y=301.2600 rot=0
+# pcb:sch VI.1 x=105.6800 y=329.2000 rot=0
+# pcb:sch VIN.1 x=105.6800 y=291.1000 rot=0
+# pcb:sch VO.1 x=600.9800 y=329.2000 rot=0
+# pcb:sch VOUT.1 x=600.9800 y=303.8000 rot=0

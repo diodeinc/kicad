@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -31,8 +31,8 @@ i2c_address = config("i2c_address", I2cAddress, default = "0x18")
 
 # External IO
 i2c = io("I2C", I2c, default = I2c("I2C"))
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 EVENT = io("EVENT", Net, default = Net("EVENT")) if enable_event else None
 
 # Address configuration nets
@@ -54,7 +54,7 @@ Component(
         "V_{DD}": VDD,
         "GND": GND,
         "EP/GND": GND,
-        "Event": EVENT if enable_event else Net("NC_EVENT")
+        "Event": EVENT if enable_event else NotConnected()
     },
 )
 

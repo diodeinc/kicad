@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: http://www.diodes.com/datasheets/AP130.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -65,7 +65,7 @@ add_test_points = config("add_test_points", bool, default = False, optional = Tr
 # External IO
 VIN = io("VIN", Power, default = Power("VIN"))
 VOUT = io("VOUT", Power, default = Power("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
 _VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN.NET

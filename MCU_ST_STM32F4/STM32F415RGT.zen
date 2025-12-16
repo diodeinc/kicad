@@ -13,8 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f415rg.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio")
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -81,8 +80,8 @@ add_spi_flash = config("add_spi_flash", bool, default = True, optional = True)
 passives_size = config("passives_size", PassivesSize, default = "0402")
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
 # Port A pins
@@ -163,7 +162,7 @@ PD2 = io("PD2", Net)
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VUSB = io("VUSB", Power)
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
@@ -214,8 +213,8 @@ else:
     _BOOT0 = Net("BOOT0")  # Internal net for boot circuit
 
 # Internal nets
-_VDDA = Net("VDDA", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDDA")) if add_analog_decoupling else VDD
-_VSSA = Net("VSSA", symbol = Symbol("@kicad-symbols/power.kicad_sym:GNDA"))
+_VDDA = Net("VDDA") if add_analog_decoupling else VDD
+_VSSA = io("_VSSA", Ground)
 _VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
 _VCAP1 = Net("VCAP1")
 _VCAP2 = Net("VCAP2")

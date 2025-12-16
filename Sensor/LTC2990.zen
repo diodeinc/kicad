@@ -25,7 +25,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/2990fg.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -136,8 +136,8 @@ diff_v3v4_enabled = measurement_mode in [
 ]
 
 # External IO
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+GND = io("GND", Ground)
 i2c = io("I2C", I2c, default = I2c("I2C"))
 
 # Measurement inputs - only expose those that are used
@@ -166,10 +166,10 @@ Component(
     symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "LTC2990"),
     footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
     pins = {
-        "V1": V1 if v1_enabled else Net("NC_V1"),
-        "V2": V2 if v2_enabled else Net("NC_V2"),
-        "V3": V3 if v3_enabled else Net("NC_V3"),
-        "V4": V4 if v4_enabled else Net("NC_V4"),
+        "V1": V1 if v1_enabled else NotConnected(),
+        "V2": V2 if v2_enabled else NotConnected(),
+        "V3": V3 if v3_enabled else NotConnected(),
+        "V4": V4 if v4_enabled else NotConnected(),
         "GND": GND,
         "VCC": VCC,
         "SDA": i2c.SDA,

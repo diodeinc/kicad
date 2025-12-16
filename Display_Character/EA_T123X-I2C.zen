@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.lcd-module.de/eng/pdf/doma/t123-i2c.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -44,12 +44,12 @@ add_test_points = config("add_test_points", bool, default = False)
 
 # External IO
 if power_mode == PowerMode("SingleSupply"):
-    VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+    VDD = io("VDD", Power)
 else:  # DualSupply
-    VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+2V5")))
+    VDD = io("VDD", Power)
 
 # VSS is always ground (0V), not negative voltage
-VSS = io("VSS", Net, default = Net("VSS", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VSS = io("VSS", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)
@@ -117,7 +117,7 @@ if add_contrast_circuit:
         V_NEG = Net("V_NEG")
 
         # Negative voltage supply for contrast (typically -1V to -5V per datasheet)
-        # V_NEG = io("V_NEG", Net, default = Net("V_NEG", symbol = Symbol("@kicad-symbols/power.kicad_sym:-5V")))
+        # V_NEG = io("V_NEG", Power)
         
         # Voltage divider with potentiometer for contrast adjustment
         # Per datasheet: 10k from VDD/V0, potentiometer in middle, 5k to negative

@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1962fb.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -43,7 +43,7 @@ enable_sense_connection = config("connect_sense_to_output", bool, default = True
 # External IO
 VIN = io("VIN", Power)
 VOUT = io("VOUT", Power)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Enable pin - conditionally exposed based on enable_control
 if enable_control:
@@ -53,7 +53,7 @@ else:
 
 # Internal nets
 _BYP = Net("BYP")
-_NC = Net("NC")
+_NC = NotConnected()
 _SENSE = VOUT.NET if enable_sense_connection else Net("SENSE")
 
 # Main LT1962-3 component

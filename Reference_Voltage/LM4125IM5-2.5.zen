@@ -12,6 +12,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm4125.pdf
 """
+load("@stdlib/interfaces.zen", "Ground", "NotConnected")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -24,10 +25,10 @@ output_cap_value = config("output_cap_value", str, default = "22nF")
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
-_NC = Net("NC")
+_NC = NotConnected()
 
 # 2.5V ±0.5% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
 Component(

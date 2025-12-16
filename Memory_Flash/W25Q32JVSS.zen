@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.winbond.com/resource-files/w25q32jv%20revg%2003272018%20plus.pdf
 """
 
-load("@stdlib/interfaces.zen", "Spi")
+load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -36,8 +36,8 @@ if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
 
 # External IO
 spi = io("spi", Spi, default = Spi("spi"))
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+GND = io("GND", Ground)
 
 # Additional IO based on SPI mode and configuration
 if spi_mode == SpiMode("Quad"):

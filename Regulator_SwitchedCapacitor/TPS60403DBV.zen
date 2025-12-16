@@ -11,6 +11,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps60403.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -43,7 +44,7 @@ elif output_filter == FilterType("LC"):
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
 _CFLY_P = Net("C_FLY+")

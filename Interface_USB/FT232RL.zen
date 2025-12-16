@@ -15,7 +15,7 @@ Reviewer: Anand Kapadia
 Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232")
+load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -70,16 +70,16 @@ elif communication_mode == CommunicationMode("UART"):
 
 NRESET = io("NRESET", Net) if power_config == PowerConfig("BusPowered") else Net("RESET")
 
-VUSB = io("VUSB", Net, default = Net("VUSB", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+VUSB = io("VUSB", Power)
 VOUT_3V3 = Net("VOUT_3V3")
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # VCC configuration
 if power_config == PowerConfig("BusPowered"):
-    VCC = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC"))
+    VCC = Net("VCC")
     FerriteBead(name = "FB1", mpn = "MI0805K400R-10", package = "0805", P1 = VUSB, P2 = VCC)
 else:
-    VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
+    VCC = io("VCC", Power)
 
 # VCCIO configuration
 _VCCIO_SUPPLY = Net("_VCCIO_SUPPLY")
@@ -106,8 +106,8 @@ Component(
         "USBD+": usb.D.P,
         "USBD-": usb.D.N,
         "~{RESET}": NRESET,
-        "OSCI": Net("NC_OSCI"),  # Using internal oscillator
-        "OSCO": Net("NC_OSCO"),  # Not connected when using internal oscillator
+        "OSCI": NotConnected(),  # Using internal oscillator
+        "OSCO": NotConnected(),  # Not connected when using internal oscillator
         "TEST": GND,  # Must be tied to GND for normal operation
         "AGND": GND,
         "VCCIO": _VCCIO_SUPPLY,

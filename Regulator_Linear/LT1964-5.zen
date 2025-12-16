@@ -23,7 +23,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1964fb.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Import required modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -58,7 +58,7 @@ if shutdown_logic != ShutdownLogic("AlwaysOn"):
 # External IOs
 VIN = io("VIN", Power)
 VOUT = io("VOUT", Power)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Shutdown control
 if shutdown_logic == ShutdownLogic("Positive"):
@@ -130,7 +130,7 @@ elif shutdown_logic == ShutdownLogic("Positive"):
     if add_shutdown_pullup:
         # Add pull-up to positive voltage for default-on behavior
         # Note: Pull-up must be to a positive supply relative to GND
-        VDD_POS = io("VDD_POS", Net, default = Net("VDD_POS", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+        VDD_POS = io("VDD_POS", Power)
         Resistor(
             name = "R_SHDN_PU",
             value = shutdown_pullup_value,

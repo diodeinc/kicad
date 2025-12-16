@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tmp116.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power", "Gpio")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "Gpio", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,9 +50,8 @@ add_test_points = config("add_test_points", bool, default = False, optional = Tr
 passives_size = config("passives_size", str, default = "0402")
 
 # External IO
-power = io("power", Power, default = Power())
-VDD = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))
-GND = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("i2c", I2c)
@@ -62,7 +61,7 @@ if use_alert:
     ALERT = io("ALERT", Net)
     _ALERT = ALERT
 else:
-    _ALERT = Net("NC_ALERT")
+    _ALERT = NotConnected()
 
 # Internal nets
 _SCL = i2c.SCL

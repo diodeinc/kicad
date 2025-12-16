@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f405rg.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio")
+load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -70,12 +70,12 @@ add_swd_header = config("add_swd_header", bool, default = True, optional = True)
 passives_size = config("passives_size", PassivesSize, default = "0402")
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VBUS = io("VBUS", Net, default = Net("VBUS", symbol = Symbol("@kicad-symbols/power.kicad_sym:VBUS")))
+    VBUS = io("VBUS", Power)
     usb = io("USB", Usb2, default = Usb2("USB"))
     USB_DM = usb.D.N
     USB_DP = usb.D.P
@@ -367,8 +367,8 @@ if add_usb:
             "D-": USB_DM,
             "CC1": _CC1,
             "CC2": _CC2,
-            "SBU1": Net("NC"),
-            "SBU2": Net("NC"),
+            "SBU1": NotConnected(),
+            "SBU2": NotConnected(),
             "SHIELD": GND,
         },
     )

@@ -27,7 +27,7 @@ Author: n/a
 Reviewer: Anand Kapadia
 Datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf
 """
-load("@stdlib/interfaces.zen", "Gpio", "Analog", "Usb2", "Qspi", "OscPair", "Swd")
+load("@stdlib/interfaces.zen", "Gpio", "Analog", "Usb2", "Qspi", "OscPair", "Swd", "Power", "Ground")
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -57,8 +57,8 @@ if specify_vdd_configuration:
     ADC_AVDD = io("ADC_AVDD", Net)
 
 VDD_1V1 = io("VDD_1V1", Net)
-VDD_3V3 = io("VDD_3V3", Net, default = Net("VDD_3V3", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD_3V3 = io("VDD_3V3", Power)
+GND = io("GND", Ground)
 
 qspi = Qspi("qspi") if add_qspi_flash else io("qspi", Qspi)
 usb = io("usb", Usb2) 

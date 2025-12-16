@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/lsm303c.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -44,12 +44,12 @@ enable_int_mag = config("enable_int_mag", bool, default = True)
 enable_drdy_mag = config("enable_drdy_mag", bool, default = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 if seperate_vdd_vddio:
-    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDD_IO = io("VDD_IO", Power)
 else:
     VDD_IO = VDD
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Interface IO
 if interface_mode == InterfaceMode("I2C"):

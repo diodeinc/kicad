@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.nxp.com/docs/en/data-sheet/MPR121.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,8 +39,8 @@ add_electrode_header = config("add_electrode_header", bool, default = True)
 add_test_points = config("add_test_points", bool, default = False)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VSS = io("VSS", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VDD = io("VDD", Power)
+VSS = io("VSS", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)

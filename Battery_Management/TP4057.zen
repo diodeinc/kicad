@@ -21,6 +21,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://datasheet.lcsc.com/lcsc/2304140030_TOPPOWER-Nanjing-Extension-Microelectronics-TP4057-42-SNT_C2832435.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # No longer using Power interface
 
@@ -57,9 +58,9 @@ if add_output_capacitor:
 add_test_points = config("add_test_points", bool, default = True, optional = True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
-VBAT = io("VBAT", Net, default = Net("VBAT", symbol = Symbol("@kicad-symbols/power.kicad_sym:+BATT")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VIN = io("VIN", Power)
+VBAT = io("VBAT", Power)
+GND = io("GND", Ground)
 
 # Status outputs - conditionally exposed based on configuration
 if status_indication == StatusIndication("Logic"):

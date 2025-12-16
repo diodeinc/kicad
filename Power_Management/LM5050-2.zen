@@ -21,7 +21,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm5050-2.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -52,7 +52,7 @@ add_test_points = config("add_test_points", bool, default = True)
 # External IO
 VIN = io("VIN", Power)
 VOUT = io("VOUT", Power)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # OFF control IO
 if off_control == OffControl("UserDefined"):
@@ -63,7 +63,7 @@ else:
 
 # nFGD control IO (specific to LM5050-2)
 if nfgd_control == NFGDControl("VLOGIC"):
-    VLOGIC = io("VLOGIC", Net, default = Net("5V", symbol = Symbol("@kicad-symbols/power.kicad_sym:+5V")))
+    VLOGIC = io("VLOGIC", Power)
 elif nfgd_control == NFGDControl("UserDefined"):
     FGD = io("FGD", Net)
 

@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html
 """
 
-load("@stdlib/interfaces.zen", "I2c")
+load("@stdlib/interfaces.zen", "I2c", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,7 +46,7 @@ VDP = io("VDP", Net, default = Net("VDP"))
 RDY = io("RDY", Net, default = Net("RDY"))
 START = io("START", Net, default = Net("START"))
 ADR = io("ADR", Net, default = Net("ADR"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal nets
 _CAP = Net("CAP")
@@ -73,7 +73,7 @@ Component(
         "EP": GND,   # Exposed pad to ground
         "VSS": GND,
         "VSSP": GND,
-        "NC": Net("NC"),  # Not internally connected
+        "NC": NotConnected(),  # Not internally connected
         "VDHS": _VDHS,
         "VDH": VDH,
         "VDP": VDP,

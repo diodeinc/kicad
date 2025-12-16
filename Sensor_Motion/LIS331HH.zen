@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/lis331hh.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -55,13 +55,13 @@ else:
     add_vddio_decoupling = False
     
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 # VDD_IO - can be same as VDD or separate
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Net, default = Net("VDD_IO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDD_IO = io("VDD_IO", Power)
 else:
     VDD_IO = VDD
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Interface IO
 if interface_mode == InterfaceMode("I2C"):
@@ -84,15 +84,15 @@ else:  # SPI modes
     else:  # SPI_3Wire
         # In 3-wire mode, SDA is bidirectional
         _SDA = spi.MOSI  # Also used for MISO in 3-wire mode
-        _SDO_SA0 = Net("NC_SDO")  # Not connected in 3-wire mode
+        _SDO_SA0 = NotConnected()  # Not connected in 3-wire mode
 
 # Interrupt pins
 if enable_interrupts:
     INT1 = io("INT1", Net, default = Net("INT1"))
     INT2 = io("INT2", Net, default = Net("INT2"))
 else:
-    INT1 = Net("NC_INT1")
-    INT2 = Net("NC_INT2")
+    INT1 = NotConnected()
+    INT2 = NotConnected()
 
 # Main component
 Component(
@@ -109,7 +109,7 @@ Component(
         "INT2": INT2,
         "Vdd": VDD,
         "GND": GND,
-        "NC": Net("NC_INTERNAL"),
+        "NC": NotConnected(),
     }
 )
 

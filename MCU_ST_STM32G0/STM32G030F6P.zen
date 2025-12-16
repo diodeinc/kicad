@@ -12,7 +12,7 @@ Reviewer: Anand Kapadia
 Datasheet: https://www.st.com/resource/en/datasheet/stm32g030c6.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Swd", "Usb2")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Swd", "Usb2", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -47,8 +47,8 @@ add_status_led = config("add_status_led", bool, default = True, optional = True)
 add_gpio_headers = config("add_gpio_headers", bool, default = True, optional = True)
 
 # External IO
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:+3V3")))
+GND = io("GND", Ground)
+VDD = io("VDD", Power)
 
 # SWD IO (if enabled)
 if add_swd_header:

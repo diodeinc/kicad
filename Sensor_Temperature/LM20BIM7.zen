@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm20.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power")
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -38,12 +38,12 @@ supply_voltage = config("supply_voltage", str, default = "3.3V")  # Supply volta
 
 # External IO
 VCC = io("VCC", Power)  # Power supply input (2.4V to 5.5V)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 VOUT = io("VOUT", Net)  # Temperature sensor analog output
 
 # Internal nets
 _VOUT_FILTERED = Net("VOUT_FILTERED") if add_output_filtering else VOUT
-_NC = Net("NC")  # Not connected pin
+_NC = NotConnected()  # Not connected pin
 
 # LM20 Temperature Sensor Component
 Component(

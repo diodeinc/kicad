@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm3480.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -28,7 +29,7 @@ bulk_input_cap_value = config("bulk_input_cap_value", str, default = "10uF")
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # 100mA, Quasi Low Dropout Voltage Regulator, 12V positive fixed output, SOT-23 package
 Component(

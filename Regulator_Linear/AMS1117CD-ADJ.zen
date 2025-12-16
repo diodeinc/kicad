@@ -11,6 +11,7 @@ Author: @Anthropic/claude-4-opus-20250514
 Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
+load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -38,7 +39,7 @@ else:
 # External IO
 VIN = io("VIN", Net, default = Net("VIN"))
 VOUT = io("VOUT", Net, default = Net("VOUT"))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # Internal IO
 _ADJ = Net("ADJ") if regulator_type == RegulatorType("ADJ") else GND

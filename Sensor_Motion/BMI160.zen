@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi160-ds000.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Spi")
+load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,13 +48,13 @@ add_vddio_decoupling = config("add_vddio_decoupling", bool, default = True)
 separate_vddio = config("separate_vddio", bool, default = True)
 
 # External IO
-VDD = io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+VDD = io("VDD", Power)
 # VDDIO - can be same as VDD or separate
 if separate_vddio:
-    VDDIO = io("VDDIO", Net, default = Net("VDDIO", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD")))
+    VDDIO = io("VDDIO", Power)
 else:
     VDDIO = VDD
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # GNDIO
 GNDIO = GND
@@ -73,7 +73,7 @@ elif interface_mode == InterfaceMode("SPI3Wire") or interface_mode == InterfaceM
     if interface_mode == InterfaceMode("SPI3Wire"):
         # 3-wire SPI uses bidirectional data
         _SDx = spi.MOSI  # Bidirectional in 3-wire mode
-        _SDO = Net("NC_SDO")  # Not connected in 3-wire mode
+        _SDO = NotConnected()  # Not connected in 3-wire mode
     else:  # 4-wire SPI
         _SDx = spi.MOSI
         _SDO = spi.MISO
@@ -85,17 +85,17 @@ INT2 = io("INT2", Net, default = Net("INT2"))
 # Auxiliary interface configuration
 if auxiliary_mode == AuxiliaryMode("None"):
     # No auxiliary interface - tie unused pins appropriately
-    _ASDx = Net("NC_ASDx")
-    _ASCx = Net("NC_ASCx")
-    _OCSB = Net("NC_OCSB")
-    _OSDO = Net("NC_OSDO")
+    _ASDx = NotConnected()
+    _ASCx = NotConnected()
+    _OCSB = NotConnected()
+    _OSDO = NotConnected()
 elif auxiliary_mode == AuxiliaryMode("I2C"):
     # I2C auxiliary interface for magnetometer
     aux_i2c = io("AUX_I2C", I2c)
     _ASDx = aux_i2c.SDA
     _ASCx = aux_i2c.SCL
-    _OCSB = Net("NC_OCSB")
-    _OSDO = Net("NC_OSDO")
+    _OCSB = NotConnected()
+    _OSDO = NotConnected()
 elif auxiliary_mode == AuxiliaryMode("SPI3Wire"):
     # 3-wire SPI auxiliary interface for OIS (bidirectional data)
     OIS_CLK = io("OIS_CLK", Net, default = Net("OIS_CLK"))

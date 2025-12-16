@@ -24,7 +24,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31826.pdf
 """
 
-load("@stdlib/interfaces.zen", "OneWire")
+load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -100,8 +100,8 @@ add_test_points = config("add_test_points", bool, default = True)
 passives_size = config("passives_size", PassiveSize, default = "0603")
 
 # External IO
-VDD = (io("VDD", Net, default = Net("VDD", symbol = Symbol("@kicad-symbols/power.kicad_sym:VDD"))))
-GND = (io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND"))))
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # 1-Wire interface
 onewire = io("onewire", OneWire)
@@ -117,7 +117,7 @@ if power_mode == PowerMode("Parasite"):
     _PULLUP_CTRL = PULLUP_CTRL
     _PULLUP_GATE_VDD = PULLUP_GATE_VDD
 else:
-    _PULLUP_CTRL = Net("NC_PULLUP")
+    _PULLUP_CTRL = NotConnected()
     _PULLUP_GATE_VDD = VDD
 
 # Address pins - configure based on settings
@@ -166,7 +166,7 @@ Component(
     pins = {
         "V_{DD}": _VDD_CHIP,    # Pin 1 - Power supply (GND in parasite mode)
         "DQ": _DQ,               # Pin 2 - 1-Wire data
-        "NC": Net("NC"),         # Pin 3 - No connection
+        "NC": NotConnected(),         # Pin 3 - No connection
         "GND": GND,              # Pin 4 - Ground
         "AD0": _AD0,             # Pin 5 - Address bit 0 (LSB)
         "AD1": _AD1,             # Pin 6 - Address bit 1

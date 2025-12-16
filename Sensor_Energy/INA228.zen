@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/ina228.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -80,7 +80,7 @@ if add_bus_resistor:
 
 # External IO
 VS = io("VS", Power)  # Power supply (2.7-5.5V)
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)

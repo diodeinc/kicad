@@ -11,6 +11,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl3170e-71e-72e-73e-74e-75e-76e-77e-78e.pdf
 """
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -40,8 +41,8 @@ if de_pullup:
     de_pullup_value = config("de_pullup_value", str, default = "2kohms")
 
 # External IOs
-VCC = io("VCC", Net, default = Net("VCC", symbol = Symbol("@kicad-symbols/power.kicad_sym:VCC")))
-GND = io("GND", Net, default = Net("GND", symbol = Symbol("@kicad-symbols/power.kicad_sym:GND")))
+VCC = io("VCC", Power)
+GND = io("GND", Ground)
 
 # RS-485 bus lines
 RS485_A = io("RS485_A", Net)
