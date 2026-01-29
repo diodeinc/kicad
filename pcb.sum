@@ -1,5 +1,5 @@
-github.com/diodeinc/stdlib 0.4.0 h1:xdKaqylUQgalZLQxdanpjWGsd1+uO0O2/OCgXVAuqBs=
-github.com/diodeinc/stdlib 0.4.0/pcb.toml h1:JLuiKZAs+dh07+K6bWCfpyQBCME/9/fYkrztY2j9rjQ=
+github.com/diodeinc/stdlib 0.5.3 h1:HPR/nqk6pgKbu7ls+WxG4PHtrbqWeW9YbjxbqzF+1QA=
+github.com/diodeinc/stdlib 0.5.3/pcb.toml h1:p7AGSnxAhTOByyaQk5BJRGFTv4TSojhTFzSHcWHX4sM=
 gitlab.com/kicad/libraries/kicad-footprints/Battery.pretty/BatteryHolder_Keystone_500.kicad_mod 9.0.3 h1:2x3MM99d54ubc6J1kTbZ6eH9LcEvLqllQyjvyzDYKB0=
 gitlab.com/kicad/libraries/kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod 9.0.3 h1:W0npk90bmVE1xq/0aeY3CFAAXbMotC3wEc4ConXzDhE=
 gitlab.com/kicad/libraries/kicad-footprints/Button_Switch_THT.pretty/SW_PUSH_6mm.kicad_mod 9.0.3 h1:6179h4/sFBJ19neuO+ZeE7qftaq5DNsd3t987aPEaZo=
@@ -27,6 +27,7 @@ gitlab.com/kicad/libraries/kicad-footprints/Connector.pretty/Tag-Connect_TC2050-
 gitlab.com/kicad/libraries/kicad-footprints/Connector.pretty/Tag-Connect_TC2070-IDC-FP_2x07_P1.27mm_Vertical.kicad_mod 9.0.3 h1:J5diZZEORzLKg0/IOS5aWG1ZQLNhv7lYc0qmdZTD914=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_Coaxial.pretty/SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount.kicad_mod 9.0.3 h1:pZHdYIjJw6iSpPZNhZKhW/1/9AV2j3cp7VbSPNkdm1o=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod 9.0.3 h1:H9kMGuDO3iybUwkGrZmdaGCuPHwa++75t8IHcPxv6us=
+gitlab.com/kicad/libraries/kicad-footprints/Connector_JST.pretty 9.0.3 h1:aC9m2zCaN7YF0nKtPXdUKJpT6+vHkRlF8PgBivtn5BM=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_Molex.pretty/Molex_PicoBlade_53047-0210_1x02_P1.25mm_Vertical.kicad_mod 9.0.3 h1:6tvYNoFgahqRLqoynGmwXlgbHpljbKQ43WGzKO6/RpM=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_Molex.pretty/Molex_PicoBlade_53047-0310_1x03_P1.25mm_Vertical.kicad_mod 9.0.3 h1:eDF4RwzQDL6n++9iIleb7Ur+rgawDFyLmLT5VqzpvJ4=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_Molex.pretty/Molex_PicoBlade_53047-0410_1x04_P1.25mm_Vertical.kicad_mod 9.0.3 h1:+DWIF38BrTNq5ygLnzUntT3RvvzxqgKW60U+uUE6q6o=
@@ -35,6 +36,7 @@ gitlab.com/kicad/libraries/kicad-footprints/Connector_Molex.pretty/Molex_PicoBla
 gitlab.com/kicad/libraries/kicad-footprints/Connector_PinHeader_1.27mm.pretty 9.0.3 h1:OBQOKq7Pk0ZF6wEjZOZAi50BBdSW+N1GSm3mePsTfZw=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_PinHeader_2.00mm.pretty 9.0.3 h1:MYX1jfbQIjB+ibA1sYFukUwtoyBBha0aca69sLYLqOQ=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_PinHeader_2.54mm.pretty 9.0.3 h1:aa439CWBj0FzZi6j5/YYfLR1sJYmz/gwEiU3q8cV8WM=
+gitlab.com/kicad/libraries/kicad-footprints/Connector_PinSocket_1.27mm.pretty 9.0.3 h1:YRfIxuWh4YAqfHVnBw5PSAUjH/KC007YzA9cTAjJJso=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_PinSocket_2.00mm.pretty 9.0.3 h1:YfXpZGboLb6NI4L8td2V/+dmLIXxAFs/3l4RApk7wHo=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_PinSocket_2.54mm.pretty 9.0.3 h1:jXTTbxmdros7hrazEY7APmzu45WCLwXiR1DQMFfhXkI=
 gitlab.com/kicad/libraries/kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod 9.0.3 h1:L5oIze4CpXNu7IKzcaAb7haJRGHRFCzJ+HD1LFyw7aU=
@@ -204,6 +206,7 @@ gitlab.com/kicad/libraries/kicad-footprints/Sensor_Humidity.pretty/Sensirion_DFN
 gitlab.com/kicad/libraries/kicad-footprints/Sensor_Motion.pretty/Analog_LGA-16_3.25x3mm_P0.5mm_LayoutBorder3x5y.kicad_mod 9.0.3 h1:dxQDVG8uooxmHqE3XU0ApPb5Edrr3k03xMAV0PH9acs=
 gitlab.com/kicad/libraries/kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod 9.0.3 h1:mxklEurRAZfrc+MMVAZoMAxP8BjJpwB23ZZmKbqiYsM=
 gitlab.com/kicad/libraries/kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_4x4mm_P0.5mm.kicad_mod 9.0.3 h1:ztd26+84/R0K2rayX5cz+aUo9A6A1n2iWp3vmp42gnA=
+gitlab.com/kicad/libraries/kicad-footprints/TerminalBlock.pretty 9.0.3 h1:cmhanP9j6WuGsA7BgfJJjuftY8IR7AO5XRuL+9QDtoY=
 gitlab.com/kicad/libraries/kicad-footprints/TestPoint.pretty 9.0.3 h1:YnUr1VplDrlq+r2HEjBknkf9W+asw3QBenjPJaRAAIY=
 gitlab.com/kicad/libraries/kicad-symbols/Amplifier_Current.kicad_sym 9.0.3 h1:/tuIZeIc47l9ZKIMDLH3dSw3FIarnG2Q2mm8wWKGA9I=
 gitlab.com/kicad/libraries/kicad-symbols/Analog.kicad_sym 9.0.3 h1:TpPZkRXh2TtLI5szp4paz8ElBhEPdkNG7iEFALhUtns=
@@ -213,6 +216,7 @@ gitlab.com/kicad/libraries/kicad-symbols/Battery_Management.kicad_sym 9.0.3 h1:z
 gitlab.com/kicad/libraries/kicad-symbols/Buffer.kicad_sym 9.0.3 h1:u4Jexp80uNbtgnPjI48Rf5wtQkN2P/ZVwwgJ/0jdwSc=
 gitlab.com/kicad/libraries/kicad-symbols/Connector.kicad_sym 9.0.3 h1:VG6lXU+YqmGZbEs4Zo68qNPRByykU1ax8AZlvYGGo9k=
 gitlab.com/kicad/libraries/kicad-symbols/Connector_Generic.kicad_sym 9.0.3 h1:GtU2MKB7kaGxB+zo2dQpkUvxdjoY6ALYWhi90990WuY=
+gitlab.com/kicad/libraries/kicad-symbols/Connector_Generic_MountingPin.kicad_sym 9.0.3 h1:qQ4jzyocm+ueCkajD1QsKFn6C8kO3GpVKfqDVXKfwP4=
 gitlab.com/kicad/libraries/kicad-symbols/Device.kicad_sym 9.0.3 h1:/k/EPuxWj418Cw7IhJmrH8x2Q0xiMTsw6EVul6TQ9RQ=
 gitlab.com/kicad/libraries/kicad-symbols/Diode.kicad_sym 9.0.3 h1:ZUO/zJrR5NH63Gi6FjcggxpSz7rHEIg1k8CczN3/rxU=
 gitlab.com/kicad/libraries/kicad-symbols/Display_Character.kicad_sym 9.0.3 h1:rPzi9YEKIkya1JWufBDyTZSXoyUVVeXPqETHWXce97o=
