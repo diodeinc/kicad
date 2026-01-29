@@ -73,7 +73,11 @@ else:  # SPI mode
 
 # Interrupt IO
 if use_interrupt:
-    INT = io("INT", Net)
+    _INT_PIN = io("INT", Net)
+    if add_interrupt_pullup:
+        Resistor(name = "R_INT_PU", value = "10kohms", package = "0402", P1 = _INT_PIN, P2 = VDDIO)
+else:
+    _INT_PIN = Net("_INT")  # Floating if interrupt not used
 
 # FSYNC IO
 if use_fsync:
@@ -116,12 +120,6 @@ else:  # SPI mode
     _SDA_SDI = spi.MOSI
     _SCL_SPC = spi.CLK
 
-if use_interrupt:
-    _INT_PIN = INT
-    Resistor(name = "R_INT_PU", value = "10kohms", package = "0402", P1 = INT, P2 = VDDIO)
-else:
-    _INT_PIN = INT
-
 if use_fsync:
     _FSYNC_PIN = FSYNC
 else:
@@ -162,18 +160,14 @@ if add_vdd_bypass_cap:
 if add_vddio_bypass_cap and separate_vddio:
     Capacitor(name = "C_VDDIO", value = "10nF", voltage = "6.3V", package = "0402", P1 = VDDIO, P2 = GND)
 
-# Interrupt Pull-up (for open-drain configuration)
-if use_interrupt and add_interrupt_pullup:
-    Resistor(name = "R_INT_PU", value = "10kohms", package = "0402", P1 = INT, P2 = VDDIO)
-
 # pcb:sch C_REGOUT.C x=524.7800 y=507.0000 rot=0
 # pcb:sch C_VDDIO.C x=4.0800 y=532.4000 rot=0
 # pcb:sch C_VDD_BULK.C x=639.0800 y=405.4000 rot=0
 # pcb:sch C_VDD_BYPASS.C x=778.7800 y=405.4000 rot=0
+# pcb:sch GND.1 x=316.5000 y=634.0000 rot=0
 # pcb:sch ICM-20602 x=202.2000 y=341.9000 rot=0
+# pcb:sch R_INT_PU.R x=484.1400 y=354.6000 rot=180
 # pcb:sch R_SCL_PU.R x=52.3400 y=367.3000 rot=180
 # pcb:sch R_SDA_PU.R x=115.8400 y=367.3000 rot=180
-# pcb:sch GND.1 x=316.5000 y=634.0000 rot=0
-# pcb:sch VDD.1 x=321.5800 y=227.6000 rot=0
+# pcb:sch VDD.1 x=791.4800 y=240.3000 rot=0
 # pcb:sch VDDIO.1 x=16.7800 y=240.3000 rot=0
-# pcb:sch R_INT_PU.R x=484.1400 y=354.6000 rot=180

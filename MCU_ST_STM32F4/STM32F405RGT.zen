@@ -411,7 +411,8 @@ if add_swd_header:
 
 # VBAT supply for RTC and backup registers
 # Connect to VDD if no battery backup is used
-Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = GND)
+if not (add_vbat_battery and add_rtc):
+    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size.value, P1 = _VBAT, P2 = GND)
 
 # pcb:sch C_HSE1.C x=346.9800 y=1040.4000 rot=0
 # pcb:sch C_HSE2.C x=550.1800 y=1040.4000 rot=0
