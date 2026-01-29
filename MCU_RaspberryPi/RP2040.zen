@@ -33,7 +33,7 @@ Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinSocket = Module("@stdlib/kicad/PinSocket.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Configuration
 add_bulk_caps = config("add_bulk_caps", bool, default = True)
@@ -317,12 +317,12 @@ if add_bootsel_button:
     )
 
 if add_gpio_headers:
-    PinSocket(
+    PinHeader(
         name = "pin_socket_gpio",
+        gender = "Female",
         pins = 18,
         rows = 2,
         pitch = "2.54mm",
-        orientation = "Vertical",
         P1 = gpio0.NET,
         P2 = gpio1.NET, 
         P3 = gpio2.NET,

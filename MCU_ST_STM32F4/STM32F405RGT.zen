@@ -20,7 +20,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 Led = Module("@stdlib/generics/Led.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
@@ -401,12 +401,12 @@ if add_swd_header:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = swd.SWCLK, # SWCLK
-        Pin_3 = GND,       # GND
-        Pin_4 = swd.SWDIO, # SWDIO
-        Pin_5 = _NRST,     # RESET
-        Pin_6 = GND,       # GND
+        P1 = VDD,       # VDD
+        P2 = swd.SWCLK, # SWCLK
+        P3 = GND,       # GND
+        P4 = swd.SWDIO, # SWDIO
+        P5 = _NRST,     # RESET
+        P6 = GND,       # GND
     )
 
 # VBAT supply for RTC and backup registers

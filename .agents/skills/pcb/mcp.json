@@ -1,0 +1,12 @@
+{
+  "pcb": {
+    "command": "pcb",
+    "args": ["mcp"],
+    "includeTools": [
+      "search_registry",
+      "search_component",
+      "add_component",
+      "execute_tools"
+    ]
+  }
+}

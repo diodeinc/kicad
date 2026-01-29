@@ -20,7 +20,7 @@ Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 Led = Module("@stdlib/generics/Led.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
@@ -133,13 +133,13 @@ if enable_ftdi_header:
         pins = 6,
         rows = 1,
         pitch = "2.54mm",
-        orientation = "Horizontal",
-        Pin_1 = GND,   # GND
-        Pin_2 = VCC,   # VCC
-        Pin_3 = PD1_net,  # MCU TX -> FTDI RXI
-        Pin_4 = PD0_net,  # MCU RX -> FTDI TXO
-        Pin_5 = DTR,   # FTDI DTR
-        Pin_6 = GND,   # Extra GND per common cables
+        orientation = "Vertical",
+        P1 = GND,   # GND
+        P2 = VCC,   # VCC
+        P3 = PD1_net,  # MCU TX -> FTDI RXI
+        P4 = PD0_net,  # MCU RX -> FTDI TXO
+        P5 = DTR,   # FTDI DTR
+        P6 = GND,   # Extra GND per common cables
     )
     
     Capacitor(name = "C_DTR_RESET", value = "100nF", package = passives_size.value, P1 = DTR, P2 = RESET)

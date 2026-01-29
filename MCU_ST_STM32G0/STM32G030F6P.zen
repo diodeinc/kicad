@@ -19,7 +19,7 @@ Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 Led = Module("@stdlib/generics/Led.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Types
@@ -188,10 +188,10 @@ if add_swd_header:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = swd.SWDIO, # SWDIO
-        Pin_3 = swd.SWCLK, # SWCLK
-        Pin_4 = GND,       # GND
+        P1 = VDD,       # VDD
+        P2 = swd.SWDIO, # SWDIO
+        P3 = swd.SWCLK, # SWCLK
+        P4 = GND,       # GND
     )
 
 # Status LED (if enabled)
@@ -228,16 +228,16 @@ if add_gpio_headers:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = PA0,
-        Pin_2 = PA1,
-        Pin_3 = PA2,
-        Pin_4 = PA3,
-        Pin_5 = PA4,
-        Pin_6 = PA5,
-        Pin_7 = PA6,
-        Pin_8 = PA7,
-        Pin_9 = VDD,
-        Pin_10 = GND,
+        P1 = PA0,
+        P2 = PA1,
+        P3 = PA2,
+        P4 = PA3,
+        P5 = PA4,
+        P6 = PA5,
+        P7 = PA6,
+        P8 = PA7,
+        P9 = VDD,
+        P10 = GND,
     )
     
     # Port B header (PB pins and others)
@@ -247,16 +247,16 @@ if add_gpio_headers:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = PB7_PB8,
-        Pin_2 = PB3_PB4_PB5_PB6,
-        Pin_3 = PB9_PC14,
-        Pin_4 = PC15,
-        Pin_5 = PA8_PB0_PB1_PB2,
-        Pin_6 = PA9_PA11,
-        Pin_7 = PA10_PA12,
-        Pin_8 = NRST,  # Note: BOOT0 is internally bonded to PB8 on TSSOP20 package
-        Pin_9 = VDD,
-        Pin_10 = GND,
+        P1 = PB7_PB8,
+        P2 = PB3_PB4_PB5_PB6,
+        P3 = PB9_PC14,
+        P4 = PC15,
+        P5 = PA8_PB0_PB1_PB2,
+        P6 = PA9_PA11,
+        P7 = PA10_PA12,
+        P8 = NRST,  # Note: BOOT0 is internally bonded to PB8 on TSSOP20 package
+        P9 = VDD,
+        P10 = GND,
     )
 
 # pcb:sch C_BULK.C x=1235.9800 y=1294.4000 rot=0

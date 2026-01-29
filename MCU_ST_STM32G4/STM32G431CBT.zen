@@ -25,7 +25,7 @@ Led = Module("@stdlib/generics/Led.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
@@ -360,10 +360,10 @@ elif boot_configuration == BootConfiguration("Header"):
         rows = 2,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = VDD,
-        Pin_2 = GND,
-        Pin_3 = _BOOT0_HEADER,
-        Pin_4 = GND,
+        P1 = VDD,
+        P2 = GND,
+        P3 = _BOOT0_HEADER,
+        P4 = GND,
     )
 
 # Crystal Oscillator Circuit
@@ -515,11 +515,11 @@ if add_swd_header:
         pins = 4,
         rows = 1,
         pitch = "2.54mm",
-        orientation = "Horizontal",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = swd.SWDIO, # SWDIO
-        Pin_3 = swd.SWCLK, # SWCLK
-        Pin_4 = GND,       # GND
+        orientation = "Vertical",
+        P1 = VDD,       # VDD
+        P2 = swd.SWDIO, # SWDIO
+        P3 = swd.SWCLK, # SWCLK
+        P4 = GND,       # GND
     )
 
 # FDCAN Transceiver
