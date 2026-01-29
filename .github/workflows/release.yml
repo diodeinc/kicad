@@ -14,14 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install pcb CLI
-        run: |
-          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/diodeinc/pcb/releases/latest/download/pcb-installer.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Install pcb
+        uses: diodeinc/pcb-action/setup@v2
+        with:
+          version: latest
 
       - name: Vendor dependencies
         run: |
-          pcb vendor
+          pcb vendor --all
           echo "Vendored dependencies:"
           ls -la vendor/ 2>/dev/null || echo "No vendor directory created"
 
