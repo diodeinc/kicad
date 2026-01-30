@@ -20,7 +20,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 DeviceVariant = enum("SHT40", "SHT41", "SHT43", "SHT45")

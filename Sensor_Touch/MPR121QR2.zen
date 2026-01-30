@@ -20,7 +20,7 @@ load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 # I2C address based on ADDR pin connection
@@ -156,19 +156,19 @@ if add_electrode_header:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = ELE0,
-        Pin_2 = ELE1,
-        Pin_3 = ELE2,
-        Pin_4 = ELE3,
-        Pin_5 = ELE4,
-        Pin_6 = ELE5,
-        Pin_7 = ELE6,
-        Pin_8 = ELE7,
-        Pin_9 = ELE8,
-        Pin_10 = ELE9,
-        Pin_11 = ELE10,
-        Pin_12 = ELE11,
-        Pin_13 = VSS,  # Ground reference
+        P1 = ELE0,
+        P2 = ELE1,
+        P3 = ELE2,
+        P4 = ELE3,
+        P5 = ELE4,
+        P6 = ELE5,
+        P7 = ELE6,
+        P8 = ELE7,
+        P9 = ELE8,
+        P10 = ELE9,
+        P11 = ELE10,
+        P12 = ELE11,
+        P13 = VSS,  # Ground reference
     )
 
 # PCB schematic placement

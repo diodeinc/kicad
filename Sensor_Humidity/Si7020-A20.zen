@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.silabs.com/documents/public/data-sheets/Si7020-A20.pdf
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Power")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -43,9 +43,8 @@ add_test_points = config("add_test_points", bool, default = True, optional = Tru
 passives_size = config("passives_size", str, default = "0402")
 
 # External IO
-power = io("power", Power, default = Power())
-VDD = Net("VDD")
-GND = Net("GND")
+VDD = io("VDD", Power)
+GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("i2c", I2c)
@@ -129,14 +128,14 @@ if add_test_points:
     TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
     TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
 
-# pcb:sch Si7020-A20 x=214.9000 y=595.9000 rot=0
 # pcb:sch C_BULK.C x=473.9800 y=634.0000 rot=0
 # pcb:sch C_VDD.C x=613.6800 y=634.0000 rot=0
+# pcb:sch GND.1 x=570.5000 y=926.1000 rot=0
 # pcb:sch R_SCL.R x=90.4400 y=557.8000 rot=180
 # pcb:sch R_SDA.R x=26.9400 y=557.8000 rot=180
-# pcb:sch VDD.1 x=500.0000 y=550.0000 rot=0
-# pcb:sch GND.1 x=500.0000 y=650.0000 rot=0
-# pcb:sch TP_GND.TP x=334.2800 y=771.1600 rot=180
+# pcb:sch Si7020-A20 x=214.9000 y=595.9000 rot=0
+# pcb:sch TP_GND.TP x=308.8800 y=834.6600 rot=180
 # pcb:sch TP_SCL.TP x=92.9800 y=694.9600 rot=180
 # pcb:sch TP_SDA.TP x=29.4800 y=694.9600 rot=180
 # pcb:sch TP_VDD.TP x=334.2800 y=491.7600 rot=0
+# pcb:sch VDD.1 x=486.6800 y=468.9000 rot=0

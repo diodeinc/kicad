@@ -18,7 +18,7 @@ load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag", "Power", "G
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Import PinHeader from stdlib
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 
 # Dependencies
@@ -591,13 +591,13 @@ if add_jtag_header:
         pins = 6,
         rows = 1,
         pitch = "2.54mm",
-        orientation = "Horizontal",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = jtag.TMS,  # TMS
-        Pin_3 = jtag.TCK,  # TCK
-        Pin_4 = jtag.TDO,  # TDO
-        Pin_5 = jtag.TDI,  # TDI
-        Pin_6 = GND,       # GND
+        orientation = "Vertical",
+        P1 = VDD,       # VDD
+        P2 = jtag.TMS,  # TMS
+        P3 = jtag.TCK,  # TCK
+        P4 = jtag.TDO,  # TDO
+        P5 = jtag.TDI,  # TDI
+        P6 = GND,       # GND
     )
 
 # pcb:sch C_BULK1.C x=1147.0800 y=1040.4000 rot=0

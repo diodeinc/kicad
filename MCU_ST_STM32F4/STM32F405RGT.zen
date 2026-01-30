@@ -20,7 +20,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Crystal = Module("@stdlib/generics/Crystal.zen")
 Led = Module("@stdlib/generics/Led.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 ClockSource = enum("Internal", "Crystal", "External")
@@ -401,17 +401,18 @@ if add_swd_header:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = swd.SWCLK, # SWCLK
-        Pin_3 = GND,       # GND
-        Pin_4 = swd.SWDIO, # SWDIO
-        Pin_5 = _NRST,     # RESET
-        Pin_6 = GND,       # GND
+        P1 = VDD,       # VDD
+        P2 = swd.SWCLK, # SWCLK
+        P3 = GND,       # GND
+        P4 = swd.SWDIO, # SWDIO
+        P5 = _NRST,     # RESET
+        P6 = GND,       # GND
     )
 
 # VBAT supply for RTC and backup registers
 # Connect to VDD if no battery backup is used
-Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = GND)
+if not (add_vbat_battery and add_rtc):
+    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size.value, P1 = _VBAT, P2 = GND)
 
 # pcb:sch C_HSE1.C x=346.9800 y=1040.4000 rot=0
 # pcb:sch C_HSE2.C x=550.1800 y=1040.4000 rot=0

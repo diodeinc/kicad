@@ -19,7 +19,7 @@ The modules can be configured with the Zener visualizer tool and directly copy-p
 
 ## Updating the package index
 
-To update `pcb.toml` with all available packages:
+To update `index.toml` with all available packages:
 
 ```bash
 .utils/index.py

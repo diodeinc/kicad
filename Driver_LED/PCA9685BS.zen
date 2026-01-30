@@ -23,7 +23,7 @@ load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 # Types
 I2cSpeed = enum("Standard", "Fast", "FastPlus")
@@ -249,22 +249,22 @@ if add_led_header:
         rows = 1,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = LED0,
-        Pin_2 = LED1,
-        Pin_3 = LED2,
-        Pin_4 = LED3,
-        Pin_5 = LED4,
-        Pin_6 = LED5,
-        Pin_7 = LED6,
-        Pin_8 = LED7,
-        Pin_9 = LED8,
-        Pin_10 = LED9,
-        Pin_11 = LED10,
-        Pin_12 = LED11,
-        Pin_13 = LED12,
-        Pin_14 = LED13,
-        Pin_15 = LED14,
-        Pin_16 = LED15,
+        P1 = LED0,
+        P2 = LED1,
+        P3 = LED2,
+        P4 = LED3,
+        P5 = LED4,
+        P6 = LED5,
+        P7 = LED6,
+        P8 = LED7,
+        P9 = LED8,
+        P10 = LED9,
+        P11 = LED10,
+        P12 = LED11,
+        P13 = LED12,
+        P14 = LED13,
+        P15 = LED14,
+        P16 = LED15,
     )
 
 # Test points

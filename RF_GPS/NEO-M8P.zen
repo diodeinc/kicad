@@ -24,7 +24,7 @@ Inductor = Module("@stdlib/generics/Inductor.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 Led = Module("@stdlib/generics/Led.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Types
@@ -404,11 +404,11 @@ if interface_mode == InterfaceMode("UART_I2C"):
         pins = 4,
         rows = 1,
         pitch = "2.54mm",
-        orientation = "Horizontal",
-        Pin_1 = VCC,      # VCC
-        Pin_2 = _TXD,     # TX
-        Pin_3 = _RXD,     # RX
-        Pin_4 = GND,      # GND
+        orientation = "Vertical",
+        P1 = VCC,      # VCC
+        P2 = _TXD,     # TX
+        P3 = _RXD,     # RX
+        P4 = GND,      # GND
     )
 
 # Test points for production testing

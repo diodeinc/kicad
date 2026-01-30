@@ -26,7 +26,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 Diode = Module("@stdlib/generics/Diode.zen")
 Led = Module("@stdlib/generics/Led.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Types
@@ -186,12 +186,12 @@ if programming_interface == BootConfiguration("ISP") or programming_interface ==
         rows = 2,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = _MISO,     # MISO
-        Pin_2 = VCC,       # VCC
-        Pin_3 = _SCK,      # SCK
-        Pin_4 = _MOSI,     # MOSI
-        Pin_5 = _RESET,    # RESET
-        Pin_6 = GND,       # GND
+        P1 = _MISO,     # MISO
+        P2 = VCC,       # VCC
+        P3 = _SCK,      # SCK
+        P4 = _MOSI,     # MOSI
+        P5 = _RESET,    # RESET
+        P6 = GND,       # GND
     )
     
     # Add test points for ISP signals if requested

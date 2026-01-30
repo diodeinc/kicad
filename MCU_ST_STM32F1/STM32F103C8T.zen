@@ -20,7 +20,7 @@ Led = Module("@stdlib/generics/Led.zen")
 FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 NetTie = Module("@stdlib/generics/NetTie.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
-PinHeader = Module("@stdlib/kicad/PinHeader.zen")
+PinHeader = Module("@stdlib/generics/PinHeader.zen")
 
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
@@ -320,12 +320,12 @@ elif boot_configuration == BootConfiguration("Header"):
         rows = 2,
         pitch = "2.54mm",
         orientation = "Vertical",
-        Pin_1 = VDD,            
-        Pin_2 = VDD,          
-        Pin_3 = _BOOT0_HEADER, 
-        Pin_4 = _BOOT1_HEADER, 
-        Pin_5 = GND,            
-        Pin_6 = GND,          
+        P1 = VDD,            
+        P2 = VDD,          
+        P3 = _BOOT0_HEADER, 
+        P4 = _BOOT1_HEADER, 
+        P5 = GND,            
+        P6 = GND,          
     )
 
 # Crystal Oscillator Circuit
@@ -441,11 +441,11 @@ if add_swd_header:
         pins = 4,
         rows = 1,
         pitch = "2.54mm",
-        orientation = "Horizontal",
-        Pin_1 = VDD,       # VDD
-        Pin_2 = swd.SWDIO, # SWDIO
-        Pin_3 = swd.SWCLK, # SWCLK
-        Pin_4 = GND,       # GND
+        orientation = "Vertical",
+        P1 = VDD,       # VDD
+        P2 = swd.SWDIO, # SWDIO
+        P3 = swd.SWCLK, # SWCLK
+        P4 = GND,       # GND
     )
 
 # pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
