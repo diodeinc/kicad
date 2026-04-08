@@ -57,7 +57,7 @@ add_spi_pullup = config("add_spi_pullup", bool, default=True)
 
 # External power supplies
 AVDD = io("AVDD", Power, checks=voltage_within("2.35V to 3.6V"))
-DVDD = io("DVDD", Power, checks=voltage_within("2.35V to 3.6V"))
+DVDD = io("DVDD", Power, checks=voltage_within("1.65V to 3.6V"))
 GND = io("GND", Ground)
 
 # Analog inputs
