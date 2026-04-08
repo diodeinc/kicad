@@ -13,6 +13,7 @@ Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl29035.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -24,11 +25,11 @@ add_bulk_cap = config("add_bulk_cap", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 add_interrupt_pullup = config("add_interrupt_pullup", bool, default=True)
 if add_interrupt_pullup:
-    interrupt_pullup_value = config("interrupt_pullup_value", str, default="10kohms")
+    interrupt_pullup_value = config("interrupt_pullup_value", Resistance, default="10kohms")
 
 add_test_points = config("add_test_points", bool, default=False)
 

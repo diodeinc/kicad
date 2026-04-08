@@ -15,6 +15,7 @@ Datasheet: https://www.lcd-module.de/eng/pdf/doma/t123-i2c.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -31,7 +32,7 @@ display_type = config("display_type", DisplayType, default="STN_Gray")
 
 # I2C configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
-i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Power supply configuration
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)

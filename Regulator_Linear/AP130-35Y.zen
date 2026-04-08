@@ -12,6 +12,7 @@ Datasheet: http://www.diodes.com/datasheets/AP130.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,35 +29,35 @@ InputFilterType = enum("None", "RC", "LC", "FerriteBead")
 # Configuration
 add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default="1uF")
+    input_cap_value = config("input_cap_value", Capacitance, default="1uF")
 
 add_output_cap = config("add_output_cap", bool, default=True)
 # Output capacitor configuration - only if output cap is enabled
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default="10uF")
+    output_cap_value = config("output_cap_value", Capacitance, default="10uF")
 
 
 add_bypass_cap = config("add_bypass_cap", bool, default=False)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default="100nF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="100nF")
 
 # Input filtering
 input_filter_type = config("input_filter_type", InputFilterType, default="None")
 if input_filter_type == InputFilterType("RC"):
-    input_filter_r = config("input_filter_r", str, default="10ohms")
-    input_filter_c = config("input_filter_c", str, default="10uF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 elif input_filter_type == InputFilterType("LC"):
-    input_filter_l = config("input_filter_l", str, default="4.7uH")
-    input_filter_c = config("input_filter_c", str, default="10uF")
+    input_filter_l = config("input_filter_l", Inductance, default="4.7uH")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 elif input_filter_type == InputFilterType("FerriteBead"):
-    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default="600ohms@100MHz")
-    input_filter_c = config("input_filter_c", str, default="10uF")
+    ferrite_bead_impedance = config("ferrite_bead_impedance", Resistance, default="600ohms@100MHz")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 
 
 # Additional bulk capacitor configuration
 add_output_bulk_cap = config("add_output_bulk_cap", bool, default=False, optional=True)
 if add_output_bulk_cap:
-    output_bulk_cap_value = config("output_bulk_cap_value", str, default="10uF")
+    output_bulk_cap_value = config("output_bulk_cap_value", Capacitance, default="10uF")
 
 # Additional features
 add_power_good_led = config("add_power_good_led", bool, default=False, optional=True)

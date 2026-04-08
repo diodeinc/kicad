@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina226.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -52,7 +53,7 @@ add_bus_resistor = config("add_bus_resistor", bool, default=True)
 # I2C configuration
 i2c_address = config("i2c_address", I2cAddress, default="0x40")
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
-i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Alert configuration
 add_alert_pullup = config("add_alert_pullup", bool, default=True)
@@ -83,17 +84,17 @@ address_map = {
 a1_conn, a0_conn = address_map[i2c_address]
 
 # Shunt resistor configuration
-shunt_resistance = config("shunt_resistance", str, default="100mohms")
+shunt_resistance = config("shunt_resistance", Resistance, default="100mohms")
 shunt_range = config("shunt_range", ShuntRange, default="81.92mV")
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default="10ohms")
-    input_filter_c = config("input_filter_c", str, default="100nF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100nF")
 
 # Bus voltage divider configuration
 if add_bus_resistor:
-    bus_series_resistor = config("bus_series_resistor", str, default="10ohms")
+    bus_series_resistor = config("bus_series_resistor", Resistance, default="10ohms")
 
 # External IO
 VS = io("VS", Power)  # Power supply (2.7-5.5V)

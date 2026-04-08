@@ -16,6 +16,7 @@ Datasheet: https://www.espressif.com/sites/default/files/documentation/vl53l1x_d
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,7 +43,7 @@ add_bulk_cap = config("add_bulk_cap", bool, default=True)
 # I2C pull-ups (typically on host side)
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="2.4kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="2.4kohms")
 
 # Component size
 passives_size = config("passives_size", str, default="0402")

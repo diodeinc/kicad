@@ -12,6 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f405rg.pdf
 """
 
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 load(
     "@stdlib/interfaces.zen",
     "Usb2",
@@ -56,17 +57,17 @@ if add_boot1_button:
 clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
-    crystal_load_cap = config("crystal_load_cap", str, default="10pF")
+    crystal_load_cap = config("crystal_load_cap", Capacitance, default="10pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="1kohm")
 
 # RTC configuration
 add_rtc = config("add_rtc", bool, default=True, optional=True)
 
 if add_rtc:
     add_vbat_battery = config("add_vbat_battery", bool, default=True, optional=True)
-    rtc_load_cap = config("rtc_load_cap", str, default="12pF")
+    rtc_load_cap = config("rtc_load_cap", Capacitance, default="12pF")
 
 # VDDA filter configuration
 add_vdda_filter = config("add_vdda_filter", bool, default=True, optional=True)

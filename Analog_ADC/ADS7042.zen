@@ -20,6 +20,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7042.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,8 +47,8 @@ allow_differential_filtering = config("allow_differential_filtering", bool, defa
 
 # Filter values for anti-aliasing filter
 if filter_configuration == FilterConfiguration("AntiAliasing"):
-    filter_r_value = config("filter_r_value", str, default="200ohms")
-    filter_c_value = config("filter_c_value", str, default="300pF")
+    filter_r_value = config("filter_r_value", Resistance, default="200ohms")
+    filter_c_value = config("filter_c_value", Capacitance, default="300pF")
 
 # SPI interface configuration
 add_spi_pullup = config("add_spi_pullup", bool, default=True)

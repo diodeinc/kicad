@@ -12,6 +12,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f411ce.pdf
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Dependencies
@@ -58,10 +59,10 @@ elif boot_configuration == BootConfiguration("Buttons"):
 clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="10pF")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="10pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="620ohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="620ohm")
 
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 

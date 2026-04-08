@@ -13,6 +13,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm3480.pdf
 """
 
 load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -22,9 +23,9 @@ add_input_cap = config("add_input_cap", bool, default=True)
 add_output_cap = config("add_output_cap", bool, default=True)
 add_bulk_input_cap = config("add_bulk_input_cap", bool, default=False)
 
-input_cap_value = config("input_cap_value", str, default="100nF")
-output_cap_value = config("output_cap_value", str, default="100nF")
-bulk_input_cap_value = config("bulk_input_cap_value", str, default="10uF")
+input_cap_value = config("input_cap_value", Capacitance, default="100nF")
+output_cap_value = config("output_cap_value", Capacitance, default="100nF")
+bulk_input_cap_value = config("bulk_input_cap_value", Capacitance, default="10uF")
 
 
 # External IO

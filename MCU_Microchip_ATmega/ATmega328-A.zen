@@ -14,6 +14,7 @@ Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotiv
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,10 +43,10 @@ enable_ftdi_header = config("enable_ftdi_header", bool, default=True)
 clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="16MHz")
-    crystal_load_cap = config("crystal_load_cap", str, default="22pF")
+    crystal_load_cap = config("crystal_load_cap", Capacitance, default="22pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=False, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="1kohm")
 add_aref_cap = config("add_aref_cap", bool, default=True)
 use_us_symbols = config("use_us_symbols", bool, default=True)
 passives_size = config("passives_size", PassivesSize, default="0402")

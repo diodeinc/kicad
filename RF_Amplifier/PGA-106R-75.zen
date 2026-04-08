@@ -23,6 +23,7 @@ Datasheet: https://www.minicircuits.com/pdfs/PGA-106R-75+.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Inductance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,9 +47,9 @@ add_decoupling = config("add_decoupling", bool, default=True)
 # Bias configuration
 bias_method = config("bias_method", BiasMethod, default="BiasTee")
 if bias_method == BiasMethod("BiasTee"):
-    bias_inductor_value = config("bias_inductor_value", str, default="220nH")
+    bias_inductor_value = config("bias_inductor_value", Inductance, default="220nH")
 elif bias_method == BiasMethod("Resistor"):
-    bias_resistor_value = config("bias_resistor_value", str, default="100ohms")
+    bias_resistor_value = config("bias_resistor_value", Resistance, default="100ohms")
 
 # Coupling capacitor configuration
 input_coupling_freq = config("input_coupling_freq", InputCouplingFreq, default="LowFreq")

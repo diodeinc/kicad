@@ -12,6 +12,7 @@ Datasheet: https://www.espressif.com/documentation/esp32-c3_datasheet_en.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
 
 # Import TLV70033 module from validated parts
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
@@ -69,10 +70,10 @@ if add_spi_flash:
 # Antenna configuration
 add_antenna = config("add_antenna", bool, default=True)
 if add_antenna:
-    antenna_c1_value = config("antenna_c1_value", str, default="1.5pF", optional=True)
-    antenna_l1_value = config("antenna_l1_value", str, default="2.7nH", optional=True)
-    antenna_c2_value = config("antenna_c2_value", str, default="1.5pF", optional=True)
-    antenna_series_resistor_value = config("antenna_series_resistor_value", str, default="0ohms", optional=True)
+    antenna_c1_value = config("antenna_c1_value", Capacitance, default="1.5pF", optional=True)
+    antenna_l1_value = config("antenna_l1_value", Inductance, default="2.7nH", optional=True)
+    antenna_c2_value = config("antenna_c2_value", Capacitance, default="1.5pF", optional=True)
+    antenna_series_resistor_value = config("antenna_series_resistor_value", Resistance, default="0ohms", optional=True)
 
 # JTAG header configuration
 add_jtag_header = config("add_jtag_header", bool, default=True)
@@ -83,10 +84,10 @@ if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="40MHz")
     # Note: If using 26MHz crystal, the PLL bootstrap fuses must be configured accordingly
     # during chip programming. The default ESP32-C3 expects 40MHz.
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="14pF")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="14pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="0ohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="0ohm")
 
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 

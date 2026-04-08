@@ -26,6 +26,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tps2065c.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -39,20 +40,20 @@ PinConfig = enum("PullUp", "PullDown", "UserDefined")
 # Configuration
 add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default="1uF")
+    input_cap_value = config("input_cap_value", Capacitance, default="1uF")
 add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default="120uF")
+    output_cap_value = config("output_cap_value", Capacitance, default="120uF")
     output_cap_type = config("output_cap_type", OutputCapType, default="Both")
 # Fault pin configuration
 fault_config = config("fault_config", PinConfig, default="PullUp")
 if fault_config != PinConfig("UserDefined"):
-    fault_resistor_value = config("fault_resistor_value", str, default="47kohms")
+    fault_resistor_value = config("fault_resistor_value", Resistance, default="47kohms")
 
 # Enable pin configuration
 enable_config = config("enable_config", PinConfig, default="PullUp")
 if enable_config != PinConfig("UserDefined"):
-    enable_resistor_value = config("enable_resistor_value", str, default="47kohms")
+    enable_resistor_value = config("enable_resistor_value", Resistance, default="47kohms")
 
 add_input_tvs = config("add_input_tvs", bool, default=True)
 add_output_tvs = config("add_output_tvs", bool, default=True)

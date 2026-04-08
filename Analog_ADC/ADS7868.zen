@@ -24,6 +24,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7868.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -37,13 +38,13 @@ add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default="100ohms")
-    input_filter_c = config("input_filter_c", str, default="100pF")
+    input_filter_r = config("input_filter_r", Resistance, default="100ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100pF")
 
 # Decoupling capacitor values
-decoupling_cap_value = config("decoupling_cap_value", str, default="0.1uF")
+decoupling_cap_value = config("decoupling_cap_value", Capacitance, default="0.1uF")
 if add_decoupling_caps:
-    bulk_cap_value = config("bulk_cap_value", str, default="10uF")
+    bulk_cap_value = config("bulk_cap_value", Capacitance, default="10uF")
 
 # External power supply
 VDD = io("VDD", Power)

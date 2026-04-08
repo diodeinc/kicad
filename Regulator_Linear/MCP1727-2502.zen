@@ -15,6 +15,7 @@ Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -38,7 +39,7 @@ pwrgd_config = config("pwrgd_config", PowerGoodConfig, default=PowerGoodConfig("
 # Power Good delay configuration
 add_power_good_delay = config("add_power_good_delay", bool, default=True)
 if add_power_good_delay:
-    power_good_delay_cap = config("power_good_delay_cap", str, default="1000pF")
+    power_good_delay_cap = config("power_good_delay_cap", Capacitance, default="1000pF")
 
 # External IO
 VIN = io("VIN", Power)

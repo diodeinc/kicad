@@ -26,6 +26,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/2
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -53,7 +54,7 @@ i2c_address = config("i2c_address", AddressSelect, default="98h")
 add_decoupling = config("add_decoupling", bool, default=True)
 add_pullups = config("add_pullups", bool, default=True)
 use_external_diodes = config("use_external_diodes", bool, default=True)
-current_sense_value = config("current_sense_value", str, default="100mohm")
+current_sense_value = config("current_sense_value", Resistance, default="100mohm")
 
 # Determine which inputs are used based on mode
 v1_enabled = measurement_mode in [

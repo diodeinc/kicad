@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm20.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Voltage")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +35,7 @@ add_test_points = config("add_test_points", bool, default=False)
 connect_die_ground = config("connect_die_ground", bool, default=True)
 
 # Power supply voltage range configuration
-supply_voltage = config("supply_voltage", str, default="3.3V")  # Supply voltage (2.4V to 5.5V)
+supply_voltage = config("supply_voltage", Voltage, default="3.3V")  # Supply voltage (2.4V to 5.5V)
 
 # External IO
 VCC = io("VCC", Power)  # Power supply input (2.4V to 5.5V)

@@ -17,6 +17,7 @@ Datasheet: https://www.microchip.com/en-us/product/ATSAMD21E15
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -51,10 +52,10 @@ boot_configuration = config("boot_configuration", BootConfiguration, default="Do
 clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="16MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="12pF")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="12pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="1kohm")
 
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 

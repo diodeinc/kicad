@@ -17,6 +17,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/a
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,7 +55,7 @@ add_vlogic_supply = config("add_vlogic_supply", bool, default=False)
 # Reference configuration
 add_reference_decoupling = config("add_reference_decoupling", bool, default=True)
 if add_reference_decoupling:
-    reference_cap_value = config("reference_cap_value", str, default="100nF")
+    reference_cap_value = config("reference_cap_value", Capacitance, default="100nF")
 
 # Control pin configuration
 reset_config = config("reset_config", ResetConfig, default=ResetConfig("Pullup"))
@@ -66,8 +67,8 @@ add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 # Output configuration
 add_output_filtering = config("add_output_filtering", bool, default=True)
 if add_output_filtering:
-    output_filter_r = config("output_filter_r", str, default="100ohms")
-    output_filter_c = config("output_filter_c", str, default="100nF")
+    output_filter_r = config("output_filter_r", Resistance, default="100ohms")
+    output_filter_c = config("output_filter_c", Capacitance, default="100nF")
 
 # Test points
 add_test_points = config("add_test_points", bool, default=True)

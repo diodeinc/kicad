@@ -20,6 +20,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/A
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,12 +43,12 @@ if interface_mode == InterfaceMode("I2C"):
     i2c_address = config("i2c_address", I2cAddress, default="0x53")
     add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
     if add_i2c_pullups:
-        i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+        i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 else:
     # SPI specific configuration
     add_cs_pullup = config("add_cs_pullup", bool, default=True)
     if add_cs_pullup:
-        cs_pullup_value = config("cs_pullup_value", str, default="100kohms")
+        cs_pullup_value = config("cs_pullup_value", Resistance, default="100kohms")
 
 # Power configuration
 separate_vddio = config("separate_vddio", bool, default=True)

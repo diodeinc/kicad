@@ -13,6 +13,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm317.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,7 +50,7 @@ if add_output_cap:
 # Ripple rejection enhancement
 add_adjust_cap = config("add_adjust_cap", bool, default=False)
 if add_adjust_cap:
-    adjust_cap_value = config("adjust_cap_value", str, default="10uF")
+    adjust_cap_value = config("adjust_cap_value", Capacitance, default="10uF")
 
 # Protection diodes
 add_protection_diodes = config("add_protection_diodes", bool, default=False)

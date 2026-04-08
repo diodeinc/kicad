@@ -15,6 +15,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/lsm303c.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +35,7 @@ seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default=True)
 
 if interface_mode == InterfaceMode("I2C"):
     add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 else:  # SPI mode
     spi_mode = config("spi_mode", SpiMode, default="4Wire")
 

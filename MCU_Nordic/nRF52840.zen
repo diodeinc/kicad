@@ -13,6 +13,7 @@ Datasheet: https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -40,11 +41,11 @@ reset_configuration = config("reset_configuration", ResetConfiguration, default=
 hf_clock_source = config("hf_clock_source", ClockSource, default="Crystal")
 if hf_clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="32MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="12pF")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="12pF")
 
 add_lf_clock = config("add_lf_clock", bool, default=True)
 if add_lf_clock:
-    lf_crystal_capacitor_value = config("lf_crystal_capacitor_value", str, default="12pF")
+    lf_crystal_capacitor_value = config("lf_crystal_capacitor_value", Capacitance, default="12pF")
 
 # Interface configuration
 add_swd_header = config("add_swd_header", bool, default=True)
@@ -59,10 +60,10 @@ add_nfc_antenna = config("add_nfc_antenna", bool, default=True)
 add_antenna = config("add_antenna", bool, default=True)
 if add_antenna:
     # Antenna matching network component values
-    antenna_c11_value = config("antenna_c11_value", str, default="0.8pF", optional=True)
-    antenna_l2_value = config("antenna_l2_value", str, default="3.9nH", optional=True)
-    antenna_c12_value = config("antenna_c12_value", str, default="0.5pF", optional=True)
-    antenna_series_resistor_value = config("antenna_series_resistor_value", str, default="0ohms", optional=True)
+    antenna_c11_value = config("antenna_c11_value", Capacitance, default="0.8pF", optional=True)
+    antenna_l2_value = config("antenna_l2_value", Inductance, default="3.9nH", optional=True)
+    antenna_c12_value = config("antenna_c12_value", Capacitance, default="0.5pF", optional=True)
+    antenna_series_resistor_value = config("antenna_series_resistor_value", Resistance, default="0ohms", optional=True)
 
 # External IO
 VDD = io("VDD", Power)

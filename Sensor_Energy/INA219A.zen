@@ -13,6 +13,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina219.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -51,7 +52,7 @@ add_test_points = config("add_test_points", bool, default=True)
 # I2C configuration
 i2c_address = config("i2c_address", I2cAddress, default="0x40")
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
-i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Determine address pin connections based on selected I2C address
 # I2C Address mapping (from datasheet Table 7-2):
@@ -98,14 +99,14 @@ address_map = {
 a1_conn, a0_conn = address_map[i2c_address]
 
 # Shunt resistor configuration
-shunt_resistance = config("shunt_resistance", str, default="100mohms")
+shunt_resistance = config("shunt_resistance", Resistance, default="100mohms")
 shunt_range = config("shunt_range", ShuntRange, default="320mV")
 bus_range = config("bus_range", BusRange, default="32V")
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default="10ohms")
-    input_filter_c = config("input_filter_c", str, default="100nF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100nF")
 
 # External IO
 VS = io("VS", Power)  # Power supply (3-5.5V)

@@ -23,6 +23,7 @@ Datasheet: https://www.minicircuits.com/pdfs/PGA-106-75+.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Inductance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -40,11 +41,11 @@ add_bulk_cap = config("add_bulk_cap", bool, default=True)
 add_decoupling = config("add_decoupling", bool, default=True)
 
 # Bias configuration
-bias_inductor_value = config("bias_inductor_value", str, default="100nH")
-bias_cap_value = config("bias_cap_value", str, default="1.3pF")
+bias_inductor_value = config("bias_inductor_value", Inductance, default="100nH")
+bias_cap_value = config("bias_cap_value", Capacitance, default="1.3pF")
 
 # Coupling capacitor configuration
-dc_blocking_cap_value = config("dc_blocking_cap_value", str, default="2.4nF")
+dc_blocking_cap_value = config("dc_blocking_cap_value", Capacitance, default="2.4nF")
 
 
 # Protection configuration

@@ -13,6 +13,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm337.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,14 +29,14 @@ ProtectionDiodes = enum("None", "Input", "Output", "Full")
 output_voltage = config("output_voltage", OutputVoltage, default="-24V")
 if output_voltage == OutputVoltage("Custom"):
     custom_voltage = config("custom_voltage", float, default=-5.0)
-    custom_r1 = config("custom_r1", str, default="120ohm", optional=True)
-    custom_r2 = config("custom_r2", str, default="360ohm", optional=True)
+    custom_r1 = config("custom_r1", Resistance, default="120ohm", optional=True)
+    custom_r2 = config("custom_r2", Resistance, default="360ohm", optional=True)
 
 add_input_cap = config("add_input_cap", bool, default=True)
 add_output_cap = config("add_output_cap", bool, default=True)
 add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default="10uF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="10uF")
 
 add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default="Full")
 add_test_points = config("add_test_points", bool, default=True)

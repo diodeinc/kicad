@@ -14,6 +14,7 @@ Datasheet: https://www.cirrus.com/cn/pubs/proDatasheet/CS2000-CP_F3.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,7 +34,7 @@ reference_source = config("reference_source", ReferenceSource, default="Crystal"
 
 if reference_source == ReferenceSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
-    crystal_load_capacitance = config("crystal_load_capacitance", str, default="40pF")
+    crystal_load_capacitance = config("crystal_load_capacitance", Capacitance, default="40pF")
 
 if control_interface == ControlInterface("I2C"):
     i2c_address = config("i2c_address", I2cAddress, default="0x4E")

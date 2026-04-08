@@ -13,6 +13,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/vl53l0x.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,17 +35,17 @@ interface_voltage = config("interface_voltage", InterfaceVoltage, default="2V8")
 i2c_pullup_location = config("i2c_pullup_location", I2cPullupLocation, default="Local")
 if i2c_pullup_location == I2cPullupLocation("Local"):
     i2c_pullup_value = config(
-        "i2c_pullup_value", str, default="2kohms" if interface_voltage == InterfaceVoltage("2V8") else "4.7kohms"
+        "i2c_pullup_value", Resistance, default="2kohms" if interface_voltage == InterfaceVoltage("2V8") else "4.7kohms"
     )
 
 # Control pin configuration
 shutdown_control = config("shutdown_control", ShutdownControl, default="PullupOnly")
 if shutdown_control != ShutdownControl("External"):
-    xshut_pullup_value = config("xshut_pullup_value", str, default="10kohms")
+    xshut_pullup_value = config("xshut_pullup_value", Resistance, default="10kohms")
 
 interrupt_config = config("interrupt_config", InterruptConfig, default="Pullup")
 if interrupt_config == InterruptConfig("Pullup"):
-    gpio1_pullup_value = config("gpio1_pullup_value", str, default="10kohms")
+    gpio1_pullup_value = config("gpio1_pullup_value", Resistance, default="10kohms")
 
 # Test points
 add_test_points = config("add_test_points", bool, default=False)

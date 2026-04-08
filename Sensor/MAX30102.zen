@@ -23,6 +23,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,11 +47,11 @@ interrupt_configuration = config("interrupt_configuration", InterruptConfigurati
 if interrupt_configuration == InterruptConfiguration("PullUp") or interrupt_configuration == InterruptConfiguration(
     "TestPoint"
 ):
-    interrupt_pullup_value = config("interrupt_pullup_value", str, default="4.7kohms")
+    interrupt_pullup_value = config("interrupt_pullup_value", Resistance, default="4.7kohms")
 
 i2c_pullup_configuration = config("i2c_pullup_configuration", I2CPullUpConfiguration, default="External")
 if i2c_pullup_configuration == I2CPullUpConfiguration("External"):
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # LED configuration
 led_current_range = config("led_current_range", LEDCurrentRange, default="Medium")

@@ -14,6 +14,7 @@ Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/D
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -30,7 +31,7 @@ i2c_address = config("i2c_address", I2cAddress, default="0x44")
 # I2C configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="10kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="10kohms")
 
 # Power supply configuration
 add_bulk_cap = config("add_bulk_cap", bool, default=True)
@@ -40,13 +41,13 @@ add_decoupling_cap = config("add_decoupling_cap", bool, default=True)
 use_alert_pin = config("use_alert_pin", bool, default=True)
 if use_alert_pin:
     add_alert_pullup = config("add_alert_pullup", bool, default=True)
-    alert_pullup_value = config("alert_pullup_value", str, default="10kohms")
+    alert_pullup_value = config("alert_pullup_value", Resistance, default="10kohms")
 
 # Reset pin configuration
 use_reset_pin = config("use_reset_pin", bool, default=True)
 if use_reset_pin:
     add_reset_pullup = config("add_reset_pullup", bool, default=True)
-    reset_pullup_value = config("reset_pullup_value", str, default="10kohms")
+    reset_pullup_value = config("reset_pullup_value", Resistance, default="10kohms")
 
 # Test and debug configuration
 add_test_points = config("add_test_points", bool, default=True, optional=True)

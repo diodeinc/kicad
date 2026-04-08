@@ -22,6 +22,7 @@ Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-2
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -38,7 +39,7 @@ interface_mode = config("interface_mode", InterfaceMode, default="I2C")
 if interface_mode == InterfaceMode("I2C"):
     i2c_address = config("i2c_address", I2cAddress, default="0x68")
     add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 add_regout_cap = config("add_regout_cap", bool, default=True)
 add_vdd_bulk_cap = config("add_vdd_bulk_cap", bool, default=True)

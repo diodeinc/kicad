@@ -14,6 +14,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -23,20 +24,20 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 # Configuration options
 add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default="1uF")
+    input_cap_value = config("input_cap_value", Capacitance, default="1uF")
 
 add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default="10uF")
+    output_cap_value = config("output_cap_value", Capacitance, default="10uF")
 
 add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default="0.01uF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="0.01uF")
 
 enable_control = config("enable_control", bool, default=True)
 if enable_control:
     add_enable_pullup = config("add_enable_pullup", bool, default=True)
-    enable_pullup_value = config("enable_pullup_value", str, default="100kohms")
+    enable_pullup_value = config("enable_pullup_value", Resistance, default="100kohms")
 
 enable_sense_connection = config("connect_sense_to_output", bool, default=True)
 

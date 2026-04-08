@@ -25,6 +25,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/pga112.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -47,7 +48,7 @@ split_supplies = config("split_supplies", bool, default=True)
 # Output configuration
 add_output_series_resistor = config("add_output_series_resistor", bool, default=True)
 if add_output_series_resistor:
-    output_series_resistor_value = config("output_series_resistor_value", str, default="100ohms")
+    output_series_resistor_value = config("output_series_resistor_value", Resistance, default="100ohms")
 
 # SPI configuration
 add_spi_pullup = config("add_spi_pullup", bool, default=True)

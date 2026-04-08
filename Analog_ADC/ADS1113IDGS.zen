@@ -20,6 +20,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads1113.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,12 +55,12 @@ i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x48"))
 # I2C interface configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Filter configuration for analog inputs
 if add_analog_filtering:
-    filter_r_value = config("filter_r_value", str, default="100ohms")
-    filter_c_value = config("filter_c_value", str, default="100pF")
+    filter_r_value = config("filter_r_value", Resistance, default="100ohms")
+    filter_c_value = config("filter_c_value", Capacitance, default="100pF")
 
 # External power supply
 VDD = io("VDD", Power)

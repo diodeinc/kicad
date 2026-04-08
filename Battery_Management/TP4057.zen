@@ -23,6 +23,7 @@ Datasheet: https://datasheet.lcsc.com/lcsc/2304140030_TOPPOWER-Nanjing-Extension
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # No longer using Power interface
 
@@ -42,19 +43,19 @@ charge_current = config("charge_current", ChargeCurrent, default="400mA")
 
 status_indication = config("status_indication", StatusIndication, default="LEDs")
 if status_indication == StatusIndication("LEDs"):
-    chrg_led_resistor = config("chrg_led_resistor", str, default="1.5kohms")
-    stdby_led_resistor = config("stdby_led_resistor", str, default="1.2kohms")
+    chrg_led_resistor = config("chrg_led_resistor", Resistance, default="1.5kohms")
+    stdby_led_resistor = config("stdby_led_resistor", Resistance, default="1.2kohms")
     chrg_led_color = config("chrg_led_color", str, default="red")
     stdby_led_color = config("stdby_led_color", str, default="green")
 
 input_protection = config("input_protection", InputProtection, default="Enhanced")
 add_input_series_resistor = config("add_input_series_resistor", bool, default=True)
 if add_input_series_resistor:
-    input_series_resistance = config("input_series_resistance", str, default="0.3ohms")
+    input_series_resistance = config("input_series_resistance", Resistance, default="0.3ohms")
 
 add_output_capacitor = config("add_output_capacitor", bool, default=True)
 if add_output_capacitor:
-    output_capacitor_value = config("output_capacitor_value", str, default="10uF")
+    output_capacitor_value = config("output_capacitor_value", Capacitance, default="10uF")
 
 add_test_points = config("add_test_points", bool, default=True, optional=True)
 

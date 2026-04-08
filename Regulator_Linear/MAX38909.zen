@@ -26,6 +26,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,14 +51,14 @@ enable_configuration = config("enable_configuration", EnableConfiguration, defau
 # Power-OK configuration
 pok_configuration = config("pok_configuration", PowerOkConfiguration, default="TestPoint")
 if pok_configuration != PowerOkConfiguration("None"):
-    pok_pullup_value = config("pok_pullup_value", str, default="100kohms")
+    pok_pullup_value = config("pok_pullup_value", Resistance, default="100kohms")
     pok_pullup_supply = config("pok_pullup_supply", PowerOkPullupSupply, default="Internal")
 
 # Capacitor configuration
 add_input_bulk_cap = config("add_input_bulk_cap", bool, default=True)
 add_bias_cap = config("add_bias_cap", bool, default=True)
 if add_bias_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default="47nF")  # 1nF to 100nF range
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="47nF")  # 1nF to 100nF range
 add_output_bulk_cap = config("add_output_bulk_cap", bool, default=True)
 
 # Test points

@@ -16,6 +16,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -25,10 +26,10 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 # Configuration options
 add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default="1uF", optional=True)
+    input_cap_value = config("input_cap_value", Capacitance, default="1uF", optional=True)
 add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default="3.3uF")
+    output_cap_value = config("output_cap_value", Capacitance, default="3.3uF")
 add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IOs

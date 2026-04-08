@@ -13,6 +13,7 @@ Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
 
 load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,8 +33,8 @@ if regulator_type == RegulatorType("FIX"):
     symbol_name = "AMS1117CD-" + fixed_voltage.value
     GND_PIN = "GND"
 else:
-    r_top = config("r_top", str, default="10kohms")
-    r_bottom = config("r_bottom", str, default="10kohms")
+    r_top = config("r_top", Resistance, default="10kohms")
+    r_bottom = config("r_bottom", Resistance, default="10kohms")
     symbol_name = "AMS1117CD"
     GND_PIN = "ADJ"
 

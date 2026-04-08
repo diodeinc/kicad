@@ -13,6 +13,7 @@ Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl3170e-71e-72e-73e-
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -24,22 +25,22 @@ add_bulk_cap = config("add_bulk_cap", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 add_bus_termination = config("add_bus_termination", bool, default=True)
 if add_bus_termination:
-    termination_resistance = config("termination_resistance", str, default="120ohms")
+    termination_resistance = config("termination_resistance", Resistance, default="120ohms")
 
 add_fail_safe_biasing = config("add_fail_safe_biasing", bool, default=False)
 if add_fail_safe_biasing:
-    bias_resistance = config("bias_resistance", str, default="10kohms")
+    bias_resistance = config("bias_resistance", Resistance, default="10kohms")
 
 add_test_points = config("add_test_points", bool, default=False)
 
 # Enable pin configurations
 re_pulldown = config("re_pulldown", bool, default=False)
 if re_pulldown:
-    re_pulldown_value = config("re_pulldown_value", str, default="2kohms")
+    re_pulldown_value = config("re_pulldown_value", Resistance, default="2kohms")
 
 de_pullup = config("de_pullup", bool, default=False)
 if de_pullup:
-    de_pullup_value = config("de_pullup_value", str, default="2kohms")
+    de_pullup_value = config("de_pullup_value", Resistance, default="2kohms")
 
 # External IOs
 VCC = io("VCC", Power)

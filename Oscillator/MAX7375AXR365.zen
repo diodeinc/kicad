@@ -27,6 +27,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -47,7 +48,7 @@ add_bulk_capacitor = config("add_bulk_capacitor", bool, default=True)
 output_load_config = config("output_load_config", OutputLoadConfiguration, default="Light")
 add_series_termination = config("add_series_termination", bool, default=True)
 if add_series_termination:
-    series_termination_value = config("series_termination_value", str, default="33ohms")
+    series_termination_value = config("series_termination_value", Resistance, default="33ohms")
 
 # Test points
 add_test_points = config("add_test_points", bool, default=True)

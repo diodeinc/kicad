@@ -24,6 +24,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance", "Voltage")
 
 # Import required modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -37,23 +38,23 @@ ShutdownLogic = enum("Positive", "Negative", "AlwaysOn")
 # Configuration options
 add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default="10uF")
-    input_cap_voltage = config("input_cap_voltage", str, default="16V")
+    input_cap_value = config("input_cap_value", Capacitance, default="10uF")
+    input_cap_voltage = config("input_cap_voltage", Voltage, default="16V")
 
 add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default="10uF")
-    output_cap_voltage = config("output_cap_voltage", str, default="10V")
+    output_cap_value = config("output_cap_value", Capacitance, default="10uF")
+    output_cap_voltage = config("output_cap_voltage", Voltage, default="10V")
 
 add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default="0.01uF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="0.01uF")
 
 shutdown_logic = config("shutdown_logic", ShutdownLogic, default="AlwaysOn")
 if shutdown_logic != ShutdownLogic("AlwaysOn"):
     add_shutdown_pullup = config("add_shutdown_pullup", bool, default=True, optional=True)
     if add_shutdown_pullup:
-        shutdown_pullup_value = config("shutdown_pullup_value", str, default="100kohms")
+        shutdown_pullup_value = config("shutdown_pullup_value", Resistance, default="100kohms")
 
 # External IOs
 VIN = io("VIN", Power)

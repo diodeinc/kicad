@@ -20,6 +20,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7830.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance", "Voltage")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,17 +51,17 @@ i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x48"))
 # Reference configuration
 reference_mode = config("reference_mode", ReferenceMode, default="Internal")
 if reference_mode == ReferenceMode("External"):
-    external_ref_voltage = config("external_ref_voltage", str, default="2.5V")
+    external_ref_voltage = config("external_ref_voltage", Voltage, default="2.5V")
 
 # I2C interface configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="2kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="2kohms")
 
 # Filter configuration for analog inputs
 if add_analog_filtering:
-    filter_r_value = config("filter_r_value", str, default="50ohms")
-    filter_c_value = config("filter_c_value", str, default="10pF")
+    filter_r_value = config("filter_r_value", Resistance, default="50ohms")
+    filter_c_value = config("filter_c_value", Capacitance, default="10pF")
 
 # External power supply
 VDD = io("VDD", Power)

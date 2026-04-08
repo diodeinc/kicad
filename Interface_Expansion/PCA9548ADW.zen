@@ -16,6 +16,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/pca9548a.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,10 +35,10 @@ add_downstream_pullups = config("add_downstream_pullups", bool, default=True)
 
 # Pull-up resistor values - only used if pull-ups are enabled
 if add_upstream_pullups:
-    upstream_pullup_value = config("upstream_pullup_value", str, default="4.7kohms", optional=True)
+    upstream_pullup_value = config("upstream_pullup_value", Resistance, default="4.7kohms", optional=True)
 
 if add_downstream_pullups:
-    downstream_pullup_value = config("downstream_pullup_value", str, default="4.7kohms", optional=True)
+    downstream_pullup_value = config("downstream_pullup_value", Resistance, default="4.7kohms", optional=True)
 
 # Address configuration
 address = config("address", AddressConfig, default="0x70")

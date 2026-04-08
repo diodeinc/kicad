@@ -24,6 +24,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,25 +49,27 @@ add_bulk_capacitor = config("add_bulk_capacitor", bool, default=True)
 # Current sense configuration
 add_sense_resistor = config("add_sense_resistor", bool, default=True)
 if add_sense_resistor:
-    sense_resistor_value = config("sense_resistor_value", str, default="0.1ohms", optional=True)
-    load_resistor_value = config("load_resistor_value", str, default="100kohms", optional=True)
+    sense_resistor_value = config("sense_resistor_value", Resistance, default="0.1ohms", optional=True)
+    load_resistor_value = config("load_resistor_value", Resistance, default="100kohms", optional=True)
 
 # I2C configuration
 i2c_address = config("i2c_address", I2cAddress, default="0x70")
 i2c_pullup_enable = config("i2c_pullup_enable", bool, default=True)
 if i2c_pullup_enable:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Output configuration
 output_config = config("output_config", OutputConfig, default="PullUp")
 if output_config != OutputConfig("UserDefined"):
-    output_resistor_value = config("output_resistor_value", str, default="10kohms")
+    output_resistor_value = config("output_resistor_value", Resistance, default="10kohms")
 
 # SET pin configuration
 add_set_divider = config("add_set_divider", bool, default=True)
 if add_set_divider:
-    set_divider_r1 = config("set_divider_r1", str, default="10kohms", optional=True)  # Top resistor (VCC to SET)
-    set_divider_r2 = config("set_divider_r2", str, default="10kohms", optional=True)  # Bottom resistor (SET to GND)
+    set_divider_r1 = config("set_divider_r1", Resistance, default="10kohms", optional=True)  # Top resistor (VCC to SET)
+    set_divider_r2 = config(
+        "set_divider_r2", Resistance, default="10kohms", optional=True
+    )  # Bottom resistor (SET to GND)
 
 # Test points
 add_test_points = config("add_test_points", bool, default=True, optional=True)

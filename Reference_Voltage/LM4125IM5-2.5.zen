@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm4125.pdf
 """
 
 load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -21,7 +22,7 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 # Configuration
 add_input_cap = config("add_input_cap", bool, default=True)
 add_output_cap = config("add_output_cap", bool, default=True)
-output_cap_value = config("output_cap_value", str, default="22nF")
+output_cap_value = config("output_cap_value", Capacitance, default="22nF")
 
 # External IO
 VIN = io("VIN", Net, default=Net("VIN"))

@@ -27,6 +27,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -46,11 +47,11 @@ if power_mode == PowerMode("External"):
     add_decoupling_cap = config("add_decoupling_cap", bool, default=True)
 
 # 1-Wire bus configuration
-pullup_value = config("pullup_value", str, default="4.7kohms")
+pullup_value = config("pullup_value", Resistance, default="4.7kohms")
 if power_mode == PowerMode("Parasite"):
     add_fet_input_resistor = config("add_fet_input_resistor", bool, default=False)
     if add_fet_input_resistor:
-        fet_input_resistor_value = config("fet_input_resistor_value", str, default="330ohms")
+        fet_input_resistor_value = config("fet_input_resistor_value", Resistance, default="330ohms")
 
 # Test and debug configuration
 add_test_points = config("add_test_points", bool, default=True)

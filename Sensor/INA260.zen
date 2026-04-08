@@ -16,6 +16,7 @@ Datasheet: https://www.ti.com/lit/ds/sbos893c/sbos893c.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -55,19 +56,19 @@ connect_vbus_to_in_plus = config("connect_vbus_to_in_plus", bool, default=True)
 
 # I2C configuration
 i2c_address = config("i2c_address", I2cAddress, default="0x40")
-i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Alert configuration
 alert_function = config("alert_function", AlertFunction, default="OverCurrent")
 if alert_function != AlertFunction("None"):
-    alert_pullup_value = config("alert_pullup_value", str, default="10kohms")
+    alert_pullup_value = config("alert_pullup_value", Resistance, default="10kohms")
 else:
     alert_pullup_value = "0ohms"
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default="10ohms")
-    input_filter_c = config("input_filter_c", str, default="100nF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100nF")
 
 # Address mapping dictionary
 address_map = {

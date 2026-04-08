@@ -14,6 +14,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f415rg.pdf
 """
 
 load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -60,10 +61,10 @@ elif boot_configuration == BootConfiguration("Buttons"):
 clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
     crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="10pF")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="10pF")
     add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default="620ohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="620ohm")
 
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 

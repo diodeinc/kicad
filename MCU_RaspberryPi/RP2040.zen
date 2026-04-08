@@ -29,6 +29,7 @@ Datasheet: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf
 """
 
 load("@stdlib/interfaces.zen", "Gpio", "Analog", "Usb2", "Qspi", "OscPair", "Swd", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -48,7 +49,7 @@ add_gpio_headers = config("add_gpio_headers", bool, default=True, optional=True)
 
 if add_crystal:
     crystal_package = config("crystal_package", Crystal.Package, default=Crystal.Package("3225_4Pin"), optional=True)
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default="15pF", optional=True)
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="15pF", optional=True)
 add_swd_test_points = config("add_swd_test_points", bool, default=True)
 
 if specify_vdd_configuration:

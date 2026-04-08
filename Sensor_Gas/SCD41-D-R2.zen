@@ -17,6 +17,7 @@ Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/D
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +35,7 @@ i2c_speed = config("i2c_speed", I2cSpeed, default="Standard")
 # I2C configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="10kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="10kohms")
 
 # Power supply configuration
 add_bulk_cap = config("add_bulk_cap", bool, default=True)

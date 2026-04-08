@@ -24,6 +24,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -38,15 +39,15 @@ OutputConfiguration = enum("Direct", "Filtered")
 # Input filtering configuration
 input_filter_config = config("input_filter_config", InputFilterConfiguration, default="RC")
 if input_filter_config == InputFilterConfiguration("RC"):
-    input_filter_r_value = config("input_filter_r_value", str, default="10ohms")
-    input_filter_c_value = config("input_filter_c_value", str, default="1uF")
+    input_filter_r_value = config("input_filter_r_value", Resistance, default="10ohms")
+    input_filter_c_value = config("input_filter_c_value", Capacitance, default="1uF")
 elif input_filter_config == InputFilterConfiguration("Capacitor"):
-    input_filter_c_value = config("input_filter_c_value", str, default="1uF")
+    input_filter_c_value = config("input_filter_c_value", Capacitance, default="1uF")
 
 # Output configuration
 output_config = config("output_config", OutputConfiguration, default="Filtered")
 if output_config == OutputConfiguration("Filtered"):
-    output_cap_value = config("output_cap_value", str, default="1nF")  # Max 2.2nF for stability
+    output_cap_value = config("output_cap_value", Capacitance, default="1nF")  # Max 2.2nF for stability
 
 # Test points
 add_test_points = config("add_test_points", bool, default=True)

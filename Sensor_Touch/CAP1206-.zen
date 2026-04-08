@@ -16,6 +16,7 @@ Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/00001567B.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,20 +34,20 @@ add_decoupling = config("add_decoupling", bool, default=True)
 # Touch sensor configuration
 add_series_resistors = config("add_series_resistors", bool, default=True)
 if add_series_resistors:
-    series_resistor_value = config("series_resistor_value", str, default="1kohms")
+    series_resistor_value = config("series_resistor_value", Resistance, default="1kohms")
 
 # ALERT# configuration
 alert_pullup = config("alert_pullup", AlertPullup, default="Strong")
 if alert_pullup != AlertPullup("None"):
     if alert_pullup == AlertPullup("Weak"):
-        alert_pullup_value = config("alert_pullup_value", str, default="10kohms")
+        alert_pullup_value = config("alert_pullup_value", Resistance, default="10kohms")
     else:  # Strong
-        alert_pullup_value = config("alert_pullup_value", str, default="4.7kohms")
+        alert_pullup_value = config("alert_pullup_value", Resistance, default="4.7kohms")
 
 # I2C configuration
 add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Debug/Test configuration
 add_test_points = config("add_test_points", bool, default=True, optional=True)
