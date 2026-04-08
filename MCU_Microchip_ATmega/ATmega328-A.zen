@@ -204,8 +204,7 @@ if add_analog_decoupling:
     Capacitor(name="C_AVCC", value="100nF", package=passives_size.value, P1=_AVCC, P2=GND)
 
 # AREF Capacitor - For ADC voltage reference stability
-if add_aref_cap:
-    Capacitor(name="C_AREF", value="100nF", package=passives_size.value, P1=_AREF, P2=GND)
+Capacitor(name="C_AREF", value="100nF", package=passives_size.value, P1=_AREF, P2=GND, dnp=not add_aref_cap)
 
 # Reset Circuit - Pull-up resistor and optional reset button capacitor
 if add_reset_circuit:

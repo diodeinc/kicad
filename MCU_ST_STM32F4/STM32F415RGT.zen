@@ -291,8 +291,7 @@ Component(
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling - One capacitor per VDD pin (4 total for STM32F415)
 if add_power_decoupling:
@@ -621,14 +620,14 @@ if add_spi_flash:
     Resistor(name="R_FLASH_HOLD", value="10kohms", package="0402", P1=_FLASH_HOLD, P2=VDD)
 
     # Decoupling capacitor for flash
-    if add_power_decoupling:
-        Capacitor(
-            name="C_FLASH",
-            value="100nF",
-            package="0402",
-            P1=VDD,
-            P2=GND,
-        )
+    Capacitor(
+        name="C_FLASH",
+        value="100nF",
+        package="0402",
+        P1=VDD,
+        P2=GND,
+        dnp=not add_power_decoupling,
+    )
 
 # pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
 # pcb:sch C_HSE1.C x=194.5800 y=1294.4000 rot=0

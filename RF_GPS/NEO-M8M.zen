@@ -156,8 +156,7 @@ else:  # SPI mode
 
 # Power supply decoupling
 # Main VCC bulk capacitor
-if add_bulk_caps:
-    Capacitor(name="C_VCC_BULK", value="10uF", voltage="6.3V", package="0805", P1=VCC, P2=GND)
+Capacitor(name="C_VCC_BULK", value="10uF", voltage="6.3V", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_caps)
 
 # VCC decoupling capacitors (multiple for good high-frequency response)
 if add_decoupling_caps:
@@ -200,12 +199,10 @@ elif reset_configuration == ResetConfiguration("Button"):
     )
 
 # SAFEBOOT_N pull-up (if enabled)
-if add_safeboot_pullup:
-    Resistor(name="R_SAFEBOOT", value="10kohms", package="0402", P1=_SAFEBOOT_N, P2=VCC)
+Resistor(name="R_SAFEBOOT", value="10kohms", package="0402", P1=_SAFEBOOT_N, P2=VCC, dnp=not add_safeboot_pullup)
 
 # EXTINT pull-up (if enabled)
-if add_extint_pullup:
-    Resistor(name="R_EXTINT", value="10kohms", package="0402", P1=EXTINT, P2=VCC)
+Resistor(name="R_EXTINT", value="10kohms", package="0402", P1=EXTINT, P2=VCC, dnp=not add_extint_pullup)
 
 # I2C pull-ups (only in UART+I2C mode)
 if add_i2c_pullups:
@@ -274,8 +271,7 @@ elif antenna_type == AntennaType("Passive"):
     )
 
 # RF test point (if enabled)
-if add_rf_test_point:
-    TestPoint(name="TP_RF", variant="Pad_D1.5mm", P1=_RF_IN)
+TestPoint(name="TP_RF", variant="Pad_D1.5mm", P1=_RF_IN, dnp=not add_rf_test_point)
 
 # Note: Status LED removed - M8M does not have LNA_EN pin
 
@@ -345,10 +341,8 @@ if add_usb:
     Resistor(name="R_USB_DP", value="27ohms", package="0402", P1=_USB_DP_INT, P2=_USB_DP)
 
     # VBUS decoupling
-    if add_bulk_caps:
-        Capacitor(name="C_VBUS", value="4.7uF", package="0805", P1=VBUS, P2=GND)
-    if add_decoupling_caps:
-        Capacitor(name="C_VBUS2", value="100nF", package="0402", P1=VBUS, P2=GND)
+    Capacitor(name="C_VBUS", value="4.7uF", package="0805", P1=VBUS, P2=GND, dnp=not add_bulk_caps)
+    Capacitor(name="C_VBUS2", value="100nF", package="0402", P1=VBUS, P2=GND, dnp=not add_decoupling_caps)
 
     # USB Power Regulation
     if power_from_usb:

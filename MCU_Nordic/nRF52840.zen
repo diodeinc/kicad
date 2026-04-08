@@ -281,8 +281,7 @@ Component(
 # Power supply decoupling capacitors
 
 # Bulk capacitors on main VDD
-if add_bulk_caps:
-    Capacitor(name="C_BULK1", value="10uF", package="0805", P1=VDD, P2=GND)
+Capacitor(name="C_BULK1", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_caps)
 
 Capacitor(name="C_VDD", value="4.7uF", package="0603", P1=VDD, P2=GND)
 

@@ -412,14 +412,14 @@ if add_spi_flash:
     Resistor(name="R_FLASH_HOLD", value="10kohms", package="0402", P1=_FLASH_HOLD, P2=VDD)
 
     # Decoupling capacitor for flash
-    if add_decoupling:
-        Capacitor(
-            name="C_FLASH",
-            value="100nF",
-            package="0402",
-            P1=VDD,
-            P2=GND,
-        )
+    Capacitor(
+        name="C_FLASH",
+        value="100nF",
+        package="0402",
+        P1=VDD,
+        P2=GND,
+        dnp=not add_decoupling,
+    )
 
 # pcb:sch ATSAMD21E18A x=-229.6000 y=1472.2000 rot=0
 # pcb:sch C_LSE1.C x=-465.8200 y=1472.2000 rot=90

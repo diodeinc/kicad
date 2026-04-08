@@ -123,12 +123,10 @@ Component(
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling
-if add_decoupling:
-    Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND)
+Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND, dnp=not add_decoupling)
 
 # Reset Circuit
 if add_reset_circuit == ResetConfiguration("Pullup"):
