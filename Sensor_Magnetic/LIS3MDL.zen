@@ -1,9 +1,9 @@
 """LIS3MDL - Ultra-low-power, high-performance 3-axis digital output magnetometer
 
-The LIS3MDL is an ultra-low-power high-performance 3-axis magnetic sensor with 
-user-selectable full scales of ±4/±8/±12/±16 gauss. The device features both 
-I²C and SPI digital interfaces, continuous and single-conversion modes, 16-bit 
-data output, and an interrupt generator. It includes self-test capability and 
+The LIS3MDL is an ultra-low-power high-performance 3-axis magnetic sensor with
+user-selectable full scales of ±4/±8/±12/±16 gauss. The device features both
+I²C and SPI digital interfaces, continuous and single-conversion modes, 16-bit
+data output, and an interrupt generator. It includes self-test capability and
 operates from 1.9V to 3.6V supply voltage with independent IO supply (1.71V to Vdd+0.1V).
 
 Author: @@anthropic/claude-opus-4
@@ -23,22 +23,22 @@ InterfaceMode = enum("I2C", "SPI_4Wire", "SPI_3Wire")
 I2cAddress = enum("0x1C", "0x1E")  # SA1 = 0 or 1
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+interface_mode = config("interface_mode", InterfaceMode, default="I2C")
 
 # I2C specific configuration
 if interface_mode == InterfaceMode("I2C"):
-    i2c_address = config("i2c_address", I2cAddress, default = "0x1C")
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    i2c_address = config("i2c_address", I2cAddress, default="0x1C")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 
 # Interrupt configuration
-enable_interrupt = config("enable_interrupt", bool, default = True)
-enable_data_ready = config("enable_data_ready", bool, default = True)
+enable_interrupt = config("enable_interrupt", bool, default=True)
+enable_data_ready = config("enable_data_ready", bool, default=True)
 
 # Power configuration
-separate_vddio = config("separate_vddio", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_test_points = config("add_test_points", bool, default = False)
+separate_vddio = config("separate_vddio", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
 VDD = io("VDD", Power)
@@ -74,12 +74,12 @@ else:  # SPI modes
 
 # Interrupt pins
 if enable_interrupt:
-    INT = io("INT", Net, default = Net("INT"))
+    INT = io("INT", Net, default=Net("INT"))
 else:
     INT = NotConnected()
 
 if enable_data_ready:
-    DRDY = io("DRDY", Net, default = Net("DRDY"))
+    DRDY = io("DRDY", Net, default=Net("DRDY"))
 else:
     DRDY = NotConnected()
 
@@ -88,10 +88,10 @@ _C1 = Net("C1")  # External capacitor connection
 
 # Main component
 Component(
-    name = "LIS3MDL",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Magnetic.kicad_sym", name = "LIS3MDL"),
-    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="LIS3MDL",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Magnetic.kicad_sym", name="LIS3MDL"),
+    footprint=File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
+    pins={
         "~{CS}": _CS,
         "SCL/SPC": _SCL,
         "SDA/SDI/SDO": _SDA,
@@ -106,31 +106,31 @@ Component(
 )
 
 # Required external capacitor C1 (100nF) between pin 4 and GND
-Capacitor(name = "C1", value = "100nF", package = "0402", P1 = _C1, P2 = GND)
+Capacitor(name="C1", value="100nF", package="0402", P1=_C1, P2=GND)
 
 # Power supply decoupling
 if add_decoupling:
     # VDD decoupling (C3 per datasheet)
-    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    
+    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
+
     # VDD_IO decoupling (if separate supply)
     if separate_vddio:
-        Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+        Capacitor(name="C_VDDIO", value="100nF", package="0402", P1=VDD_IO, P2=GND)
 
 # Bulk capacitor (C2 per datasheet)
 if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND)
 
 # I2C pull-up resistors
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
-    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VDD_IO)
-    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VDD_IO)
+    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=_SCL, P2=VDD_IO)
+    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=_SDA, P2=VDD_IO)
 
 # Interrupt pull-up resistor (optional, depends on host configuration)
 if enable_interrupt:
     # INT pin has configurable polarity (active high or low)
     # Default is active low, so pull-up is typically needed
-    Resistor(name = "R_INT", value = "10kohms", package = "0402", P1 = INT, P2 = VDD_IO)
+    Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VDD_IO)
 
 # Data ready pull-up resistor (optional, depends on host configuration)
 if enable_data_ready:
@@ -141,14 +141,14 @@ if enable_data_ready:
 
 # Test points for debugging (optional)
 if add_test_points and interface_mode == InterfaceMode("I2C"):
-    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
-    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
+    TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SCL)
+    TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SDA)
 
 if add_test_points and enable_interrupt:
-    TestPoint(name = "TP_INT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = INT)
+    TestPoint(name="TP_INT", variant="THTPad_D1.0mm_Drill0.5mm", P1=INT)
 
 if add_test_points and enable_data_ready:
-    TestPoint(name = "TP_DRDY", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = DRDY)
+    TestPoint(name="TP_DRDY", variant="THTPad_D1.0mm_Drill0.5mm", P1=DRDY)
 
 # pcb:sch C1.C x=499.3800 y=557.8000 rot=0
 # pcb:sch C_BULK.C x=-148.3200 y=456.2000 rot=0

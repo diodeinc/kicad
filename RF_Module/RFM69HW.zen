@@ -1,10 +1,10 @@
 """RFM69HW - ISM TRANSCEIVER MODULE
 
-The RFM69HW is a highly integrated RF transceiver module capable of operation over a wide 
-frequency range, including the 315, 433, 868 and 915 MHz license-free ISM (Industry Scientific 
-and Medical) frequency bands. It features +20 dBm output power, high sensitivity down to -120 dBm 
-at 1.2 kbps, programmable narrow-band and wide-band communication modes, and supports FSK, GFSK, 
-MSK, GMSK and OOK modulations. The module includes a 66-byte FIFO, packet engine with CRC-16, 
+The RFM69HW is a highly integrated RF transceiver module capable of operation over a wide
+frequency range, including the 315, 433, 868 and 915 MHz license-free ISM (Industry Scientific
+and Medical) frequency bands. It features +20 dBm output power, high sensitivity down to -120 dBm
+at 1.2 kbps, programmable narrow-band and wide-band communication modes, and supports FSK, GFSK,
+MSK, GMSK and OOK modulations. The module includes a 66-byte FIFO, packet engine with CRC-16,
 AES-128 encryption, and built-in temperature sensor.
 
 Author: @anthropic/claude-opus-4
@@ -22,12 +22,12 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 AntennaConnector = enum("UFL", "SMA")
 
 # Configuration
-antenna_connector = config("antenna_connector", AntennaConnector, default = "UFL")
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+antenna_connector = config("antenna_connector", AntennaConnector, default="UFL")
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO
-VDD = io("VDD_3V3", Power, default = Power("VDD_3V3"))
+VDD = io("VDD_3V3", Power, default=Power("VDD_3V3"))
 GND = io("GND", Ground)
 
 # SPI Interface
@@ -49,10 +49,10 @@ _ANA = Net("ANA")  # Antenna connection
 
 # ISM Radio Transceiver Module
 Component(
-    name = "RFM69HW",
-    symbol = Symbol(library = "@kicad-symbols/RF_Module.kicad_sym", name = "RFM69HW"),
-    footprint = File("@kicad-footprints/RF_Module.pretty/HOPERF_RFM69HW.kicad_mod"),
-    pins = {
+    name="RFM69HW",
+    symbol=Symbol(library="@kicad-symbols/RF_Module.kicad_sym", name="RFM69HW"),
+    footprint=File("@kicad-footprints/RF_Module.pretty/HOPERF_RFM69HW.kicad_mod"),
+    pins={
         "RESET": RESET,
         "DIO0": DIO0,
         "DIO1": DIO1,
@@ -60,7 +60,7 @@ Component(
         "DIO3": DIO3,
         "DIO4": DIO4,
         "DIO5": DIO5,
-        "3.3V": VDD.NET,
+        "3.3V": VDD,
         "GND": GND,
         "ANA": _ANA,
         "SCK": spi.CLK,
@@ -74,35 +74,29 @@ Component(
 # Power Supply Capacitors
 if add_bulk_caps:
     # Bulk capacitor for power input
-    Capacitor(name = "C_BULK", value = "10uF", voltage = "16V", package = "0805", P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", voltage="16V", package="0805", P1=VDD, P2=GND)
 
 if add_decoupling_caps:
     # Decoupling capacitors near module
-    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
-    Capacitor(name = "C_VDD2", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_VDD1", value="100nF", package="0402", P1=VDD, P2=GND)
+    Capacitor(name="C_VDD2", value="100nF", package="0402", P1=VDD, P2=GND)
 
 # Antenna Connector
 if antenna_connector == AntennaConnector("UFL"):
     # u.FL connector for external antenna
     Component(
-        name = "J_ANT",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "Conn_Coaxial"),
-        footprint = File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
-        pins = {
-            "In": _ANA,
-            "Ext": GND
-        }
+        name="J_ANT",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="Conn_Coaxial"),
+        footprint=File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
+        pins={"In": _ANA, "Ext": GND},
     )
 elif antenna_connector == AntennaConnector("SMA"):
     # SMA connector for external antenna
     Component(
-        name = "J_ANT",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "Conn_Coaxial"),
-        footprint = File("@kicad-footprints/Connector_Coaxial.pretty/SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount.kicad_mod"),
-        pins = {
-            "In": _ANA,
-            "Ext": GND
-        }
+        name="J_ANT",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="Conn_Coaxial"),
+        footprint=File("@kicad-footprints/Connector_Coaxial.pretty/SMA_Samtec_SMA-J-P-H-ST-EM1_EdgeMount.kicad_mod"),
+        pins={"In": _ANA, "Ext": GND},
     )
 
 # pcb:sch C_BULK.C x=537.4800 y=557.8000 rot=0

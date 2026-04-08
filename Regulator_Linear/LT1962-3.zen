@@ -1,11 +1,11 @@
 """LT1962-3 - 3.0V, 300mA, Low Noise, Micropower LDO Regulator
 
-The LT1962-3 is a micropower, low noise, low dropout linear regulator capable of 
+The LT1962-3 is a micropower, low noise, low dropout linear regulator capable of
 supplying 300mA of output current with a dropout voltage of 270mV. It features
 ultra-low quiescent current of 30μA, making it ideal for battery-powered applications.
-The device provides excellent noise performance of 20μVRMS (10Hz to 100kHz) with an 
+The device provides excellent noise performance of 20μVRMS (10Hz to 100kHz) with an
 external bypass capacitor. It includes reverse battery protection, current limiting,
-thermal limiting, and reverse current protection. The regulator is stable with 
+thermal limiting, and reverse current protection. The regulator is stable with
 output capacitors as low as 3.3μF and supports both ceramic and tantalum capacitors.
 
 Author: @@anthropic/claude-opus-4
@@ -21,24 +21,24 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration options
-add_input_cap = config("add_input_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default = "1uF")
+    input_cap_value = config("input_cap_value", str, default="1uF")
 
-add_output_cap = config("add_output_cap", bool, default = True)
+add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default = "10uF")
+    output_cap_value = config("output_cap_value", str, default="10uF")
 
-add_bypass_cap = config("add_bypass_cap", bool, default = True)
+add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "0.01uF")
+    bypass_cap_value = config("bypass_cap_value", str, default="0.01uF")
 
-enable_control = config("enable_control", bool, default = True)
+enable_control = config("enable_control", bool, default=True)
 if enable_control:
-    add_enable_pullup = config("add_enable_pullup", bool, default = True)
-    enable_pullup_value = config("enable_pullup_value", str, default = "100kohms")
+    add_enable_pullup = config("add_enable_pullup", bool, default=True)
+    enable_pullup_value = config("enable_pullup_value", str, default="100kohms")
 
-enable_sense_connection = config("connect_sense_to_output", bool, default = True)
+enable_sense_connection = config("connect_sense_to_output", bool, default=True)
 
 # External IO
 VIN = io("VIN", Power)
@@ -54,19 +54,19 @@ else:
 # Internal nets
 _BYP = Net("BYP")
 _NC = NotConnected()
-_SENSE = VOUT.NET if enable_sense_connection else Net("SENSE")
+_SENSE = VOUT if enable_sense_connection else Net("SENSE")
 
 # Main LT1962-3 component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LT1962-3"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-8_3x3mm_P0.65mm.kicad_mod"),
-    pins = {
-        "IN": VIN.NET,
-        "~{SHDN}": SHDN if enable_control else VIN.NET,
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="LT1962-3"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/MSOP-8_3x3mm_P0.65mm.kicad_mod"),
+    pins={
+        "IN": VIN,
+        "~{SHDN}": SHDN if enable_control else VIN,
         "GND": GND,
         "NC": _NC,
-        "OUT": VOUT.NET,
+        "OUT": VOUT,
         "SENSE": _SENSE,
         "BYP": _BYP,
     },
@@ -74,7 +74,7 @@ Component(
 
 # Input capacitor
 if add_input_cap:
-    Capacitor(name = "C_IN", value = input_cap_value, package = "0805", P1 = VIN.NET, P2 = GND)
+    Capacitor(name="C_IN", value=input_cap_value, package="0805", P1=VIN, P2=GND)
 
 # Output capacitor
 if add_output_cap:
@@ -85,31 +85,31 @@ if add_output_cap:
         out_cap_package = "1206"
 
     Capacitor(
-        name = "C_OUT",
-        value = output_cap_value,
-        package = out_cap_package,
-        P1 = VOUT.NET,
-        P2 = GND,
+        name="C_OUT",
+        value=output_cap_value,
+        package=out_cap_package,
+        P1=VOUT,
+        P2=GND,
     )
 
 # Bypass capacitor for low noise operation
 if add_bypass_cap:
     Capacitor(
-        name = "C_BYP",
-        value = bypass_cap_value,
-        package = "0402",
-        P1 = VOUT.NET,
-        P2 = _BYP,
+        name="C_BYP",
+        value=bypass_cap_value,
+        package="0402",
+        P1=VOUT,
+        P2=_BYP,
     )
 
 # Enable control
 if enable_control and add_enable_pullup:
     Resistor(
-        name = "R_EN",
-        value = enable_pullup_value,
-        package = "0402",
-        P1 = SHDN,
-        P2 = VIN.NET,
+        name="R_EN",
+        value=enable_pullup_value,
+        package="0402",
+        P1=SHDN,
+        P2=VIN,
     )
 
 # pcb:sch C_BYP.C x=385.0800 y=202.2000 rot=0

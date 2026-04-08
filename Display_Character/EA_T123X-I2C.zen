@@ -1,12 +1,12 @@
 """EA T123X-I2C - 3x12 Character LCD Display with I²C Interface
 
-The EA T123X-I2C is an ultra-flat 3-line, 12-character alphanumeric LCD display 
-featuring chip-on-glass (COG) technology with only 2.85mm thickness. It uses the 
-PCF2116-C controller with I²C interface operating at up to 100kHz. The display 
-features a 5x7 dot matrix, 6° viewing direction (12° with rotated installation), 
-and operates from either single supply (+5V @ 700µA) or dual supply (+2.5V/-4.5V 
-to +6V/-12V @ 100µA). The transflective STN/FSTN display can be backlit with LED 
-or EL foil. Character height is 4.7mm with a 32x17mm viewing window in a 40x33mm 
+The EA T123X-I2C is an ultra-flat 3-line, 12-character alphanumeric LCD display
+featuring chip-on-glass (COG) technology with only 2.85mm thickness. It uses the
+PCF2116-C controller with I²C interface operating at up to 100kHz. The display
+features a 5x7 dot matrix, 6° viewing direction (12° with rotated installation),
+and operates from either single supply (+5V @ 700µA) or dual supply (+2.5V/-4.5V
+to +6V/-12V @ 100µA). The transflective STN/FSTN display can be backlit with LED
+or EL foil. Character height is 4.7mm with a 32x17mm viewing window in a 40x33mm
 package. Operating temperature: -20°C to +70°C, storage: -25°C to +80°C.
 
 Author: @anthropic/claude-opus-4
@@ -26,21 +26,21 @@ PowerMode = enum("SingleSupply", "DualSupply")
 DisplayType = enum("STN_Gray", "FSTN_BlackWhite")
 
 # Configuration
-power_mode = config("power_mode", PowerMode, default = "SingleSupply")
-display_type = config("display_type", DisplayType, default = "STN_Gray")
+power_mode = config("power_mode", PowerMode, default="SingleSupply")
+display_type = config("display_type", DisplayType, default="STN_Gray")
 
 # I2C configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
 
 # Power supply configuration
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # Contrast configuration (always needed for display to work)
-add_contrast_circuit = config("add_contrast_circuit", bool, default = True)
+add_contrast_circuit = config("add_contrast_circuit", bool, default=True)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = False)
+add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
 if power_mode == PowerMode("SingleSupply"):
@@ -60,84 +60,83 @@ _VLCD = Net("VLCD")
 
 # Main display component - based on pinout table
 Component(
-    name = "DISPLAY",
-    symbol = Symbol(library = "@kicad-symbols/Display_Character.kicad_sym", name = "EA_T123X-I2C"),
-    footprint = File("@kicad-footprints/Display.pretty/EA_T123X-I2C.kicad_mod"),
-    pins = {
-        "VSS": VSS,      # Pin 1: Ground
-        "VDD": VDD,      # Pin 2: Power Supply
-        "VLCD": _VLCD,   # Pin 3: Contrast adjust
-        "V0": _V0,       # Pin 4: Power for contrast
+    name="DISPLAY",
+    symbol=Symbol(library="@kicad-symbols/Display_Character.kicad_sym", name="EA_T123X-I2C"),
+    footprint=File("@kicad-footprints/Display.pretty/EA_T123X-I2C.kicad_mod"),
+    pins={
+        "VSS": VSS,  # Pin 1: Ground
+        "VDD": VDD,  # Pin 2: Power Supply
+        "VLCD": _VLCD,  # Pin 3: Contrast adjust
+        "V0": _V0,  # Pin 4: Power for contrast
         "SDA": i2c.SDA,  # Pin 5: Serial Data Line
-        "SCL": i2c.SCL   # Pin 6: Serial Clock Line
+        "SCL": i2c.SCL,  # Pin 6: Serial Clock Line
     },
 )
 
 # I2C pull-up resistors
 if add_i2c_pullups:
-    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD)
-    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD)
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VDD)
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VDD)
 
 # Power supply decoupling
 if add_decoupling_caps:
     # Main VDD decoupling
-    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = VSS)
-    Capacitor(name = "C_VDD2", value = "1uF", package = "0603", P1 = VDD, P2 = VSS)
+    Capacitor(name="C_VDD1", value="100nF", package="0402", P1=VDD, P2=VSS)
+    Capacitor(name="C_VDD2", value="1uF", package="0603", P1=VDD, P2=VSS)
 
 # Contrast voltage circuit based on datasheet diagrams
 if add_contrast_circuit:
     if power_mode == PowerMode("SingleSupply"):
         # Single supply mode with internal voltage generator (G=1)
         # VLCD = V0 - 0.8*VDD when G bit is set to 1
-        
+
         # Charge pump capacitor from VLCD to VDD (not VSS!)
-        Capacitor(name = "C_PUMP", value = "100nF", package = "0402", P1 = _VLCD, P2 = VDD)
-        
+        Capacitor(name="C_PUMP", value="100nF", package="0402", P1=_VLCD, P2=VDD)
+
         # Contrast adjustment potentiometer between V0 and VLCD
         Component(
-            name = "RV_CONTRAST",
-            symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "R_Potentiometer"),
-            footprint = File("@kicad-footprints/Potentiometer_THT.pretty/Potentiometer_Bourns_3299W_Vertical.kicad_mod"),
-            pins = {
-                "1": VSS,    # One end
+            name="RV_CONTRAST",
+            symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="R_Potentiometer"),
+            footprint=File("@kicad-footprints/Potentiometer_THT.pretty/Potentiometer_Bourns_3299W_Vertical.kicad_mod"),
+            pins={
+                "1": VSS,  # One end
                 "2": _V0,  # Wiper connected to VLCD
-                "3": VDD   # Other end also to VLCD (per datasheet)
+                "3": VDD,  # Other end also to VLCD (per datasheet)
             },
             # pcb:note 100k potentiometer for contrast adjustment
         )
-        
+
         # Stabilizing capacitor on V0 to ground
-        Capacitor(name = "C_V0", value = "100nF", package = "0402", P1 = VDD, P2 = VSS)
-        
+        Capacitor(name="C_V0", value="100nF", package="0402", P1=VDD, P2=VSS)
+
     else:  # DualSupply mode
         # Dual power mode with external voltage divider (G=0)
-        # V0 connects to VDD, VLCD connects to potentiometer wiper        
+        # V0 connects to VDD, VLCD connects to potentiometer wiper
         # Create internal nets for voltage divider
         _V0_TOP = Net("V0_TOP")
         V_NEG = Net("V_NEG")
 
         # Negative voltage supply for contrast (typically -1V to -5V per datasheet)
         # V_NEG = io("V_NEG", Power)
-        
+
         # Voltage divider with potentiometer for contrast adjustment
         # Per datasheet: 10k from VDD/V0, potentiometer in middle, 5k to negative
-        Resistor(name = "R_V0_TOP", value = "10kohms", package = "0402", P1 = VDD, P2 = _V0_TOP)
-        
+        Resistor(name="R_V0_TOP", value="10kohms", package="0402", P1=VDD, P2=_V0_TOP)
+
         # Contrast adjustment potentiometer
         Component(
-            name = "RV_CONTRAST",
-            symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "R_Potentiometer"),
-            footprint = File("@kicad-footprints/Potentiometer_THT.pretty/Potentiometer_Bourns_3299W_Vertical.kicad_mod"),
-            pins = {
-                "1": V_NEG,         # Top connection from 10k resistor
-                "2": _VLCD,           # Wiper to VLCD (NOT V0)
-                "3": _V0_TOP          # Bottom connection to 5k resistor
+            name="RV_CONTRAST",
+            symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="R_Potentiometer"),
+            footprint=File("@kicad-footprints/Potentiometer_THT.pretty/Potentiometer_Bourns_3299W_Vertical.kicad_mod"),
+            pins={
+                "1": V_NEG,  # Top connection from 10k resistor
+                "2": _VLCD,  # Wiper to VLCD (NOT V0)
+                "3": _V0_TOP,  # Bottom connection to 5k resistor
             },
             # pcb:note 5k potentiometer per datasheet
         )
-                
-        
-        
+
+
 else:
     # Contrast circuit is mandatory - provide minimal connections
     # V0 and VLCD must not float
@@ -146,12 +145,12 @@ else:
 
 # Test points
 if add_test_points:
-    TestPoint(name = "TP_VDD", variant = "Pad_D1.0mm", P1 = VDD)
-    TestPoint(name = "TP_VSS", variant = "Pad_D1.0mm", P1 = VSS)
-    TestPoint(name = "TP_SCL", variant = "Pad_D1.0mm", P1 = i2c.SCL)
-    TestPoint(name = "TP_SDA", variant = "Pad_D1.0mm", P1 = i2c.SDA)
-    TestPoint(name = "TP_VLCD", variant = "Pad_D1.0mm", P1 = _VLCD)
-    TestPoint(name = "TP_V0", variant = "Pad_D1.0mm", P1 = _V0)
+    TestPoint(name="TP_VDD", variant="Pad_D1.0mm", P1=VDD)
+    TestPoint(name="TP_VSS", variant="Pad_D1.0mm", P1=VSS)
+    TestPoint(name="TP_SCL", variant="Pad_D1.0mm", P1=i2c.SCL)
+    TestPoint(name="TP_SDA", variant="Pad_D1.0mm", P1=i2c.SDA)
+    TestPoint(name="TP_VLCD", variant="Pad_D1.0mm", P1=_VLCD)
+    TestPoint(name="TP_V0", variant="Pad_D1.0mm", P1=_V0)
 
 # pcb:sch C_V0.C x=537.4800 y=1027.7000 rot=0
 # pcb:sch C_VDD1.C x=-122.9200 y=1002.3000 rot=0
@@ -173,4 +172,3 @@ if add_test_points:
 # pcb:sch TP_VLCD.TP x=131.0800 y=1215.6600 rot=180
 # pcb:sch TP_V0.TP x=575.5800 y=936.2600 rot=0
 # pcb:sch V_NEG.1 x=408.0000 y=1270.0000 rot=180
-

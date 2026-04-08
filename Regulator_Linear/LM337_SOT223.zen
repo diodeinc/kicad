@@ -1,10 +1,10 @@
 """LM337 - Adjustable Negative Linear Voltage Regulator (SOT-223 Package)
 
-The LM337 is an adjustable 3-terminal negative voltage regulator capable of supplying 
-1.5A or more current over an output voltage range of -1.25V to -37V. It requires only 
-two external resistors to set the output voltage and features excellent line and load 
-regulation. The device includes internal current limiting, thermal overload protection 
-and safe operating area protection. The SOT-223 package provides good thermal 
+The LM337 is an adjustable 3-terminal negative voltage regulator capable of supplying
+1.5A or more current over an output voltage range of -1.25V to -37V. It requires only
+two external resistors to set the output voltage and features excellent line and load
+regulation. The device includes internal current limiting, thermal overload protection
+and safe operating area protection. The SOT-223 package provides good thermal
 performance in a surface mount format.
 
 Author: @@anthropic/claude-opus-4
@@ -25,20 +25,20 @@ OutputVoltage = enum("-3.3V", "-5V", "-9V", "-12V", "-15V", "-24V", "Custom")
 ProtectionDiodes = enum("None", "Input", "Output", "Full")
 
 # Configuration
-output_voltage = config("output_voltage", OutputVoltage, default = "-24V")
+output_voltage = config("output_voltage", OutputVoltage, default="-24V")
 if output_voltage == OutputVoltage("Custom"):
-    custom_voltage = config("custom_voltage", float, default = -5.0)
-    custom_r1 = config("custom_r1", str, default = "120ohm", optional = True)
-    custom_r2 = config("custom_r2", str, default = "360ohm", optional = True)
+    custom_voltage = config("custom_voltage", float, default=-5.0)
+    custom_r1 = config("custom_r1", str, default="120ohm", optional=True)
+    custom_r2 = config("custom_r2", str, default="360ohm", optional=True)
 
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-add_bypass_cap = config("add_bypass_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "10uF")
+    bypass_cap_value = config("bypass_cap_value", str, default="10uF")
 
-add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default = "Full")
-add_test_points = config("add_test_points", bool, default = True)
+add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default="Full")
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
 VIN = io("VIN", Power)
@@ -47,15 +47,15 @@ GND = io("GND", Ground)
 
 # Internal nets
 _ADJ = Net("ADJ")
-_VI = VIN.NET
-_VO = VOUT.NET
+_VI = VIN
+_VO = VOUT
 
 # Main component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LM337_SOT223"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
-    pins = {
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="LM337_SOT223"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins={
         "VI": _VI,
         "ADJ": _ADJ,
         "VO": _VO,
@@ -90,53 +90,53 @@ else:  # Custom
 # Voltage setting resistors
 # R1 connects between VOUT and ADJ
 Resistor(
-    name = "R1",
-    value = r1_value,
-    package = "0603",
-    P1 = _VO,
-    P2 = _ADJ,
+    name="R1",
+    value=r1_value,
+    package="0603",
+    P1=_VO,
+    P2=_ADJ,
 )
 
 # R2 connects between ADJ and GND
 Resistor(
-    name = "R2",
-    value = r2_value,
-    package = "0603",
-    P1 = _ADJ,
-    P2 = GND,
+    name="R2",
+    value=r2_value,
+    package="0603",
+    P1=_ADJ,
+    P2=GND,
 )
 
 # Input capacitor (1uF tantalum or 10uF aluminum required if >4" from filter)
 if add_input_cap:
     Capacitor(
-        name = "C_IN",
-        value = "10uF",
-        voltage = "50V",
-        package = "1206",
-        P1 = _VI,
-        P2 = GND,
+        name="C_IN",
+        value="10uF",
+        voltage="50V",
+        package="1206",
+        P1=_VI,
+        P2=GND,
     )
 
 # Output capacitor (1uF tantalum improves transient response)
 if add_output_cap:
     Capacitor(
-        name = "C_OUT",
-        value = "10uF",
-        voltage = "35V",
-        package = "1206",
-        P1 = _VO,
-        P2 = GND,
+        name="C_OUT",
+        value="10uF",
+        voltage="35V",
+        package="1206",
+        P1=_VO,
+        P2=GND,
     )
 
 # ADJ bypass capacitor (improves ripple rejection)
 if add_bypass_cap:
     Capacitor(
-        name = "C_ADJ",
-        value = bypass_cap_value,
-        voltage = "25V",
-        package = "0805",
-        P1 = _ADJ,
-        P2 = GND,
+        name="C_ADJ",
+        value=bypass_cap_value,
+        voltage="25V",
+        package="0805",
+        P1=_ADJ,
+        P2=GND,
     )
 
 # Protection diodes
@@ -144,45 +144,45 @@ if add_protection_diodes != ProtectionDiodes("None"):
     # D1: Protects against input short when output cap > 20uF
     if add_protection_diodes == ProtectionDiodes("Input") or add_protection_diodes == ProtectionDiodes("Full"):
         Diode(
-            name = "D1",
-            variant = "Standard",
-            package = "SMB",
-            v_r = "100V",
-            i_f = "1A",
-            A = _VI,
-            K = _VO,
+            name="D1",
+            variant="Standard",
+            package="SMB",
+            v_r="100V",
+            i_f="1A",
+            A=_VI,
+            K=_VO,
         )
 
     # D2: Protects against output short when ADJ cap > 10uF and |VOUT| > 25V
     if add_protection_diodes == ProtectionDiodes("Output") or add_protection_diodes == ProtectionDiodes("Full"):
         Diode(
-            name = "D2",
-            variant = "Standard",
-            package = "SMB",
-            v_r = "100V",
-            i_f = "1A",
-            A = _VO,
-            K = _ADJ,
+            name="D2",
+            variant="Standard",
+            package="SMB",
+            v_r="100V",
+            i_f="1A",
+            A=_VO,
+            K=_ADJ,
         )
 
 # Test points
 if add_test_points:
     TestPoint(
-        name = "TP_VIN",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _VI,
+        name="TP_VIN",
+        variant="Pad_1.0x1.0mm",
+        P1=_VI,
     )
 
     TestPoint(
-        name = "TP_VOUT",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _VO,
+        name="TP_VOUT",
+        variant="Pad_1.0x1.0mm",
+        P1=_VO,
     )
 
     TestPoint(
-        name = "TP_ADJ",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _ADJ,
+        name="TP_ADJ",
+        variant="Pad_1.0x1.0mm",
+        P1=_ADJ,
     )
 
 # pcb:sch C_ADJ.C x=105.6800 y=418.1000 rot=180

@@ -1,12 +1,12 @@
 """W25X40CLSN - 4Mbit Serial Flash Memory with 4KB Sectors and Dual I/O SPI
 
-The W25X40CL is a 4M-bit (512K-byte) Serial Flash memory that provides a storage 
-solution for systems with limited space, pins and power. It operates on a single 
-2.3V to 3.6V power supply with current consumption as low as 1mA active and 1μA 
-for power-down. The device supports standard SPI, Dual Output, and Dual I/O SPI 
-interfaces with clock frequencies up to 104MHz, allowing equivalent clock rates 
-of 208MHz when using Fast Read Dual Output instructions. It features uniform 4KB 
-sectors, 32KB and 64KB blocks for flexible erase operations, and includes hardware 
+The W25X40CL is a 4M-bit (512K-byte) Serial Flash memory that provides a storage
+solution for systems with limited space, pins and power. It operates on a single
+2.3V to 3.6V power supply with current consumption as low as 1mA active and 1μA
+for power-down. The device supports standard SPI, Dual Output, and Dual I/O SPI
+interfaces with clock frequencies up to 104MHz, allowing equivalent clock rates
+of 208MHz when using Fast Read Dual Output instructions. It features uniform 4KB
+sectors, 32KB and 64KB blocks for flexible erase operations, and includes hardware
 and software write protection capabilities.
 
 Author: @Anthropic/claude-opus-4-20250514
@@ -24,21 +24,21 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 WriteProtectMode = enum("Software", "Hardware", "None")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_cs_pullup = config("add_cs_pullup", bool, default = True)
-write_protect_mode = config("write_protect_mode", WriteProtectMode, default = "Software")
-enable_hold = config("enable_hold", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_cs_pullup = config("add_cs_pullup", bool, default=True)
+write_protect_mode = config("write_protect_mode", WriteProtectMode, default="Software")
+enable_hold = config("enable_hold", bool, default=True)
 if not enable_hold:
-    reset_pullup = config("reset_pullup", bool, default = True)
+    reset_pullup = config("reset_pullup", bool, default=True)
 
 # External IO
-spi = io("spi", Spi, default = Spi("spi"))
+spi = io("spi", Spi, default=Spi("spi"))
 VCC = io("VCC", Power)
 GND = io("GND", Ground)
 
 # Additional IO based on configuration
 if write_protect_mode == WriteProtectMode("Hardware"):
-    WP_CTRL = io("WP", Net, default = Net("nWP"))
+    WP_CTRL = io("WP", Net, default=Net("nWP"))
     _WP = WP_CTRL
 elif write_protect_mode == WriteProtectMode("None"):
     _WP = VCC
@@ -46,7 +46,7 @@ else:  # Software mode
     _WP = Net("WP")
 
 if enable_hold:
-    HOLD_CTRL = io("HOLD", Net, default = Net("nHOLD"))
+    HOLD_CTRL = io("HOLD", Net, default=Net("nHOLD"))
     _HOLD = HOLD_CTRL
 else:
     _HOLD = Net("HOLD")
@@ -59,10 +59,10 @@ _DO = spi.MISO if spi.MISO else Net("DO/IO_1")
 
 # 4Mbit / 512KiB Serial Flash memory, Standard/Dual I/O SPI, 2.3-3.6V, SOIC-8 (150 mil)
 Component(
-    name = "W25X40CLSN",
-    symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25X40CLSN"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
-    pins = {
+    name="W25X40CLSN",
+    symbol=Symbol(library="@kicad-symbols/Memory_Flash.kicad_sym", name="W25X40CLSN"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
+    pins={
         "~{CS}": _CS,
         "CLK": _CLK,
         "DI/IO_{0}": _DI,
@@ -70,31 +70,31 @@ Component(
         "~{WP}": _WP,
         "~{HOLD}": _HOLD,
         "VCC": VCC,
-        "GND": GND
+        "GND": GND,
     },
 )
 
 # Power Supply Decoupling
 if add_decoupling:
     # Primary decoupling capacitor (ceramic)
-    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
-    
+    Capacitor(name="C_DEC", value="100nF", package="0402", P1=VCC, P2=GND)
+
     # Bulk capacitor for power stability
-    Capacitor(name = "C_BULK", value = "4.7uF", package = "0603", P1 = VCC, P2 = GND)
+    Capacitor(name="C_BULK", value="4.7uF", package="0603", P1=VCC, P2=GND)
 
 # CS Pull-up Resistor
 if add_cs_pullup:
     # CS pull-up to ensure chip is deselected by default
     # Datasheet specifies CS must track VCC at power-up
-    Resistor(name = "R_CS", value = "10kohms", package = "0402", P1 = _CS, P2 = VCC)
+    Resistor(name="R_CS", value="10kohms", package="0402", P1=_CS, P2=VCC)
 
 # WP pull-up for software write protection (when not using hardware WP)
 if write_protect_mode == WriteProtectMode("Software"):
-    Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
+    Resistor(name="R_WP", value="10kohms", package="0402", P1=_WP, P2=VCC)
 
 # HOLD pull-up to prevent unintended hold conditions
 if enable_hold or reset_pullup:
-    Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
+    Resistor(name="R_HOLD", value="10kohms", package="0402", P1=_HOLD, P2=VCC)
 
 # pcb:sch W25X40CLSN x=-1.0000 y=-1.0000 rot=0
 # pcb:sch C_DEC.C x=321.5800 y=62.5000 rot=0

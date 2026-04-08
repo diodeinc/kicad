@@ -1,12 +1,12 @@
 """LSM303C - Ultra-compact high-performance eCompass module: 3D accelerometer and 3D magnetometer
 
-The LSM303C is a system-in-package featuring a 3D digital linear acceleration sensor and a 
-3D digital magnetic sensor. It has linear acceleration full scales of ±2g/±4g/±8g and a 
-magnetic field full scale of ±16 gauss. The LSM303C includes an I²C serial bus interface 
-that supports standard and fast mode (100 kHz and 400 kHz) and an SPI serial standard 
-interface. The system can be configured to generate interrupt signals for free-fall, 
-motion detection and magnetic field detection. The magnetic and accelerometer blocks can 
-be enabled or put into power-down mode separately. The device operates from 1.9V to 3.6V 
+The LSM303C is a system-in-package featuring a 3D digital linear acceleration sensor and a
+3D digital magnetic sensor. It has linear acceleration full scales of ±2g/±4g/±8g and a
+magnetic field full scale of ±16 gauss. The LSM303C includes an I²C serial bus interface
+that supports standard and fast mode (100 kHz and 400 kHz) and an SPI serial standard
+interface. The system can be configured to generate interrupt signals for free-fall,
+motion detection and magnetic field detection. The magnetic and accelerometer blocks can
+be enabled or put into power-down mode separately. The device operates from 1.9V to 3.6V
 supply voltage with separate I/O voltage from 1.71V to Vdd+0.1V.
 
 Author: @anthropic/claude-opus-4
@@ -26,22 +26,22 @@ AccelFullScale = enum("2g", "4g", "8g")
 SpiMode = enum("4Wire", "3Wire")
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
-accel_full_scale = config("accel_full_scale", AccelFullScale, default = "2g")
-add_decoupling = config("add_decoupling", bool, default = True)
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default = True)
+interface_mode = config("interface_mode", InterfaceMode, default="I2C")
+accel_full_scale = config("accel_full_scale", AccelFullScale, default="2g")
+add_decoupling = config("add_decoupling", bool, default=True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default=True)
 
 if interface_mode == InterfaceMode("I2C"):
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
 else:  # SPI mode
-    spi_mode = config("spi_mode", SpiMode, default = "4Wire")
+    spi_mode = config("spi_mode", SpiMode, default="4Wire")
 
 # Interrupt configuration
-enable_int_xl = config("enable_int_xl", bool, default = True)
-enable_int_mag = config("enable_int_mag", bool, default = True)
-enable_drdy_mag = config("enable_drdy_mag", bool, default = True)
+enable_int_xl = config("enable_int_xl", bool, default=True)
+enable_int_mag = config("enable_int_mag", bool, default=True)
+enable_drdy_mag = config("enable_drdy_mag", bool, default=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -96,10 +96,10 @@ _C1 = Net("C1")
 
 # Main component
 Component(
-    name = "LSM303C",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "LSM303C"),
-    footprint = File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="LSM303C",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Motion.kicad_sym", name="LSM303C"),
+    footprint=File("@kicad-footprints/Package_LGA.pretty/LGA-12_2x2mm_P0.5mm.kicad_mod"),
+    pins={
         "SCL/SPC": _SCL_SPC,
         "SDA/SDI/SDO": _SDA_SDI_SDO,
         "CS_XL": _CS_XL,
@@ -115,24 +115,24 @@ Component(
 )
 
 # C1 capacitor (required for internal regulator - per datasheet pin description)
-Capacitor(name = "C1", value = "100nF", package = "0402", P1 = _C1, P2 = GND)
+Capacitor(name="C1", value="100nF", package="0402", P1=_C1, P2=GND)
 
 # Power supply decoupling (as shown in Figure 8 - LSM303C electrical connections)
 if add_decoupling:
     # Decoupling capacitor near pin 9 (Vdd)
-    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
     if seperate_vdd_vddio:
-        Capacitor(name = "C_VDD_IO", value = "100nF", package = "0402", P1 = VDD_IO, P2 = GND)
+        Capacitor(name="C_VDD_IO", value="100nF", package="0402", P1=VDD_IO, P2=GND)
 
-# Bulk capacitors (as shown in Figure 8 - LSM303C electrical connections)  
+# Bulk capacitors (as shown in Figure 8 - LSM303C electrical connections)
 if add_bulk_caps:
     # Bulk capacitor (aluminum electrolytic as mentioned in application hints)
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
 
 # I2C pull-up resistors
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
-    Resistor(name = "R_SCL_PU", value = i2c_pullup_value, package = "0402", P1 = _SCL_SPC, P2 = VDD_IO)
-    Resistor(name = "R_SDA_PU", value = i2c_pullup_value, package = "0402", P1 = _SDA_SDI_SDO, P2 = VDD_IO)
+    Resistor(name="R_SCL_PU", value=i2c_pullup_value, package="0402", P1=_SCL_SPC, P2=VDD_IO)
+    Resistor(name="R_SDA_PU", value=i2c_pullup_value, package="0402", P1=_SDA_SDI_SDO, P2=VDD_IO)
 
 # pcb:sch C1.C x=613.6800 y=456.2000 rot=0
 # pcb:sch C_BULK.C x=-161.0200 y=354.6000 rot=0

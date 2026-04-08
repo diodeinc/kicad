@@ -1,17 +1,18 @@
 """LTC1502-3.3 - Single Cell to 3.3V Regulated Charge Pump DC/DC Converter
 
-The LTC1502-3.3 is a quadrupler charge pump DC/DC converter that produces a 
-regulated 3.3V output from a single alkaline cell input (0.9V to 1.8V). It 
-requires only five small external capacitors - no inductors are required. 
-Low supply current (40μA typical, 5μA in shutdown) and minimal external 
-components make the LTC1502-3.3 ideal for space and power conscious single-cell 
-applications. The device features a shutdown mode, short-circuit protection, 
+The LTC1502-3.3 is a quadrupler charge pump DC/DC converter that produces a
+regulated 3.3V output from a single alkaline cell input (0.9V to 1.8V). It
+requires only five small external capacitors - no inductors are required.
+Low supply current (40μA typical, 5μA in shutdown) and minimal external
+components make the LTC1502-3.3 ideal for space and power conscious single-cell
+applications. The device features a shutdown mode, short-circuit protection,
 and overtemperature protection. The total PCB area can be less than 0.125 in².
 
 Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1502f.pdf
 """
+
 load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
@@ -24,21 +25,21 @@ CapacitorValue = enum("1uF", "2.2uF", "4.7uF", "10uF", "22uF")
 ShutdownControl = enum("None", "External", "Mosfet")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-shutdown_control = config("shutdown_control", ShutdownControl, default = "Mosfet")
-flying_cap_value = config("flying_cap_value", CapacitorValue, default = "1uF")
-output_cap_value = config("output_cap_value", CapacitorValue, default = "10uF")
-add_output_filter = config("add_output_filter", bool, default = False)
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+shutdown_control = config("shutdown_control", ShutdownControl, default="Mosfet")
+flying_cap_value = config("flying_cap_value", CapacitorValue, default="1uF")
+output_cap_value = config("output_cap_value", CapacitorValue, default="10uF")
+add_output_filter = config("add_output_filter", bool, default=False)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN"))
-VOUT = io("VOUT", Net, default = Net("VOUT"))
+VIN = io("VIN", Net, default=Net("VIN"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
 GND = io("GND", Ground)
 if shutdown_control == ShutdownControl("External"):
-    SHDN = io("SHDN", Net, default = Net("SHDN"))
+    SHDN = io("SHDN", Net, default=Net("SHDN"))
 elif shutdown_control == ShutdownControl("Mosfet"):
-    SHDN_CTRL = io("SHDN_CTRL", Net, default = Net("SHDN_CTRL"))
+    SHDN_CTRL = io("SHDN_CTRL", Net, default=Net("SHDN_CTRL"))
 
 # Internal nets
 _C1_PLUS = Net("C1+")
@@ -50,10 +51,10 @@ _VOUT_FILT = Net("VOUT_FILTERED") if add_output_filter else VOUT
 
 # Single Alkaline / NiCd Cell to 3.3V Regulated Charge Pump DC/DC Converter, 0.9..1.8V input, 10mA output, SOIC-8
 Component(
-    name = "LTC1502",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_SwitchedCapacitor.kicad_sym", name = "LTC1502xS8-3.3"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
-    pins = {
+    name="LTC1502",
+    symbol=Symbol(library="@kicad-symbols/Regulator_SwitchedCapacitor.kicad_sym", name="LTC1502xS8-3.3"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
+    pins={
         "V_{IN}": VIN,
         "C1^{+}": _C1_PLUS,
         "C1^{-}/~{SHDN}": _C1_MINUS_SHDN,
@@ -61,26 +62,26 @@ Component(
         "V_{OUT}": _VOUT_FILT,
         "C3^{+}": _C3_PLUS,
         "C3^{-}": _C3_MINUS,
-        "C2": _C2
+        "C2": _C2,
     },
 )
 
 # Input Capacitor - Datasheet recommends ≥10μF low ESR
 if add_input_cap:
-    Capacitor(name = "C_IN", value = "10uF", package = "0805", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN", value="10uF", package="0805", P1=VIN, P2=GND)
 
 # Output Capacitor - Datasheet recommends ≥10μF low ESR
 if add_output_cap:
-    Capacitor(name = "C_OUT", value = output_cap_value.value, package = "0805", P1 = _VOUT_FILT, P2 = GND)
+    Capacitor(name="C_OUT", value=output_cap_value.value, package="0805", P1=_VOUT_FILT, P2=GND)
 
 # Flying Capacitor C1 - Charge pump 1
-Capacitor(name = "C1", value = flying_cap_value.value, package = "0603", P1 = _C1_PLUS, P2 = _C1_MINUS_SHDN)
+Capacitor(name="C1", value=flying_cap_value.value, package="0603", P1=_C1_PLUS, P2=_C1_MINUS_SHDN)
 
 # Flying Capacitor C3 - Charge pump 2
-Capacitor(name = "C3", value = flying_cap_value.value, package = "0603", P1 = _C3_PLUS, P2 = _C3_MINUS)
+Capacitor(name="C3", value=flying_cap_value.value, package="0603", P1=_C3_PLUS, P2=_C3_MINUS)
 
 # Intermediate Capacitor C2 - Between charge pumps
-Capacitor(name = "C2_CAP", value = "10uF", package = "0805", P1 = _C2, P2 = GND)
+Capacitor(name="C2_CAP", value="10uF", package="0805", P1=_C2, P2=GND)
 
 
 # Shutdown Control
@@ -90,33 +91,33 @@ Capacitor(name = "C2_CAP", value = "10uF", package = "0805", P1 = _C2, P2 = GND)
 if shutdown_control == ShutdownControl("External"):
     # Direct connection for external shutdown control
     # External circuit must provide proper pull-down (<0.2V) and Hi-Z states
-   _C1_MINUS_SHDN = SHDN
+    _C1_MINUS_SHDN = SHDN
 
 elif shutdown_control == ShutdownControl("Mosfet"):
     # N-channel MOSFET shutdown control with 100Ω series resistor
     # MCU drives gate to pull SHDN pin low when MOSFET is on
-    
+
     # N-channel MOSFET for shutdown control
     _MOSFET_DRAIN = Net("MOSFET_DRAIN")
 
     Mosfet(
-        name = "Q_SHDN",
-        channel = "N",
-        package = "SOT-23-3",
-        G = SHDN_CTRL,
-        D = _MOSFET_DRAIN,
-        S = GND,
+        name="Q_SHDN",
+        channel="N",
+        package="SOT-23-3",
+        G=SHDN_CTRL,
+        D=_MOSFET_DRAIN,
+        S=GND,
     )
-    
+
     # 100Ω resistor between MOSFET drain and SHDN pin
-    Resistor(name = "R_SHDN_MOSFET", value = "100ohms", package = "0402", P1 = _C1_MINUS_SHDN, P2 = _MOSFET_DRAIN)
-    
+    Resistor(name="R_SHDN_MOSFET", value="100ohms", package="0402", P1=_C1_MINUS_SHDN, P2=_MOSFET_DRAIN)
+
 
 # Output Filter (optional) - For reducing high frequency ripple
 if add_output_filter:
     # RC filter as shown in Figure 2 of datasheet
-    Resistor(name = "R_FILT", value = "10ohms", package = "0402", P1 = _VOUT_FILT, P2 = VOUT)
-    Capacitor(name = "C_FILT", value = "1uF", package = "0603", P1 = VOUT, P2 = GND)
+    Resistor(name="R_FILT", value="10ohms", package="0402", P1=_VOUT_FILT, P2=VOUT)
+    Capacitor(name="C_FILT", value="1uF", package="0603", P1=VOUT, P2=GND)
 
 
 # pcb:sch LTC1502 x=253.0000 y=380.0000 rot=0

@@ -1,9 +1,9 @@
 """TP4057 - 500mA Linear Li-Ion Battery Charger
 
-The TP4057 is a complete constant-current/constant-voltage linear charger for single cell 
-lithium-ion batteries. Its TSOT-23-6 package and low external component count make it 
-ideally suited for portable applications. The device features programmable charge current 
-up to 500mA, automatic charge termination, automatic recharge, reverse battery protection, 
+The TP4057 is a complete constant-current/constant-voltage linear charger for single cell
+lithium-ion batteries. Its TSOT-23-6 package and low external component count make it
+ideally suited for portable applications. The device features programmable charge current
+up to 500mA, automatic charge termination, automatic recharge, reverse battery protection,
 and two status indicator outputs. No external sense resistor or blocking diode is required.
 
 Key features:
@@ -21,6 +21,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://datasheet.lcsc.com/lcsc/2304140030_TOPPOWER-Nanjing-Extension-Microelectronics-TP4057-42-SNT_C2832435.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # No longer using Power interface
@@ -37,25 +38,25 @@ StatusIndication = enum("None", "LEDs", "Logic")
 InputProtection = enum("None", "Basic", "Enhanced")
 
 # Configuration
-charge_current = config("charge_current", ChargeCurrent, default = "400mA")
-    
-status_indication = config("status_indication", StatusIndication, default = "LEDs")
+charge_current = config("charge_current", ChargeCurrent, default="400mA")
+
+status_indication = config("status_indication", StatusIndication, default="LEDs")
 if status_indication == StatusIndication("LEDs"):
-    chrg_led_resistor = config("chrg_led_resistor", str, default = "1.5kohms")
-    stdby_led_resistor = config("stdby_led_resistor", str, default = "1.2kohms")
-    chrg_led_color = config("chrg_led_color", str, default = "red")
-    stdby_led_color = config("stdby_led_color", str, default = "green")
+    chrg_led_resistor = config("chrg_led_resistor", str, default="1.5kohms")
+    stdby_led_resistor = config("stdby_led_resistor", str, default="1.2kohms")
+    chrg_led_color = config("chrg_led_color", str, default="red")
+    stdby_led_color = config("stdby_led_color", str, default="green")
 
-input_protection = config("input_protection", InputProtection, default = "Enhanced")
-add_input_series_resistor = config("add_input_series_resistor", bool, default = True)
+input_protection = config("input_protection", InputProtection, default="Enhanced")
+add_input_series_resistor = config("add_input_series_resistor", bool, default=True)
 if add_input_series_resistor:
-    input_series_resistance = config("input_series_resistance", str, default = "0.3ohms")
+    input_series_resistance = config("input_series_resistance", str, default="0.3ohms")
 
-add_output_capacitor = config("add_output_capacitor", bool, default = True)
+add_output_capacitor = config("add_output_capacitor", bool, default=True)
 if add_output_capacitor:
-    output_capacitor_value = config("output_capacitor_value", str, default = "10uF")
+    output_capacitor_value = config("output_capacitor_value", str, default="10uF")
 
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
 VIN = io("VIN", Power)
@@ -80,35 +81,15 @@ _BAT = Net("BAT")
 # Input protection and filtering
 if input_protection != InputProtection("None"):
     # Input capacitor for ripple filtering
-    Capacitor(
-        name = "C_IN",
-        value = "10uF",
-        voltage = "16V",
-        package = "0805",
-        P1 = VIN,
-        P2 = GND
-    )
-    
+    Capacitor(name="C_IN", value="10uF", voltage="16V", package="0805", P1=VIN, P2=GND)
+
     # Additional ceramic capacitor for high frequency filtering
     if input_protection == InputProtection("Enhanced"):
-        Capacitor(
-            name = "C_IN_HF",
-            value = "100nF",
-            voltage = "16V", 
-            package = "0402",
-            P1 = VIN,
-            P2 = GND
-        )
+        Capacitor(name="C_IN_HF", value="100nF", voltage="16V", package="0402", P1=VIN, P2=GND)
 
 # Series input resistor for current limiting and thermal management
 if add_input_series_resistor:
-    Resistor(
-        name = "R_IN",
-        value = input_series_resistance,
-        package = "0805",
-        P1 = VIN,
-        P2 = _VCC
-    )
+    Resistor(name="R_IN", value=input_series_resistance, package="0805", P1=VIN, P2=_VCC)
 else:
     # Direct connection
     _VCC = VIN
@@ -119,30 +100,16 @@ _BAT = VBAT
 
 # Main TP4057 Component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Battery_Management.kicad_sym", name = "TP4057"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-6.kicad_mod"),
-    pins = {
-        "~{CHRG}": _CHRG,
-        "GND": GND,
-        "BAT": _BAT,
-        "V_{CC}": _VCC,
-        "STDBY": _STDBY,
-        "PROG": _PROG
-    },
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Battery_Management.kicad_sym", name="TP4057"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TSOT-23-6.kicad_mod"),
+    pins={"~{CHRG}": _CHRG, "GND": GND, "BAT": _BAT, "V_{CC}": _VCC, "STDBY": _STDBY, "PROG": _PROG},
 )
 
 
 # Output capacitor
 if add_output_capacitor:
-    Capacitor(
-        name = "C_OUT",
-        value = output_capacitor_value,
-        voltage = "6.3V",
-        package = "0805",
-        P1 = _BAT,
-        P2 = GND
-    )
+    Capacitor(name="C_OUT", value=output_capacitor_value, voltage="6.3V", package="0805", P1=_BAT, P2=GND)
 
 # Programming resistor for charge current setting
 # Based on datasheet table: RPROG (kΩ) vs IBAT (mA)
@@ -161,98 +128,36 @@ elif charge_current == ChargeCurrent("400mA"):
 else:  # 500mA
     rprog_value = "1.6kohms"
 
-Resistor(
-    name = "R_PROG",
-    value = rprog_value,
-    package = "0402",
-    P1 = _PROG,
-    P2 = GND
-)
+Resistor(name="R_PROG", value=rprog_value, package="0402", P1=_PROG, P2=GND)
 
 # Status indication
 if status_indication == StatusIndication("LEDs"):
     # Status indicator LEDs with current limiting resistors
     # CHRG/STDBY outputs are open-drain, pulling to ~0.3V when active
     # Choose resistor values based on your VCC voltage and desired LED current
-    
+
     # Charging indicator LED (active when charging)
     _CHRG_LED_A = Net("CHRG_LED_A")
-    Led(
-        name = "LED_CHRG",
-        color = chrg_led_color,
-        package = "0603",
-        A = _VCC,
-        K = _CHRG_LED_A
-    )
-    Resistor(
-        name = "R_CHRG",
-        value = chrg_led_resistor,
-        package = "0402",
-        P1 = _CHRG_LED_A,
-        P2 = _CHRG
-    )
-    
+    Led(name="LED_CHRG", color=chrg_led_color, package="0603", A=_VCC, K=_CHRG_LED_A)
+    Resistor(name="R_CHRG", value=chrg_led_resistor, package="0402", P1=_CHRG_LED_A, P2=_CHRG)
+
     # Standby/Complete indicator LED (active when charge complete)
     _STDBY_LED_A = Net("STDBY_LED_A")
-    Led(
-        name = "LED_STDBY",
-        color = stdby_led_color,
-        package = "0603",
-        A = _VCC,
-        K = _STDBY_LED_A
-    )
-    Resistor(
-        name = "R_STDBY",
-        value = stdby_led_resistor,
-        package = "0402",
-        P1 = _STDBY_LED_A,
-        P2 = _STDBY
-    )
+    Led(name="LED_STDBY", color=stdby_led_color, package="0603", A=_VCC, K=_STDBY_LED_A)
+    Resistor(name="R_STDBY", value=stdby_led_resistor, package="0402", P1=_STDBY_LED_A, P2=_STDBY)
 
 else:  # Logic or None
     # Pull-up resistors for logic-level outputs or unused pins
-    Resistor(
-        name = "R_CHRG_PU",
-        value = "100kohms",
-        package = "0402",
-        P1 = _CHRG,
-        P2 = _VCC
-    )
-    Resistor(
-        name = "R_STDBY_PU", 
-        value = "100kohms",
-        package = "0402",
-        P1 = _STDBY,
-        P2 = _VCC
-    )
+    Resistor(name="R_CHRG_PU", value="100kohms", package="0402", P1=_CHRG, P2=_VCC)
+    Resistor(name="R_STDBY_PU", value="100kohms", package="0402", P1=_STDBY, P2=_VCC)
 
 # Test points
 if add_test_points:
-    TestPoint(
-        name = "TP_VCC",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = _VCC
-    )
-    TestPoint(
-        name = "TP_BAT",
-        variant = "THTPad_D1.0mm_Drill0.5mm", 
-        P1 = _BAT
-    )
-    TestPoint(
-        name = "TP_PROG",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = _PROG
-    )
-    TestPoint(
-        name = "TP_CHRG",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = _CHRG
-    )
-    TestPoint(
-        name = "TP_STDBY",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = _STDBY
-    )
+    TestPoint(name="TP_VCC", variant="THTPad_D1.0mm_Drill0.5mm", P1=_VCC)
+    TestPoint(name="TP_BAT", variant="THTPad_D1.0mm_Drill0.5mm", P1=_BAT)
+    TestPoint(name="TP_PROG", variant="THTPad_D1.0mm_Drill0.5mm", P1=_PROG)
+    TestPoint(name="TP_CHRG", variant="THTPad_D1.0mm_Drill0.5mm", P1=_CHRG)
+    TestPoint(name="TP_STDBY", variant="THTPad_D1.0mm_Drill0.5mm", P1=_STDBY)
 
 # Ground connections are implicit through the GND net
 

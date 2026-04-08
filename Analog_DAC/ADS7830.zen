@@ -1,16 +1,16 @@
 """ADS7830 - 8-Bit, 8-Channel Sampling ADC with I2C Interface
 
-The ADS7830 is a single-supply, low-power, 8-bit data acquisition device that features a serial I2C 
-interface and an 8-channel multiplexer. The Analog-to-Digital (A/D) converter features a sample-and-hold 
-amplifier and internal, asynchronous clock. The combination of an I2C serial, 2-wire interface and 
-micropower consumption makes the ADS7830 ideal for applications requiring the A/D converter to be close 
-to the input source in remote locations and for applications requiring isolation. Features include 
-70kHz sampling rate, ±0.5 LSB INL/DNL, 8 bits no missing codes, 4 differential/8 single-ended inputs, 
+The ADS7830 is a single-supply, low-power, 8-bit data acquisition device that features a serial I2C
+interface and an 8-channel multiplexer. The Analog-to-Digital (A/D) converter features a sample-and-hold
+amplifier and internal, asynchronous clock. The combination of an I2C serial, 2-wire interface and
+micropower consumption makes the ADS7830 ideal for applications requiring the A/D converter to be close
+to the input source in remote locations and for applications requiring isolation. Features include
+70kHz sampling rate, ±0.5 LSB INL/DNL, 8 bits no missing codes, 4 differential/8 single-ended inputs,
 2.7V to 5V operation, built-in 2.5V reference/buffer, and support for all three I2C modes.
 
 The I2C address is pin-selectable with 4 options:
 - 0x48 (A1=0, A0=0)
-- 0x49 (A1=0, A0=1) 
+- 0x49 (A1=0, A0=1)
 - 0x4A (A1=1, A0=0)
 - 0x4B (A1=1, A0=1)
 
@@ -33,34 +33,34 @@ ReferenceMode = enum("Internal", "External")
 # I2C address mapping
 address_map = {
     I2cAddress("0x48"): (False, False),  # A1=0, A0=0
-    I2cAddress("0x49"): (False, True),   # A1=0, A0=1
-    I2cAddress("0x4A"): (True, False),   # A1=1, A0=0
-    I2cAddress("0x4B"): (True, True),    # A1=1, A0=1
+    I2cAddress("0x49"): (False, True),  # A1=0, A0=1
+    I2cAddress("0x4A"): (True, False),  # A1=1, A0=0
+    I2cAddress("0x4B"): (True, True),  # A1=1, A0=1
 }
 
 # Configuration
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
-add_analog_filtering = config("add_analog_filtering", bool, default = True)
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
+add_analog_filtering = config("add_analog_filtering", bool, default=True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # I2C address configuration
-i2c_address = config("i2c_address", I2cAddress, default = I2cAddress("0x48"))
+i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x48"))
 
 # Reference configuration
-reference_mode = config("reference_mode", ReferenceMode, default = "Internal")
+reference_mode = config("reference_mode", ReferenceMode, default="Internal")
 if reference_mode == ReferenceMode("External"):
-    external_ref_voltage = config("external_ref_voltage", str, default = "2.5V")
+    external_ref_voltage = config("external_ref_voltage", str, default="2.5V")
 
 # I2C interface configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "2kohms")
+    i2c_pullup_value = config("i2c_pullup_value", str, default="2kohms")
 
 # Filter configuration for analog inputs
 if add_analog_filtering:
-    filter_r_value = config("filter_r_value", str, default = "50ohms")
-    filter_c_value = config("filter_c_value", str, default = "10pF")
+    filter_r_value = config("filter_r_value", str, default="50ohms")
+    filter_c_value = config("filter_c_value", str, default="10pF")
 
 # External power supply
 VDD = io("VDD", Power)
@@ -70,17 +70,17 @@ GND = io("GND", Ground)
 i2c = io("I2C", I2c)
 
 # Analog inputs
-CH0 = io("CH0", Net, default = Net("CH0"))
-CH1 = io("CH1", Net, default = Net("CH1"))
-CH2 = io("CH2", Net, default = Net("CH2"))
-CH3 = io("CH3", Net, default = Net("CH3"))
-CH4 = io("CH4", Net, default = Net("CH4"))
-CH5 = io("CH5", Net, default = Net("CH5"))
-CH6 = io("CH6", Net, default = Net("CH6"))
-CH7 = io("CH7", Net, default = Net("CH7"))
+CH0 = io("CH0", Net, default=Net("CH0"))
+CH1 = io("CH1", Net, default=Net("CH1"))
+CH2 = io("CH2", Net, default=Net("CH2"))
+CH3 = io("CH3", Net, default=Net("CH3"))
+CH4 = io("CH4", Net, default=Net("CH4"))
+CH5 = io("CH5", Net, default=Net("CH5"))
+CH6 = io("CH6", Net, default=Net("CH6"))
+CH7 = io("CH7", Net, default=Net("CH7"))
 
 # Common input for single-ended mode
-COM = io("COM", Net, default = Net("COM"))
+COM = io("COM", Net, default=Net("COM"))
 
 # External reference input (if used)
 if reference_mode == ReferenceMode("External"):
@@ -108,8 +108,8 @@ else:
 
 # Address pin connections based on selected I2C address
 (a1_state, a0_state) = address_map[i2c_address]
-_A1_NET = VDD.NET if a1_state else GND
-_A0_NET = VDD.NET if a0_state else GND
+_A1_NET = VDD if a1_state else GND
+_A0_NET = VDD if a0_state else GND
 
 # Reference pin connection
 _REF_NET = Net("REF")
@@ -121,10 +121,10 @@ else:
 
 # Main component
 Component(
-    name = "ADS7830",
-    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS7828"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-16_4.4x5mm_P0.65mm.kicad_mod"),
-    pins = {
+    name="ADS7830",
+    symbol=Symbol(library="@kicad-symbols/Analog_ADC.kicad_sym", name="ADS7828"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/TSSOP-16_4.4x5mm_P0.65mm.kicad_mod"),
+    pins={
         "CH0": _CH0_FILTERED,
         "CH1": _CH1_FILTERED,
         "CH2": _CH2_FILTERED,
@@ -140,244 +140,244 @@ Component(
         "A1": _A1_NET,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
-        "VDD": VDD.NET,
+        "VDD": VDD,
     },
 )
 
 # Power supply decoupling - as per datasheet recommendation
 # 0.1µF ceramic bypass capacitor close to VDD pin
 Capacitor(
-    name = "C_VDD",
-    value = "0.1uF",
-    package = "0402",
-    P1 = VDD.NET,
-    P2 = GND,
+    name="C_VDD",
+    value="0.1uF",
+    package="0402",
+    P1=VDD,
+    P2=GND,
 )
 
 if add_decoupling_caps:
     # Additional high-frequency decoupling
     Capacitor(
-        name = "C_VDD_HF",
-        value = "1nF",
-        package = "0402",
-        P1 = VDD.NET,
-        P2 = GND,
+        name="C_VDD_HF",
+        value="1nF",
+        package="0402",
+        P1=VDD,
+        P2=GND,
     )
 
 # Additional bulk capacitance (1-10µF recommended)
 if add_bulk_caps:
     Capacitor(
-        name = "C_VDD_BULK",
-        value = "10uF",
-        package = "0805",
-        P1 = VDD.NET,
-        P2 = GND,
+        name="C_VDD_BULK",
+        value="10uF",
+        package="0805",
+        P1=VDD,
+        P2=GND,
     )
 
 # I2C pull-up resistors
 if add_i2c_pullups:
     Resistor(
-        name = "R_SCL_PULLUP",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SCL,
-        P2 = VDD.NET,
+        name="R_SCL_PULLUP",
+        value=i2c_pullup_value,
+        package="0402",
+        P1=i2c.SCL,
+        P2=VDD,
     )
-    
+
     Resistor(
-        name = "R_SDA_PULLUP",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SDA,
-        P2 = VDD.NET,
+        name="R_SDA_PULLUP",
+        value=i2c_pullup_value,
+        package="0402",
+        P1=i2c.SDA,
+        P2=VDD,
     )
 
 # Reference capacitor for internal reference stability
 if reference_mode == ReferenceMode("Internal"):
     Capacitor(
-        name = "C_REF",
-        value = "0.1uF",
-        package = "0402",
-        P1 = _REF_NET,
-        P2 = GND,
+        name="C_REF",
+        value="0.1uF",
+        package="0402",
+        P1=_REF_NET,
+        P2=GND,
     )
 
 # Input filtering for all analog inputs
 if add_analog_filtering:
     # CH0 filter
     Resistor(
-        name = "R_FILTER_0",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH0,
-        P2 = _CH0_FILTERED,
+        name="R_FILTER_0",
+        value=filter_r_value,
+        package="0402",
+        P1=CH0,
+        P2=_CH0_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_0",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH0_FILTERED,
-        P2 = GND,
+        name="C_FILTER_0",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH0_FILTERED,
+        P2=GND,
     )
-    
+
     # CH1 filter
     Resistor(
-        name = "R_FILTER_1",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH1,
-        P2 = _CH1_FILTERED,
+        name="R_FILTER_1",
+        value=filter_r_value,
+        package="0402",
+        P1=CH1,
+        P2=_CH1_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_1",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH1_FILTERED,
-        P2 = GND,
+        name="C_FILTER_1",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH1_FILTERED,
+        P2=GND,
     )
-    
+
     # CH2 filter
     Resistor(
-        name = "R_FILTER_2",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH2,
-        P2 = _CH2_FILTERED,
+        name="R_FILTER_2",
+        value=filter_r_value,
+        package="0402",
+        P1=CH2,
+        P2=_CH2_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_2",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH2_FILTERED,
-        P2 = GND,
+        name="C_FILTER_2",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH2_FILTERED,
+        P2=GND,
     )
-    
+
     # CH3 filter
     Resistor(
-        name = "R_FILTER_3",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH3,
-        P2 = _CH3_FILTERED,
+        name="R_FILTER_3",
+        value=filter_r_value,
+        package="0402",
+        P1=CH3,
+        P2=_CH3_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_3",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH3_FILTERED,
-        P2 = GND,
+        name="C_FILTER_3",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH3_FILTERED,
+        P2=GND,
     )
-    
+
     # CH4 filter
     Resistor(
-        name = "R_FILTER_4",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH4,
-        P2 = _CH4_FILTERED,
+        name="R_FILTER_4",
+        value=filter_r_value,
+        package="0402",
+        P1=CH4,
+        P2=_CH4_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_4",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH4_FILTERED,
-        P2 = GND,
+        name="C_FILTER_4",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH4_FILTERED,
+        P2=GND,
     )
-    
+
     # CH5 filter
     Resistor(
-        name = "R_FILTER_5",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH5,
-        P2 = _CH5_FILTERED,
+        name="R_FILTER_5",
+        value=filter_r_value,
+        package="0402",
+        P1=CH5,
+        P2=_CH5_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_5",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH5_FILTERED,
-        P2 = GND,
+        name="C_FILTER_5",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH5_FILTERED,
+        P2=GND,
     )
-    
+
     # CH6 filter
     Resistor(
-        name = "R_FILTER_6",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH6,
-        P2 = _CH6_FILTERED,
+        name="R_FILTER_6",
+        value=filter_r_value,
+        package="0402",
+        P1=CH6,
+        P2=_CH6_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_6",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH6_FILTERED,
-        P2 = GND,
+        name="C_FILTER_6",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH6_FILTERED,
+        P2=GND,
     )
-    
+
     # CH7 filter
     Resistor(
-        name = "R_FILTER_7",
-        value = filter_r_value,
-        package = "0402",
-        P1 = CH7,
-        P2 = _CH7_FILTERED,
+        name="R_FILTER_7",
+        value=filter_r_value,
+        package="0402",
+        P1=CH7,
+        P2=_CH7_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_7",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _CH7_FILTERED,
-        P2 = GND,
+        name="C_FILTER_7",
+        value=filter_c_value,
+        package="0402",
+        P1=_CH7_FILTERED,
+        P2=GND,
     )
 
 # Test points for debugging
 if add_test_points:
     TestPoint(
-        name = "TP_CH0",
-        variant = "Pad_D1.0mm",
-        P1 = _CH0_FILTERED,
+        name="TP_CH0",
+        variant="Pad_D1.0mm",
+        P1=_CH0_FILTERED,
     )
     TestPoint(
-        name = "TP_CH1",
-        variant = "Pad_D1.0mm",
-        P1 = _CH1_FILTERED,
+        name="TP_CH1",
+        variant="Pad_D1.0mm",
+        P1=_CH1_FILTERED,
     )
     TestPoint(
-        name = "TP_CH2",
-        variant = "Pad_D1.0mm",
-        P1 = _CH2_FILTERED,
+        name="TP_CH2",
+        variant="Pad_D1.0mm",
+        P1=_CH2_FILTERED,
     )
     TestPoint(
-        name = "TP_CH3",
-        variant = "Pad_D1.0mm",
-        P1 = _CH3_FILTERED,
+        name="TP_CH3",
+        variant="Pad_D1.0mm",
+        P1=_CH3_FILTERED,
     )
     TestPoint(
-        name = "TP_CH4",
-        variant = "Pad_D1.0mm",
-        P1 = _CH4_FILTERED,
+        name="TP_CH4",
+        variant="Pad_D1.0mm",
+        P1=_CH4_FILTERED,
     )
     TestPoint(
-        name = "TP_CH5",
-        variant = "Pad_D1.0mm",
-        P1 = _CH5_FILTERED,
+        name="TP_CH5",
+        variant="Pad_D1.0mm",
+        P1=_CH5_FILTERED,
     )
     TestPoint(
-        name = "TP_CH6",
-        variant = "Pad_D1.0mm",
-        P1 = _CH6_FILTERED,
+        name="TP_CH6",
+        variant="Pad_D1.0mm",
+        P1=_CH6_FILTERED,
     )
     TestPoint(
-        name = "TP_CH7",
-        variant = "Pad_D1.0mm",
-        P1 = _CH7_FILTERED,
+        name="TP_CH7",
+        variant="Pad_D1.0mm",
+        P1=_CH7_FILTERED,
     )
     TestPoint(
-        name = "TP_REF",
-        variant = "Pad_D1.0mm",
-        P1 = _REF_NET,
+        name="TP_REF",
+        variant="Pad_D1.0mm",
+        P1=_REF_NET,
     )
 
 # pcb:sch ADS7830 x=1192.8000 y=811.8000 rot=0

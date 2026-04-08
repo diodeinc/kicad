@@ -1,10 +1,10 @@
 """LT1129-5.0 - 700mA Micropower Low Dropout Regulator with Shutdown, Fixed Output 5.0V, SOT-223
 
-The LT1129-5.0 is a micropower low dropout regulator designed for battery-powered systems. 
-It provides a fixed 5.0V output with 700mA output current capability and only 400mV dropout 
-voltage at maximum load. Features ultra-low quiescent current (50μA operating, 16μA in 
-shutdown), reverse battery protection, thermal limiting, and stable operation with only 
-3.3μF output capacitor. The device is ideal for battery-powered applications, post-regulators 
+The LT1129-5.0 is a micropower low dropout regulator designed for battery-powered systems.
+It provides a fixed 5.0V output with 700mA output current capability and only 400mV dropout
+voltage at maximum load. Features ultra-low quiescent current (50μA operating, 16μA in
+shutdown), reverse battery protection, thermal limiting, and stable operation with only
+3.3μF output capacitor. The device is ideal for battery-powered applications, post-regulators
 for switching supplies, and low dropout applications.
 
 Note: The SOT-223 package has only 3 pins and does not include the shutdown functionality.
@@ -23,13 +23,13 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration options
-add_input_cap = config("add_input_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default = "1uF", optional = True)
-add_output_cap = config("add_output_cap", bool, default = True)
+    input_cap_value = config("input_cap_value", str, default="1uF", optional=True)
+add_output_cap = config("add_output_cap", bool, default=True)
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default = "3.3uF")
-add_test_points = config("add_test_points", bool, default = False, optional = True)
+    output_cap_value = config("output_cap_value", str, default="3.3uF")
+add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IOs
 VIN = io("VIN", Power)
@@ -37,15 +37,15 @@ VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
 # Internal nets
-_VIN = VIN.NET
-_VOUT = VOUT.NET
+_VIN = VIN
+_VOUT = VOUT
 
 # Main component - 700mA Micropower Low drop-out regulator, Fixed Output 5.0V, SOT-223
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "LT1129-5.0_SOT223"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
-    pins = {
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="LT1129-5.0_SOT223"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins={
         "VI": _VIN,
         "GND": GND,
         "VO": _VOUT,
@@ -56,42 +56,42 @@ Component(
 # Datasheet recommends 1μF to 10μF
 if add_input_cap:
     Capacitor(
-        name = "C_IN",
-        value = input_cap_value,
-        package = "0805",
-        P1 = _VIN,
-        P2 = GND,
+        name="C_IN",
+        value=input_cap_value,
+        package="0805",
+        P1=_VIN,
+        P2=GND,
     )
 
 # Output capacitor (required for stability - minimum 3.3μF with ESR < 2Ω)
 # Datasheet shows 3.3μF tantalum in typical application
 if add_output_cap:
     Capacitor(
-        name = "C_OUT",
-        value = output_cap_value,
-        package = "0805",
-        P1 = _VOUT,
-        P2 = GND,
+        name="C_OUT",
+        value=output_cap_value,
+        package="0805",
+        P1=_VOUT,
+        P2=GND,
     )
 
 # Test points for debugging
 if add_test_points:
     TestPoint(
-        name = "TP_VIN",
-        variant = "Pad_D1.0mm",
-        P1 = _VIN,
+        name="TP_VIN",
+        variant="Pad_D1.0mm",
+        P1=_VIN,
     )
 
     TestPoint(
-        name = "TP_VOUT",
-        variant = "Pad_D1.0mm",
-        P1 = _VOUT,
+        name="TP_VOUT",
+        variant="Pad_D1.0mm",
+        P1=_VOUT,
     )
 
     TestPoint(
-        name = "TP_GND",
-        variant = "Pad_D1.0mm",
-        P1 = GND,
+        name="TP_GND",
+        variant="Pad_D1.0mm",
+        P1=GND,
     )
 
 # PCB placement hints for thermal management

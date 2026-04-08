@@ -34,17 +34,17 @@ GyroFullScale = enum("250dps", "500dps", "1000dps", "2000dps")
 AccelFullScale = enum("2g", "4g", "8g", "16g")
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+interface_mode = config("interface_mode", InterfaceMode, default="I2C")
 if interface_mode == InterfaceMode("I2C"):
-    i2c_address = config("i2c_address", I2cAddress, default = "0x68")
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    i2c_address = config("i2c_address", I2cAddress, default="0x68")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+    i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
 
 # Power configuration
-add_regout_cap = config("add_regout_cap", bool, default = True)
-add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default = True)
+add_regout_cap = config("add_regout_cap", bool, default=True)
+add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default=True)
 
-seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default = True)
+seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -52,7 +52,7 @@ GND = io("GND", Ground)
 
 
 if seperate_vdd_vddio:
-    add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default = True)
+    add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default=True)
     VDDIO = io("VDDIO", Power)
 else:
     add_vddio_bypass_cap = False
@@ -60,16 +60,16 @@ else:
 
 
 # Interrupt configuration
-use_interrupt = config("use_interrupt", bool, default = True)
+use_interrupt = config("use_interrupt", bool, default=True)
 
 # FSYNC configuration
-use_fsync = config("use_fsync", bool, default = False)
+use_fsync = config("use_fsync", bool, default=False)
 
 # Auxiliary I2C configuration
-use_aux_i2c = config("use_aux_i2c", bool, default = True)
+use_aux_i2c = config("use_aux_i2c", bool, default=True)
 if use_aux_i2c:
-    add_aux_i2c_pullups = config("add_aux_i2c_pullups", bool, default = True)
-    aux_i2c_pullup_value = config("aux_i2c_pullup_value", str, default = "4.7kohms")
+    add_aux_i2c_pullups = config("add_aux_i2c_pullups", bool, default=True)
+    aux_i2c_pullup_value = config("aux_i2c_pullup_value", str, default="4.7kohms")
 
 # Interface IO
 if interface_mode == InterfaceMode("I2C"):
@@ -101,17 +101,17 @@ _CS = Net("CS")
 if interface_mode == InterfaceMode("I2C"):
     # I2C mode: CS must be tied to VDDIO
     _CS = VDDIO
-    
+
     # Set I2C address using ADO pin
     if i2c_address == I2cAddress("0x68"):
         _ADO_SDO = GND  # ADO = 0 for address 0x68
     else:  # 0x69
         _ADO_SDO = VDDIO  # ADO = 1 for address 0x69
-    
+
     # Interface pins for I2C mode
     _SDA_SDI = i2c.SDA
     _SCL_SCLK = i2c.SCL
-    
+
 else:  # SPI mode
     # SPI mode: CS is connected to chip select
     _CS = spi.CS
@@ -148,10 +148,10 @@ _RESV_20 = GND
 
 # ICM-20948 Component
 Component(
-    name = "ICM-20948",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Motion.kicad_sym", name = "ICM-20948"),
-    footprint = File("@kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod"),
-    pins = {
+    name="ICM-20948",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Motion.kicad_sym", name="ICM-20948"),
+    footprint=File("@kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod"),
+    pins={
         "NC": _NC,
         "AUX_CL": _AUX_CL,
         "VDDIO": VDDIO,
@@ -166,75 +166,30 @@ Component(
         "~{CS}": _CS,
         "SCL/SCLK": _SCL_SCLK,
         "SDA/SDI": _SDA_SDI,
-    }
+    },
 )
 
 # REGOUT Capacitor - Required for internal LDO
 if add_regout_cap:
-    Capacitor(
-        name = "C_REGOUT",
-        value = "100nF",
-        voltage = "2V",
-        package = "0402",
-        P1 = _REGOUT,
-        P2 = GND
-    )
+    Capacitor(name="C_REGOUT", value="100nF", voltage="2V", package="0402", P1=_REGOUT, P2=GND)
 
 # VDD Bypass Capacitor
 if add_vdd_bypass_cap:
-    Capacitor(
-        name = "C_VDD",
-        value = "100nF",
-        voltage = "4V",
-        package = "0402",
-        P1 = VDD,
-        P2 = GND
-    )
+    Capacitor(name="C_VDD", value="100nF", voltage="4V", package="0402", P1=VDD, P2=GND)
 
 # VDDIO Bypass Capacitor
 if add_vddio_bypass_cap:
-    Capacitor(
-        name = "C_VDDIO",
-        value = "100nF",
-        voltage = "4V",
-        package = "0402",
-        P1 = VDDIO,
-        P2 = GND
-    )
+    Capacitor(name="C_VDDIO", value="100nF", voltage="4V", package="0402", P1=VDDIO, P2=GND)
 
 # I2C Pull-up Resistors
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
-    Resistor(
-        name = "R_SCL_PU",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SCL,
-        P2 = VDDIO
-    )
-    Resistor(
-        name = "R_SDA_PU",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SDA,
-        P2 = VDDIO
-    )
+    Resistor(name="R_SCL_PU", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VDDIO)
+    Resistor(name="R_SDA_PU", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VDDIO)
 
 # Auxiliary I2C Pull-up Resistors
 if use_aux_i2c and add_aux_i2c_pullups:
-    Resistor(
-        name = "R_AUX_CL_PU",
-        value = aux_i2c_pullup_value,
-        package = "0402",
-        P1 = _AUX_CL,
-        P2 = VDDIO
-    )
-    Resistor(
-        name = "R_AUX_DA_PU",
-        value = aux_i2c_pullup_value,
-        package = "0402",
-        P1 = _AUX_DA,
-        P2 = VDDIO
-    )
+    Resistor(name="R_AUX_CL_PU", value=aux_i2c_pullup_value, package="0402", P1=_AUX_CL, P2=VDDIO)
+    Resistor(name="R_AUX_DA_PU", value=aux_i2c_pullup_value, package="0402", P1=_AUX_DA, P2=VDDIO)
 
 # pcb:sch C_REGOUT.C x=499.3800 y=481.6000 rot=0
 # pcb:sch C_VDD.C x=-173.7200 y=354.6000 rot=0

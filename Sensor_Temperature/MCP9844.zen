@@ -1,10 +1,10 @@
 """MCP9844 - ±1°C Accurate, 1.8V Digital Temperature Sensor
 
-The MCP9844 is a high-accuracy digital temperature sensor that converts temperatures 
-between -40°C and +125°C to a digital word with ±0.2°C/±1°C (typical/maximum) 
-accuracy from +75°C to +95°C. It features user-programmable registers for temperature 
-alerts, selectable measurement resolution from 0.5°C to 0.0625°C, and a 1 MHz I²C 
-compatible interface. The device operates from 1.7V to 3.6V and includes programmable 
+The MCP9844 is a high-accuracy digital temperature sensor that converts temperatures
+between -40°C and +125°C to a digital word with ±0.2°C/±1°C (typical/maximum)
+accuracy from +75°C to +95°C. It features user-programmable registers for temperature
+alerts, selectable measurement resolution from 0.5°C to 0.0625°C, and a 1 MHz I²C
+compatible interface. The device operates from 1.7V to 3.6V and includes programmable
 temperature limit registers and an open-drain event output pin.
 
 Author: @Anthropic/claude-4-opus-20250514
@@ -23,29 +23,36 @@ I2cAddress = enum("0x18", "0x19", "0x1A", "0x1B", "0x1C", "0x1D", "0x1E", "0x1F"
 EventPolarity = enum("ActiveLow", "ActiveHigh")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_pullups = config("add_pullups", bool, default = True)
-enable_event = config("enable_event", bool, default = True)
-event_polarity = config("event_polarity", EventPolarity, default = "ActiveLow")
-i2c_address = config("i2c_address", I2cAddress, default = "0x18")
+add_decoupling = config("add_decoupling", bool, default=True)
+add_pullups = config("add_pullups", bool, default=True)
+enable_event = config("enable_event", bool, default=True)
+event_polarity = config("event_polarity", EventPolarity, default="ActiveLow")
+i2c_address = config("i2c_address", I2cAddress, default="0x18")
 
 # External IO
-i2c = io("I2C", I2c, default = I2c("I2C"))
+i2c = io("I2C", I2c, default=I2c("I2C"))
 VDD = io("VDD", Power)
 GND = io("GND", Ground)
-EVENT = io("EVENT", Net, default = Net("EVENT")) if enable_event else None
+EVENT = io("EVENT", Net, default=Net("EVENT")) if enable_event else None
 
 # Address configuration nets
-_A0 = GND if i2c_address.value[3] == "8" or i2c_address.value[3] == "A" or i2c_address.value[3] == "C" or i2c_address.value[3] == "E" else VDD
+_A0 = (
+    GND
+    if i2c_address.value[3] == "8"
+    or i2c_address.value[3] == "A"
+    or i2c_address.value[3] == "C"
+    or i2c_address.value[3] == "E"
+    else VDD
+)
 _A1 = GND if i2c_address.value[3] in ["8", "9", "C", "D"] else VDD
 _A2 = GND if i2c_address.value[2] == "1" else VDD
 
 # ±1°C Accurate, 1.8V Digital Temperature Sensor, I²C, DFN-8
 Component(
-    name = "MCP9844",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Temperature.kicad_sym", name = "MCP9844x-xMN"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-8-1EP_3x2mm_P0.5mm_EP1.36x1.46mm.kicad_mod"),
-    pins = {
+    name="MCP9844",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Temperature.kicad_sym", name="MCP9844x-xMN"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-8-1EP_3x2mm_P0.5mm_EP1.36x1.46mm.kicad_mod"),
+    pins={
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
         "A0": _A0,
@@ -54,29 +61,29 @@ Component(
         "V_{DD}": VDD,
         "GND": GND,
         "EP/GND": GND,
-        "Event": EVENT if enable_event else NotConnected()
+        "Event": EVENT if enable_event else NotConnected(),
     },
 )
 
 # Power Supply Decoupling - Datasheet recommends ceramic capacitor close to VDD pin
 if add_decoupling:
     # Primary decoupling capacitor
-    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    
+    Capacitor(name="C_DEC", value="100nF", package="0402", P1=VDD, P2=GND)
+
     # Additional bulk capacitor for better power supply filtering
-    Capacitor(name = "C_BULK", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND)
 
 # I2C Pull-up Resistors - Required for proper I2C operation
 if add_pullups:
     # SDA pull-up resistor (typical 4.7k for standard/fast mode)
-    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VDD)
-    
+    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=i2c.SDA, P2=VDD)
+
     # SCL pull-up resistor (typical 4.7k for standard/fast mode)
-    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VDD)
+    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=i2c.SCL, P2=VDD)
 
 # Event Output Pull-up Resistor - Required for open-drain output
 if enable_event and event_polarity == EventPolarity("ActiveLow"):
-    Resistor(name = "R_EVENT", value = "10kohms", package = "0402", P1 = EVENT, P2 = VDD)
+    Resistor(name="R_EVENT", value="10kohms", package="0402", P1=EVENT, P2=VDD)
 
 # pcb:sch C_BULK.C x=190.5000 y=241.3000 rot=0
 # pcb:sch C_DEC.C x=254.0000 y=241.3000 rot=0

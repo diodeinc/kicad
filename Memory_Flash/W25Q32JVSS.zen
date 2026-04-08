@@ -1,11 +1,11 @@
 """W25Q32JVSS - 32Mbit / 4MiB Serial Flash Memory with Dual, Quad SPI
 
-The W25Q32JV is a 32M-bit (4M-byte) Serial Flash memory that provides a storage 
-solution for systems with limited space, pins and power. It supports standard 
-SPI, Dual SPI and Quad SPI operation with clock frequencies up to 133MHz. The 
-device features 4KB sectors, 32KB and 64KB blocks for flexible erase options, 
-and operates on a single 2.7V to 3.6V power supply with current consumption as 
-low as 1μA for power-down. The memory array is organized into 16,384 programmable 
+The W25Q32JV is a 32M-bit (4M-byte) Serial Flash memory that provides a storage
+solution for systems with limited space, pins and power. It supports standard
+SPI, Dual SPI and Quad SPI operation with clock frequencies up to 133MHz. The
+device features 4KB sectors, 32KB and 64KB blocks for flexible erase options,
+and operates on a single 2.7V to 3.6V power supply with current consumption as
+low as 1μA for power-down. The memory array is organized into 16,384 programmable
 pages of 256 bytes each.
 
 Author: @Anthropic/claude-opus-4-20250514
@@ -24,39 +24,39 @@ SpiMode = enum("Standard", "Dual", "Quad")
 WriteProtectMode = enum("Software", "Hardware", "None")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_cs_pullup = config("add_cs_pullup", bool, default = True)
-spi_mode = config("spi_mode", SpiMode, default = "Standard")
+add_decoupling = config("add_decoupling", bool, default=True)
+add_cs_pullup = config("add_cs_pullup", bool, default=True)
+spi_mode = config("spi_mode", SpiMode, default="Standard")
 
 if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
-    write_protect_mode = config("write_protect_mode", WriteProtectMode, default = "Software")
-    enable_hold = config("enable_hold", bool, default = True)
+    write_protect_mode = config("write_protect_mode", WriteProtectMode, default="Software")
+    enable_hold = config("enable_hold", bool, default=True)
     if not enable_hold:
-        reset_pullup = config("reset_pullup", bool, default = True)
+        reset_pullup = config("reset_pullup", bool, default=True)
 
 # External IO
-spi = io("spi", Spi, default = Spi("spi"))
+spi = io("spi", Spi, default=Spi("spi"))
 VCC = io("VCC", Power)
 GND = io("GND", Ground)
 
 # Additional IO based on SPI mode and configuration
 if spi_mode == SpiMode("Quad"):
-    IO2 = io("IO2", Net, default = Net("IO2"))
-    IO3 = io("IO3", Net, default = Net("IO3"))
+    IO2 = io("IO2", Net, default=Net("IO2"))
+    IO3 = io("IO3", Net, default=Net("IO3"))
     _WP = IO2
     _HOLD = IO3
 else:
     # In non-Quad modes, WP and HOLD can be control pins
     if write_protect_mode == WriteProtectMode("Hardware"):
-        WP_CTRL = io("WP", Net, default = Net("nWP"))
+        WP_CTRL = io("WP", Net, default=Net("nWP"))
         _WP = WP_CTRL
     elif write_protect_mode == WriteProtectMode("None"):
         _WP = VCC
     else:  # Software mode
         _WP = Net("WP/IO2")
-    
+
     if enable_hold:
-        HOLD_CTRL = io("HOLD", Net, default = Net("nHOLD"))
+        HOLD_CTRL = io("HOLD", Net, default=Net("nHOLD"))
         _HOLD = HOLD_CTRL
     else:
         _HOLD = Net("HOLD")
@@ -69,10 +69,10 @@ _DO_IO1 = spi.MISO
 
 # 32Mbit / 4MiB Serial Flash Memory, Standard/Dual/Quad SPI, 2.7-3.6V, SOIC-8 (208 mil)
 Component(
-    name = "W25Q32JVSS",
-    symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25Q32JVSS"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
-    pins = {
+    name="W25Q32JVSS",
+    symbol=Symbol(library="@kicad-symbols/Memory_Flash.kicad_sym", name="W25Q32JVSS"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+    pins={
         "~{CS}": _CS,
         "CLK": _CLK,
         "DI/IO_{0}": _DI_IO0,
@@ -80,31 +80,31 @@ Component(
         "~{WP}/IO_{2}": _WP,
         "~{HOLD}/~{RESET}/IO_{3}": _HOLD,
         "VCC": VCC,
-        "GND": GND
+        "GND": GND,
     },
 )
 
 # Power Supply Decoupling
 if add_decoupling:
     # Primary decoupling capacitor (ceramic)
-    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
-    
+    Capacitor(name="C_DEC", value="100nF", package="0402", P1=VCC, P2=GND)
+
     # Bulk capacitor for power stability
-    Capacitor(name = "C_BULK", value = "4.7uF", package = "0603", P1 = VCC, P2 = GND)
+    Capacitor(name="C_BULK", value="4.7uF", package="0603", P1=VCC, P2=GND)
 
 # CS Pull-up Resistor
 if add_cs_pullup:
     # CS pull-up to ensure device is deselected by default
-    Resistor(name = "R_CS", value = "10kohms", package = "0402", P1 = _CS, P2 = VCC)
+    Resistor(name="R_CS", value="10kohms", package="0402", P1=_CS, P2=VCC)
 
 # WP pull-up for software write protection (when not using hardware WP)
 # Only add when NOT in Quad mode (where IO2 is a data line)
 if spi_mode != SpiMode("Quad") and write_protect_mode == WriteProtectMode("Software"):
-    Resistor(name = "R_WP", value = "10kohms", package = "0402", P1 = _WP, P2 = VCC)
+    Resistor(name="R_WP", value="10kohms", package="0402", P1=_WP, P2=VCC)
 
 # HOLD pull-up when HOLD function is enabled
 if spi_mode != SpiMode("Quad") and (enable_hold or reset_pullup):
-    Resistor(name = "R_HOLD", value = "10kohms", package = "0402", P1 = _HOLD, P2 = VCC)
+    Resistor(name="R_HOLD", value="10kohms", package="0402", P1=_HOLD, P2=VCC)
 
 # pcb:sch W25Q32JVSS x=253.0000 y=189.5000 rot=0
 # pcb:sch C_DEC.C x=600.9800 y=253.0000 rot=0

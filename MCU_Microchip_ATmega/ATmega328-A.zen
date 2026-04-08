@@ -1,11 +1,11 @@
 """ATmega328-A - 8-bit AVR Microcontroller with 32K Bytes In-System Programmable Flash
 
-The ATmega328-A is a high-performance, low-power 8-bit AVR RISC-based microcontroller 
-that combines 32KB ISP flash memory with read-while-write capabilities, 1KB EEPROM, 
-2KB SRAM, 23 general purpose I/O lines, 32 general purpose working registers, three 
-flexible timer/counters with compare modes, internal and external interrupts, serial 
-programmable USART, a byte-oriented 2-wire serial interface, SPI serial port, 6-channel 
-10-bit A/D converter (8 channels in TQFP and QFN/MLF packages), programmable watchdog 
+The ATmega328-A is a high-performance, low-power 8-bit AVR RISC-based microcontroller
+that combines 32KB ISP flash memory with read-while-write capabilities, 1KB EEPROM,
+2KB SRAM, 23 general purpose I/O lines, 32 general purpose working registers, three
+flexible timer/counters with compare modes, internal and external interrupts, serial
+programmable USART, a byte-oriented 2-wire serial interface, SPI serial port, 6-channel
+10-bit A/D converter (8 channels in TQFP and QFN/MLF packages), programmable watchdog
 timer with internal oscillator, and five software selectable power saving modes.
 
 Author: n/a
@@ -28,64 +28,64 @@ CrystalFreq = enum("8MHz", "16MHz")
 PassivesSize = enum("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
 
 # Configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
-add_reset_circuit = config("add_reset_circuit", bool, default = True)
-add_reset_button = config("add_reset_button", bool, default = True, optional = True)
-add_builtin_led = config("add_builtin_led", bool, default = True, optional = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_power_decoupling = config("add_power_decoupling", bool, default=True)
+add_analog_decoupling = config("add_analog_decoupling", bool, default=True)
+add_reset_circuit = config("add_reset_circuit", bool, default=True)
+add_reset_button = config("add_reset_button", bool, default=True, optional=True)
+add_builtin_led = config("add_builtin_led", bool, default=True, optional=True)
 # Peripheral interface enable flags
-enable_i2c = config("enable_i2c", bool, default = True, optional = True)
-enable_spi = config("enable_spi", bool, default = True, optional = True)
-enable_uart = config("enable_uart", bool, default = True, optional = True)
-enable_ftdi_header = config("enable_ftdi_header", bool, default = True)
-clock_source = config("clock_source", ClockSource, default = "Crystal")
+enable_i2c = config("enable_i2c", bool, default=True, optional=True)
+enable_spi = config("enable_spi", bool, default=True, optional=True)
+enable_uart = config("enable_uart", bool, default=True, optional=True)
+enable_ftdi_header = config("enable_ftdi_header", bool, default=True)
+clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
-    crystal_freq = config("crystal_freq", CrystalFreq, default = "16MHz")
-    crystal_load_cap = config("crystal_load_cap", str, default = "22pF")
-    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = False, optional = True)
+    crystal_freq = config("crystal_freq", CrystalFreq, default="16MHz")
+    crystal_load_cap = config("crystal_load_cap", str, default="22pF")
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=False, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default = "1kohm")
-add_aref_cap = config("add_aref_cap", bool, default = True)
-use_us_symbols = config("use_us_symbols", bool, default = True)
-passives_size = config("passives_size", PassivesSize, default = "0402")
+        crystal_series_resistor = config("crystal_series_resistor", str, default="1kohm")
+add_aref_cap = config("add_aref_cap", bool, default=True)
+use_us_symbols = config("use_us_symbols", bool, default=True)
+passives_size = config("passives_size", PassivesSize, default="0402")
 
 # External IO
 VCC = io("VCC", Power)
 GND = io("GND", Ground)
-RESET = io("RESET", Net, default = Net("RESET"))
+RESET = io("RESET", Net, default=Net("RESET"))
 
 # Port B IO
-PB0 = io("PB0", Net, default = Net("PB0"))
-PB1 = io("PB1", Net, default = Net("PB1"))
-PB2 = io("PB2", Net, default = Net("PB2"))
-PB3 = io("PB3", Net, default = Net("PB3"))
-PB4 = io("PB4", Net, default = Net("PB4"))
-PB5 = io("PB5", Net, default = Net("PB5"))
-PB6 = io("PB6", Net, default = Net("PB6"))
-PB7 = io("PB7", Net, default = Net("PB7"))
+PB0 = io("PB0", Net, default=Net("PB0"))
+PB1 = io("PB1", Net, default=Net("PB1"))
+PB2 = io("PB2", Net, default=Net("PB2"))
+PB3 = io("PB3", Net, default=Net("PB3"))
+PB4 = io("PB4", Net, default=Net("PB4"))
+PB5 = io("PB5", Net, default=Net("PB5"))
+PB6 = io("PB6", Net, default=Net("PB6"))
+PB7 = io("PB7", Net, default=Net("PB7"))
 
 # Port C IO
-PC0 = io("PC0", Net, default = Net("PC0"))
-PC1 = io("PC1", Net, default = Net("PC1"))
-PC2 = io("PC2", Net, default = Net("PC2"))
-PC3 = io("PC3", Net, default = Net("PC3"))
-PC4 = io("PC4", Net, default = Net("PC4"))
-PC5 = io("PC5", Net, default = Net("PC5"))
+PC0 = io("PC0", Net, default=Net("PC0"))
+PC1 = io("PC1", Net, default=Net("PC1"))
+PC2 = io("PC2", Net, default=Net("PC2"))
+PC3 = io("PC3", Net, default=Net("PC3"))
+PC4 = io("PC4", Net, default=Net("PC4"))
+PC5 = io("PC5", Net, default=Net("PC5"))
 
 # Port D IO
-PD0 = io("PD0", Net, default = Net("PD0"))
-PD1 = io("PD1", Net, default = Net("PD1"))
-PD2 = io("PD2", Net, default = Net("PD2"))
-PD3 = io("PD3", Net, default = Net("PD3"))
-PD4 = io("PD4", Net, default = Net("PD4"))
-PD5 = io("PD5", Net, default = Net("PD5"))
-PD6 = io("PD6", Net, default = Net("PD6"))
-PD7 = io("PD7", Net, default = Net("PD7"))
+PD0 = io("PD0", Net, default=Net("PD0"))
+PD1 = io("PD1", Net, default=Net("PD1"))
+PD2 = io("PD2", Net, default=Net("PD2"))
+PD3 = io("PD3", Net, default=Net("PD3"))
+PD4 = io("PD4", Net, default=Net("PD4"))
+PD5 = io("PD5", Net, default=Net("PD5"))
+PD6 = io("PD6", Net, default=Net("PD6"))
+PD7 = io("PD7", Net, default=Net("PD7"))
 
 # Analog IO
-ADC6 = io("ADC6", Net, default = Net("ADC6"))
-ADC7 = io("ADC7", Net, default = Net("ADC7"))
+ADC6 = io("ADC6", Net, default=Net("ADC6"))
+ADC7 = io("ADC7", Net, default=Net("ADC7"))
 
 # Internal nets
 _AVCC = VCC
@@ -96,7 +96,7 @@ _XTAL2 = Net("XTAL2") if clock_source == ClockSource("Crystal") else PB7
 # ---- Peripheral Interfaces -------------------------------------------------
 # SPI on PB3 (MOSI), PB4 (MISO), PB5 (SCK) + PB2 (CS) if enabled
 if enable_spi:
-    spi = io("SPI", Spi, default = Spi("SPI"))
+    spi = io("SPI", Spi, default=Spi("SPI"))
     PB3_net = spi.MOSI
     PB4_net = spi.MISO
     PB5_net = spi.CLK  # SCK
@@ -109,7 +109,7 @@ else:
 
 # I2C on PC4 (SDA) / PC5 (SCL)
 if enable_i2c:
-    i2c = io("I2C", I2c, default = I2c("I2C"))
+    i2c = io("I2C", I2c, default=I2c("I2C"))
     PC4_net = i2c.SDA
     PC5_net = i2c.SCL
 else:
@@ -118,7 +118,7 @@ else:
 
 # UART on PD0 (RX) / PD1 (TX)
 if enable_uart or enable_ftdi_header:
-    uart = io("UART", Uart, default = Uart("UART"))
+    uart = io("UART", Uart, default=Uart("UART"))
     PD0_net = uart.RX
     PD1_net = uart.TX
 else:
@@ -129,29 +129,29 @@ else:
 if enable_ftdi_header:
     DTR = Net("DTR")
     PinHeader(
-        name = "J_FTDI",
-        pins = 6,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = GND,   # GND
-        P2 = VCC,   # VCC
-        P3 = PD1_net,  # MCU TX -> FTDI RXI
-        P4 = PD0_net,  # MCU RX -> FTDI TXO
-        P5 = DTR,   # FTDI DTR
-        P6 = GND,   # Extra GND per common cables
+        name="J_FTDI",
+        pins=6,
+        rows=1,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=GND,  # GND
+        P2=VCC,  # VCC
+        P3=PD1_net,  # MCU TX -> FTDI RXI
+        P4=PD0_net,  # MCU RX -> FTDI TXO
+        P5=DTR,  # FTDI DTR
+        P6=GND,  # Extra GND per common cables
     )
-    
-    Capacitor(name = "C_DTR_RESET", value = "100nF", package = passives_size.value, P1 = DTR, P2 = RESET)
+
+    Capacitor(name="C_DTR_RESET", value="100nF", package=passives_size.value, P1=DTR, P2=RESET)
 
 # ---------------------------------------------------------------------------
 
 # ATmega328-A - 8-bit AVR Microcontroller, TQFP-32
 Component(
-    name = "ATmega328-A",
-    symbol = Symbol(library = "@kicad-symbols/MCU_Microchip_ATmega.kicad_sym", name = "ATmega328-A"),
-    footprint = File("@kicad-footprints/Package_QFP.pretty/TQFP-32_7x7mm_P0.8mm.kicad_mod"),
-    pins = {
+    name="ATmega328-A",
+    symbol=Symbol(library="@kicad-symbols/MCU_Microchip_ATmega.kicad_sym", name="ATmega328-A"),
+    footprint=File("@kicad-footprints/Package_QFP.pretty/TQFP-32_7x7mm_P0.8mm.kicad_mod"),
+    pins={
         "AREF": _AREF,
         "ADC6": ADC6,
         "ADC7": ADC7,
@@ -180,7 +180,7 @@ Component(
         "PD4": PD4,
         "PD5": PD5,
         "PD6": PD6,
-        "PD7": PD7
+        "PD7": PD7,
     },
 )
 
@@ -188,54 +188,54 @@ Component(
 if add_bulk_cap:
     # Bulk capacitor for power stability (using larger size for bulk cap)
     bulk_size = "0805" if passives_size.value in ["0201", "0402", "0603"] else passives_size.value
-    Capacitor(name = "C_BULK", value = "10uF", package = bulk_size, P1 = VCC, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package=bulk_size, P1=VCC, P2=GND)
 
 # Power Supply Decoupling - One capacitor per VCC pin
 if add_power_decoupling:
     # Main VCC decoupling
-    Capacitor(name = "C_VCC1", value = "100nF", package = passives_size.value, P1 = VCC, P2 = GND)
-    Capacitor(name = "C_VCC2", value = "100nF", package = passives_size.value, P1 = VCC, P2 = GND)
+    Capacitor(name="C_VCC1", value="100nF", package=passives_size.value, P1=VCC, P2=GND)
+    Capacitor(name="C_VCC2", value="100nF", package=passives_size.value, P1=VCC, P2=GND)
 
 
 # Analog Power Supply Decoupling
 if add_analog_decoupling:
     # AVCC decoupling capacitor
-    Capacitor(name = "C_AVCC", value = "100nF", package = passives_size.value, P1 = _AVCC, P2 = GND)
+    Capacitor(name="C_AVCC", value="100nF", package=passives_size.value, P1=_AVCC, P2=GND)
 
 # AREF Capacitor - For ADC voltage reference stability
 if add_aref_cap:
-    Capacitor(name = "C_AREF", value = "100nF", package = passives_size.value, P1 = _AREF, P2 = GND)
+    Capacitor(name="C_AREF", value="100nF", package=passives_size.value, P1=_AREF, P2=GND)
 
 # Reset Circuit - Pull-up resistor and optional reset button capacitor
 if add_reset_circuit:
     # Pull-up resistor on RESET pin
-    Resistor(name = "R_RESET", value = "10kohms", package = passives_size.value, P1 = RESET, P2 = VCC)
-    
+    Resistor(name="R_RESET", value="10kohms", package=passives_size.value, P1=RESET, P2=VCC)
+
     # # Optional capacitor for noise immunity
     # Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = RESET, P2 = GND)
 
 # Reset Button
 if add_reset_button:
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": RESET,
             "2": GND,
-        }
+        },
     )
 
 # Built-in LED on PB5 (uses SCK when SPI enabled)
 if add_builtin_led:
     _LED_BUILTIN_A = Net("LED_BUILTIN_A")
-    Resistor(name = "R_LED_BUILTIN", value = "330ohms", package = passives_size.value, P1 = PB5_net, P2 = _LED_BUILTIN_A)
+    Resistor(name="R_LED_BUILTIN", value="330ohms", package=passives_size.value, P1=PB5_net, P2=_LED_BUILTIN_A)
     Led(
-        name = "LED_BUILTIN",
-        color = "green",
-        package = passives_size.value,
-        A = _LED_BUILTIN_A,
-        K = GND,
+        name="LED_BUILTIN",
+        color="green",
+        package=passives_size.value,
+        A=_LED_BUILTIN_A,
+        K=GND,
     )
 
 # Crystal Oscillator Circuit
@@ -245,7 +245,7 @@ if clock_source == ClockSource("Crystal"):
         freq_value = "8MHz"
     else:  # 16MHz
         freq_value = "16MHz"
-    
+
     # Determine crystal output connection
     if add_crystal_series_resistor:
         # Internal net for series resistor
@@ -254,25 +254,17 @@ if clock_source == ClockSource("Crystal"):
     else:
         # Direct connection without series resistor
         crystal_out = _XTAL2
-    
+
     # Crystal with 3225_4Pin package
-    Crystal(
-        name = "Y1",
-        frequency = freq_value,
-        package = "3225_4Pin",
-        XIN = _XTAL1,
-        XOUT = crystal_out,
-        GND = GND
-    )
-    
-    
+    Crystal(name="Y1", frequency=freq_value, package="3225_4Pin", XIN=_XTAL1, XOUT=crystal_out, GND=GND)
+
     # Load capacitors - configurable value for crystal matching
-    Capacitor(name = "C_XTAL1", value = crystal_load_cap, package = passives_size.value, P1 = _XTAL1, P2 = GND)
-    Capacitor(name = "C_XTAL2", value = crystal_load_cap, package = passives_size.value, P1 = crystal_out, P2 = GND)
-    
+    Capacitor(name="C_XTAL1", value=crystal_load_cap, package=passives_size.value, P1=_XTAL1, P2=GND)
+    Capacitor(name="C_XTAL2", value=crystal_load_cap, package=passives_size.value, P1=crystal_out, P2=GND)
+
     # Series resistor for oscillator stability (if enabled)
     if add_crystal_series_resistor:
-        Resistor(name = "R_OSC", value = crystal_series_resistor + " 5%", package = passives_size.value, P1 = _R_OSC, P2 = _XTAL2)
+        Resistor(name="R_OSC", value=crystal_series_resistor + " 5%", package=passives_size.value, P1=_R_OSC, P2=_XTAL2)
 
 # pcb:sch ATmega328-A x=253.0000 y=443.5000 rot=0
 # pcb:sch C_AREF.C x=80.2800 y=532.4000 rot=0

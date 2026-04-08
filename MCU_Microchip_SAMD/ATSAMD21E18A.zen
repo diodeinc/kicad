@@ -1,9 +1,9 @@
 """ATSAMD21E18A - ARM Cortex-M0+ 32-bit MCU, 48MHz, 256KB Flash, 32KB SRAM
 
-The ATSAMD21E18A is a low-power microcontroller based on the ARM Cortex-M0+ 
-32-bit RISC core operating at up to 48 MHz. It features 256KB of Flash memory, 
-32KB of SRAM, and an extensive range of enhanced I/Os and peripherals. The device 
-includes USB 2.0, up to 6 SERCOM interfaces, 5x 16-bit timers, 3x 24-bit timer/counters 
+The ATSAMD21E18A is a low-power microcontroller based on the ARM Cortex-M0+
+32-bit RISC core operating at up to 48 MHz. It features 256KB of Flash memory,
+32KB of SRAM, and an extensive range of enhanced I/Os and peripherals. The device
+includes USB 2.0, up to 6 SERCOM interfaces, 5x 16-bit timers, 3x 24-bit timer/counters
 for control applications, 12-bit ADC, 10-bit DAC, and capacitive touch controller.
 It operates from 1.62V to 3.63V and includes advanced power-saving modes.
 
@@ -36,39 +36,39 @@ ResetConfiguration = enum("None", "Pullup", "Button")
 BootConfiguration = enum("None", "DoubleTap")
 
 # Configuration
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
-add_analog_filtering = config("add_analog_filtering", bool, default = True)
-add_vddcore_cap = config("add_vddcore_cap", bool, default = True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_analog_filtering = config("add_analog_filtering", bool, default=True)
+add_vddcore_cap = config("add_vddcore_cap", bool, default=True)
 
 # Reset configuration
-reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+reset_configuration = config("reset_configuration", ResetConfiguration, default="Button")
 
 # Boot configuration
-boot_configuration = config("boot_configuration", BootConfiguration, default = "DoubleTap")
+boot_configuration = config("boot_configuration", BootConfiguration, default="DoubleTap")
 
 # Clock configuration
-clock_source = config("clock_source", ClockSource, default = "Crystal")
+clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
-    crystal_freq = config("crystal_freq", CrystalFreq, default = "16MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "12pF")
-    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
+    crystal_freq = config("crystal_freq", CrystalFreq, default="16MHz")
+    crystal_capacitor_value = config("crystal_capacitor_value", str, default="12pF")
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default = "1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", str, default="1kohm")
 
-add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
+add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 
-# Interface configuration  
-add_swd_header = config("add_swd_header", bool, default = True)
-add_usb = config("add_usb", bool, default = True)
+# Interface configuration
+add_swd_header = config("add_swd_header", bool, default=True)
+add_usb = config("add_usb", bool, default=True)
 if add_usb:
-    power_from_usb = config("power_from_usb", bool, default = True)
+    power_from_usb = config("power_from_usb", bool, default=True)
 else:
     power_from_usb = False
-add_status_led = config("add_status_led", bool, default = True)
+add_status_led = config("add_status_led", bool, default=True)
 
 # SPI Flash configuration
-add_spi_flash = config("add_spi_flash", bool, default = True, optional = True)
+add_spi_flash = config("add_spi_flash", bool, default=True, optional=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -91,8 +91,8 @@ PA03 = io("PA03", Net)
 
 # SPI pins - conditionally exposed based on SPI flash configuration
 if add_spi_flash:
-    _PA04 = Net("PA04_SPI_CS")    # SPI Chip Select
-    _PA05 = Net("PA05_SPI_SCK")   # SPI Clock
+    _PA04 = Net("PA04_SPI_CS")  # SPI Chip Select
+    _PA05 = Net("PA05_SPI_SCK")  # SPI Clock
     _PA06 = Net("PA06_SPI_MISO")  # SPI MISO
     _PA07 = Net("PA07_SPI_MOSI")  # SPI MOSI
 else:
@@ -152,10 +152,10 @@ if add_low_speed_oscillator:
 
 # SAM D21 Microchip SMART ARM-based Flash MCU
 Component(
-    name = "ATSAMD21E18A",
-    symbol = Symbol(library = "@kicad-symbols/MCU_Microchip_SAMD.kicad_sym", name = "ATSAMD21E18A-M"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-32-1EP_5x5mm_P0.5mm_EP3.6x3.6mm.kicad_mod"),
-    pins = {
+    name="ATSAMD21E18A",
+    symbol=Symbol(library="@kicad-symbols/MCU_Microchip_SAMD.kicad_sym", name="ATSAMD21E18A-M"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-32-1EP_5x5mm_P0.5mm_EP3.6x3.6mm.kicad_mod"),
+    pins={
         "PA00": PA00,
         "PA01": PA01,
         "PA02": PA02,
@@ -187,64 +187,64 @@ Component(
         "VDDIN": VDD,
         "EP": GND,
         "GND": GND,
-        "VDDANA": _VDDANA
+        "VDDANA": _VDDANA,
     },
 )
 
 # Bulk capacitors
 if add_bulk_caps:
-    Capacitor(name = "C_BULK1", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
-    Capacitor(name = "C_BULK2", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK1", value="10uF", package="0805", P1=VDD, P2=GND)
+    Capacitor(name="C_BULK2", value="1uF", package="0603", P1=VDD, P2=GND)
 
 # Power supply decoupling
 if add_decoupling:
     # VDDIN decoupling (near pin)
-    Capacitor(name = "C_VDDIN", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    
+    Capacitor(name="C_VDDIN", value="100nF", package="0402", P1=VDD, P2=GND)
+
     # Additional VDDIN decoupling
-    Capacitor(name = "C_VDDIN2", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name="C_VDDIN2", value="100nF", package="0402", P1=VDD, P2=GND)
 
 # VDDCORE capacitor - required for internal regulator
 if add_vddcore_cap:
     # Must be low ESR ceramic capacitor
-    Capacitor(name = "C_VDDCORE", value = "1uF", package = "0603", P1 = _VDDCORE, P2 = GND)
+    Capacitor(name="C_VDDCORE", value="1uF", package="0603", P1=_VDDCORE, P2=GND)
 
 # Analog power filtering
 if add_analog_filtering:
     # Ferrite bead for analog supply isolation
-    FerriteBead(name = "FB_VDDANA", package = "0603", P1 = VDD, P2 = _VDDANA)
-    
+    FerriteBead(name="FB_VDDANA", package="0603", P1=VDD, P2=_VDDANA)
+
     # VDDANA decoupling
-    Capacitor(name = "C_VDDANA1", value = "100nF", package = "0402", P1 = _VDDANA, P2 = GND)
-    Capacitor(name = "C_VDDANA2", value = "1uF", package = "0603", P1 = _VDDANA, P2 = GND)
+    Capacitor(name="C_VDDANA1", value="100nF", package="0402", P1=_VDDANA, P2=GND)
+    Capacitor(name="C_VDDANA2", value="1uF", package="0603", P1=_VDDANA, P2=GND)
 
 # Reset circuit
 if reset_configuration == ResetConfiguration("Pullup"):
     # Pull-up resistor only
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VDD)
-    
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VDD)
+
 elif reset_configuration == ResetConfiguration("Button"):
     # Pull-up resistor and reset button
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VDD)
-    
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VDD)
+
     # Reset capacitor for debouncing
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _RESET, P2 = GND)
-    
+    Capacitor(name="C_RESET", value="100nF", package="0402", P1=_RESET, P2=GND)
+
     # Reset button
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": _RESET,
             "2": GND,
-        }
+        },
     )
 
 # Boot configuration (double-tap reset for bootloader)
 if boot_configuration == BootConfiguration("DoubleTap"):
     # Optional: Add test point for bootloader entry
-    TestPoint(name = "TP_BOOT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _RESET)
+    TestPoint(name="TP_BOOT", variant="THTPad_D1.0mm_Drill0.5mm", P1=_RESET)
 
 # Crystal oscillator circuit
 if clock_source == ClockSource("Crystal"):
@@ -257,7 +257,7 @@ if clock_source == ClockSource("Crystal"):
         freq_value = "16MHz"
     else:  # 48MHz
         freq_value = "48MHz"
-    
+
     # Determine crystal output connection
     if add_crystal_series_resistor:
         # Internal net for series resistor
@@ -266,56 +266,49 @@ if clock_source == ClockSource("Crystal"):
     else:
         # Direct connection without series resistor
         crystal_out = _XOUT
-    
+
     # Crystal
-    Crystal(
-        name = "Y_HSE",
-        frequency = freq_value,
-        package = "3225_4Pin",
-        XIN = _XIN,
-        XOUT = crystal_out,
-        GND = GND
-    )
-    
+    Crystal(name="Y_HSE", frequency=freq_value, package="3225_4Pin", XIN=_XIN, XOUT=crystal_out, GND=GND)
+
     # Load capacitors
-    Capacitor(name = "C_HSE1", value = crystal_capacitor_value, package = "0402", P1 = _XIN, P2 = GND)
-    Capacitor(name = "C_HSE2", value = crystal_capacitor_value, package = "0402", P1 = crystal_out, P2 = GND)
-    
+    Capacitor(name="C_HSE1", value=crystal_capacitor_value, package="0402", P1=_XIN, P2=GND)
+    Capacitor(name="C_HSE2", value=crystal_capacitor_value, package="0402", P1=crystal_out, P2=GND)
+
     # Series resistor for oscillator stability (if enabled)
     if add_crystal_series_resistor:
-        Resistor(name = "R_OSC", value = crystal_series_resistor, package = "0402", P1 = _R_OSC, P2 = _XOUT)
+        Resistor(name="R_OSC", value=crystal_series_resistor, package="0402", P1=_R_OSC, P2=_XOUT)
 
 # Low Speed Oscillator for RTC
 if add_low_speed_oscillator:
     Crystal(
-        name = "Y2",
-        frequency = "32.768kHz",
-        package = "3215_2Pin",
-        XIN = _XIN32,
-        XOUT = _XOUT32,
-        GND = GND,
+        name="Y2",
+        frequency="32.768kHz",
+        package="3215_2Pin",
+        XIN=_XIN32,
+        XOUT=_XOUT32,
+        GND=GND,
     )
-    
+
     # Load capacitors for low speed oscillator
-    Capacitor(name = "C_LSE1", value = "12pF", package = "0402", P1 = _XIN32, P2 = GND)
-    Capacitor(name = "C_LSE2", value = "12pF", package = "0402", P1 = _XOUT32, P2 = GND)
+    Capacitor(name="C_LSE1", value="12pF", package="0402", P1=_XIN32, P2=GND)
+    Capacitor(name="C_LSE2", value="12pF", package="0402", P1=_XOUT32, P2=GND)
 
 # USB interface
 if add_usb:
     # Internal USB data nets
     _USB_DM_INT = Net("USB_DM_INT")
     _USB_DP_INT = Net("USB_DP_INT")
-    
+
     # USB-C Configuration Channel nets
     _USB_CC1 = Net("USB_CC1")
     _USB_CC2 = Net("USB_CC2")
-    
+
     # USB-C connector
     Component(
-        name = "J_USB",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
-        pins = {
+        name="J_USB",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="USB_C_Receptacle_USB2.0_16P"),
+        footprint=File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins={
             "VBUS": VUSB,
             "D-": _USB_DM_INT,
             "D+": _USB_DP_INT,
@@ -325,106 +318,106 @@ if add_usb:
             "SBU2": Net("USB_SBU2"),
             "GND": GND,
             "SHIELD": GND,
-        }
+        },
     )
-    
+
     # USB-C CC pull-down resistors (5.1k for device)
-    Resistor(name = "R_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
-    Resistor(name = "R_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
-    
+    Resistor(name="R_CC1", value="5.1kohms", package="0402", P1=_USB_CC1, P2=GND)
+    Resistor(name="R_CC2", value="5.1kohms", package="0402", P1=_USB_CC2, P2=GND)
+
     # Series resistors on USB data lines
-    Resistor(name = "R_USB_DM", value = "22ohms", package = "0402", P1 = _USB_DM_INT, P2 = PA24)
-    Resistor(name = "R_USB_DP", value = "22ohms", package = "0402", P1 = _USB_DP_INT, P2 = PA25)
-        
+    Resistor(name="R_USB_DM", value="22ohms", package="0402", P1=_USB_DM_INT, P2=PA24)
+    Resistor(name="R_USB_DP", value="22ohms", package="0402", P1=_USB_DP_INT, P2=PA25)
+
     # USB ESD Protection
     Component(
-        name = "U_USB_ESD",
-        symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
-        footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-        pins = {
+        name="U_USB_ESD",
+        symbol=Symbol(library="@kicad-symbols/Power_Protection.kicad_sym", name="USBLC6-2SC6"),
+        footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+        pins={
             "I/O1": _USB_DM_INT,
             "GND": GND,
             "I/O2": _USB_DP_INT,
             "VBUS": VUSB,
         },
     )
-    
+
     # VBUS decoupling
-    Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
-    
+    Capacitor(name="C_VBUS", value="4.7uF", package="0805", P1=VUSB, P2=GND)
+
     # USB Power Regulation
     if power_from_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
-            name = "U_USB_REG",
-            VIN = Power(NET = VUSB),
-            VOUT = Power(NET = VDD),
-            GND = GND,
-            add_input_cap = add_decoupling,
-            add_output_cap = add_decoupling,
-            enable_control = "AlwaysOn",
+            name="U_USB_REG",
+            VIN=Power(NET=VUSB),
+            VOUT=Power(NET=VDD),
+            GND=GND,
+            add_input_cap=add_decoupling,
+            add_output_cap=add_decoupling,
+            enable_control="AlwaysOn",
         )
 
 # SWD programming header
 if add_swd_header:
     PinHeader(
-        name = "J_SWD",
-        pins = 4,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = GND,       # GND
-        P2 = swd.SWDIO, # SWDIO
-        P3 = swd.SWCLK, # SWCLK
-        P4 = VDD,       # VDD
+        name="J_SWD",
+        pins=4,
+        rows=1,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=GND,  # GND
+        P2=swd.SWDIO,  # SWDIO
+        P3=swd.SWCLK,  # SWCLK
+        P4=VDD,  # VDD
     )
 
 # Status LED
 if add_status_led:
     _LED_K = Net("LED_K")
     Led(
-        name = "LED_STATUS",
-        color = "yellow",
-        package = "0603",
-        A = PA17,  # Using PA17 for status LED
-        K = _LED_K,
+        name="LED_STATUS",
+        color="yellow",
+        package="0603",
+        A=PA17,  # Using PA17 for status LED
+        K=_LED_K,
     )
-    Resistor(name = "R_LED", value = "1kohms", package = "0402", P1 = _LED_K, P2 = GND)
+    Resistor(name="R_LED", value="1kohms", package="0402", P1=_LED_K, P2=GND)
 
 # SPI Flash Memory
 if add_spi_flash:
     # W25Q128JV - 128Mbit (16MB) SPI Flash
     _FLASH_WP = Net("FLASH_WP")
     _FLASH_HOLD = Net("FLASH_HOLD")
-    
+
     Component(
-        name = "U_FLASH",
-        symbol = Symbol(library = "@kicad-symbols/Memory_Flash.kicad_sym", name = "W25Q128JVS"),
-        footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
-        pins = {
-            "~{CS}": _PA04,      # Chip Select (active low)
-            "CLK": _PA05,        # Clock
+        name="U_FLASH",
+        symbol=Symbol(library="@kicad-symbols/Memory_Flash.kicad_sym", name="W25Q128JVS"),
+        footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+        pins={
+            "~{CS}": _PA04,  # Chip Select (active low)
+            "CLK": _PA05,  # Clock
             "DI/IO_{0}": _PA07,  # Data In / IO0 (MOSI)
             "DO/IO_{1}": _PA06,  # Data Out / IO1 (MISO)
-            "~{WP}/IO_{2}": _FLASH_WP,     # Write Protect
+            "~{WP}/IO_{2}": _FLASH_WP,  # Write Protect
             "~{HOLD}/~{RESET}/IO_{3}": _FLASH_HOLD,  # Hold/Reset
             "VCC": VDD,
             "GND": GND,
-        }
+        },
     )
-    
+
     # Pull-up resistors for WP and HOLD pins (required for SPI mode)
-    Resistor(name = "R_FLASH_WP", value = "10kohms", package = "0402", P1 = _FLASH_WP, P2 = VDD)
-    Resistor(name = "R_FLASH_HOLD", value = "10kohms", package = "0402", P1 = _FLASH_HOLD, P2 = VDD)
-    
+    Resistor(name="R_FLASH_WP", value="10kohms", package="0402", P1=_FLASH_WP, P2=VDD)
+    Resistor(name="R_FLASH_HOLD", value="10kohms", package="0402", P1=_FLASH_HOLD, P2=VDD)
+
     # Decoupling capacitor for flash
     if add_decoupling:
         Capacitor(
-            name = "C_FLASH",
-            value = "100nF",
-            package = "0402",
-            P1 = VDD,
-            P2 = GND,
+            name="C_FLASH",
+            value="100nF",
+            package="0402",
+            P1=VDD,
+            P2=GND,
         )
 
 # pcb:sch ATSAMD21E18A x=-229.6000 y=1472.2000 rot=0

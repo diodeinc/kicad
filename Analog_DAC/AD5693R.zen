@@ -1,10 +1,10 @@
 """AD5693R - Tiny 16-Bit I2C nanoDAC+ with ±2 LSB INL and 2 ppm/°C Reference
 
-The AD5693R is a low-power, single-channel, 16-bit buffered voltage output DAC 
-with an internal 2.5V reference offering 2 ppm/°C drift. The output span can be 
-programmed to be 0V to VREF or 0V to 2×VREF. The device operates from a single 
-2.7V to 5.5V supply and is guaranteed monotonic by design. It features I2C 
-interface, power-down modes, and is available in tiny 2mm×2mm 8-lead LFCSP or 
+The AD5693R is a low-power, single-channel, 16-bit buffered voltage output DAC
+with an internal 2.5V reference offering 2 ppm/°C drift. The output span can be
+programmed to be 0V to VREF or 0V to 2×VREF. The device operates from a single
+2.7V to 5.5V supply and is guaranteed monotonic by design. It features I2C
+interface, power-down modes, and is available in tiny 2mm×2mm 8-lead LFCSP or
 10-lead MSOP packages.
 
 The I2C address is pin-selectable:
@@ -39,38 +39,38 @@ address_map = {
 }
 
 # Configuration
-reference_mode = config("reference_mode", ReferenceMode, default = "External")
-i2c_address = config("i2c_address", I2cAddress, default = I2cAddress("0x4C"))
+reference_mode = config("reference_mode", ReferenceMode, default="External")
+i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x4C"))
 
 # Component size configuration
-passives_size = config("passives_size", str, default = "0402")
-bulk_cap_size = config("bulk_cap_size", str, default = "0805")
+passives_size = config("passives_size", str, default="0402")
+bulk_cap_size = config("bulk_cap_size", str, default="0805")
 
 # Power supply configuration
-add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_bulk_capacitor = config("add_bulk_capacitor", bool, default = True)
-add_vlogic_supply = config("add_vlogic_supply", bool, default = False)
+add_power_decoupling = config("add_power_decoupling", bool, default=True)
+add_bulk_capacitor = config("add_bulk_capacitor", bool, default=True)
+add_vlogic_supply = config("add_vlogic_supply", bool, default=False)
 
 # Reference configuration
-add_reference_decoupling = config("add_reference_decoupling", bool, default = True)
+add_reference_decoupling = config("add_reference_decoupling", bool, default=True)
 if add_reference_decoupling:
-    reference_cap_value = config("reference_cap_value", str, default = "100nF")
+    reference_cap_value = config("reference_cap_value", str, default="100nF")
 
 # Control pin configuration
-reset_config = config("reset_config", ResetConfig, default = ResetConfig("Pullup"))
-ldac_config = config("ldac_config", LDACConfig, default = LDACConfig("PullDown"))
+reset_config = config("reset_config", ResetConfig, default=ResetConfig("Pullup"))
+ldac_config = config("ldac_config", LDACConfig, default=LDACConfig("PullDown"))
 
 # I2C configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 
 # Output configuration
-add_output_filtering = config("add_output_filtering", bool, default = True)
+add_output_filtering = config("add_output_filtering", bool, default=True)
 if add_output_filtering:
-    output_filter_r = config("output_filter_r", str, default = "100ohms")
-    output_filter_c = config("output_filter_c", str, default = "100nF")
+    output_filter_r = config("output_filter_r", str, default="100ohms")
+    output_filter_c = config("output_filter_c", str, default="100nF")
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -79,9 +79,9 @@ GND = io("GND", Ground)
 # VLOGIC supply for MSOP package
 if add_vlogic_supply:
     VLOGIC = io("VLOGIC", Power)
-    _VLOGIC = VLOGIC.NET
+    _VLOGIC = VLOGIC
 else:
-    _VLOGIC = VDD.NET  # Use VDD for VLOGIC if not separate
+    _VLOGIC = VDD  # Use VDD for VLOGIC if not separate
 
 # I2C interface
 i2c = io("I2C", I2c)
@@ -89,7 +89,7 @@ i2c = io("I2C", I2c)
 # Reference IO
 if reference_mode == ReferenceMode("External"):
     VREF = io("VREF", Power)
-    _VREF = VREF.NET
+    _VREF = VREF
 else:
     _VREF = Net("VREF")  # Internal reference
 
@@ -115,11 +115,11 @@ _A0 = _VLOGIC if _a0_connection == "VLOGIC" else GND
 
 # Component definition - 10-Lead MSOP package only
 Component(
-    name = "AD5693R",
-    symbol = Symbol(library = "@kicad-symbols/Analog_DAC.kicad_sym", name = "AD5693RxRM"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
-    pins = {
-        "VDD": VDD.NET,
+    name="AD5693R",
+    symbol=Symbol(library="@kicad-symbols/Analog_DAC.kicad_sym", name="AD5693RxRM"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins={
+        "VDD": VDD,
         "VLOGIC": _VLOGIC,
         "~{RESET}": _RESET,
         "~{LDAC}": _LDAC,
@@ -135,58 +135,58 @@ Component(
 # Power supply decoupling
 if add_power_decoupling:
     Capacitor(
-        name = "C_VDD",
-        value = "100nF",
-        package = passives_size,
-        P1 = VDD.NET,
-        P2 = GND,
+        name="C_VDD",
+        value="100nF",
+        package=passives_size,
+        P1=VDD,
+        P2=GND,
     )
 
     if add_vlogic_supply:
         Capacitor(
-            name = "C_VLOGIC",
-            value = "100nF",
-            package = passives_size,
-            P1 = _VLOGIC,
-            P2 = GND,
+            name="C_VLOGIC",
+            value="100nF",
+            package=passives_size,
+            P1=_VLOGIC,
+            P2=GND,
         )
 
 # Bulk capacitor
 if add_bulk_capacitor:
     Capacitor(
-        name = "C_BULK",
-        value = "10uF",
-        package = bulk_cap_size,
-        P1 = VDD.NET,
-        P2 = GND,
+        name="C_BULK",
+        value="10uF",
+        package=bulk_cap_size,
+        P1=VDD,
+        P2=GND,
     )
 
 # Reference decoupling
 if add_reference_decoupling:
     Capacitor(
-        name = "C_REF",
-        value = reference_cap_value,
-        package = passives_size,
-        P1 = _VREF,
-        P2 = GND,
+        name="C_REF",
+        value=reference_cap_value,
+        package=passives_size,
+        P1=_VREF,
+        P2=GND,
     )
 
 # I2C pull-up resistors
 if add_i2c_pullups:
     Resistor(
-        name = "R_SCL",
-        value = "4.7kohms",
-        package = passives_size,
-        P1 = i2c.SCL,
-        P2 = VDD.NET,
+        name="R_SCL",
+        value="4.7kohms",
+        package=passives_size,
+        P1=i2c.SCL,
+        P2=VDD,
     )
 
     Resistor(
-        name = "R_SDA",
-        value = "4.7kohms",
-        package = passives_size,
-        P1 = i2c.SDA,
-        P2 = VDD.NET,
+        name="R_SDA",
+        value="4.7kohms",
+        package=passives_size,
+        P1=i2c.SDA,
+        P2=VDD,
     )
 
 # A0 address pin is internally connected based on i2c_address config
@@ -195,20 +195,20 @@ if add_i2c_pullups:
 if reset_config == ResetConfig("Pullup"):
     # Pull-up resistor to VLOGIC/VDD
     Resistor(
-        name = "R_RESET",
-        value = "10kohms",
-        package = passives_size,
-        P1 = _RESET,
-        P2 = _VLOGIC if add_vlogic_supply else VDD.NET,
+        name="R_RESET",
+        value="10kohms",
+        package=passives_size,
+        P1=_RESET,
+        P2=_VLOGIC if add_vlogic_supply else VDD,
     )
 elif reset_config == ResetConfig("PullDown"):
     # Pull-down resistor to GND
     Resistor(
-        name = "R_RESET",
-        value = "10kohms",
-        package = passives_size,
-        P1 = _RESET,
-        P2 = GND,
+        name="R_RESET",
+        value="10kohms",
+        package=passives_size,
+        P1=_RESET,
+        P2=GND,
     )
 
 # else: None - external control
@@ -217,20 +217,20 @@ elif reset_config == ResetConfig("PullDown"):
 if ldac_config == LDACConfig("PullDown"):
     # Pull-down resistor for asynchronous mode
     Resistor(
-        name = "R_LDAC",
-        value = "10kohms",
-        package = passives_size,
-        P1 = _LDAC,
-        P2 = GND,
+        name="R_LDAC",
+        value="10kohms",
+        package=passives_size,
+        P1=_LDAC,
+        P2=GND,
     )
 elif ldac_config == LDACConfig("Pullup"):
     # Pull-up resistor for asynchronous mode
     Resistor(
-        name = "R_LDAC",
-        value = "10kohms",
-        package = passives_size,
-        P1 = _LDAC,
-        P2 = VDD.NET,
+        name="R_LDAC",
+        value="10kohms",
+        package=passives_size,
+        P1=_LDAC,
+        P2=VDD,
     )
 
 # else: None - external control
@@ -241,35 +241,35 @@ if add_output_filtering:
 
     # Series resistor
     Resistor(
-        name = "R_OUT",
-        value = output_filter_r,
-        package = passives_size,
-        P1 = VOUT,
-        P2 = _VOUT_FILTERED,
+        name="R_OUT",
+        value=output_filter_r,
+        package=passives_size,
+        P1=VOUT,
+        P2=_VOUT_FILTERED,
     )
 
     # Filter capacitor
     Capacitor(
-        name = "C_OUT",
-        value = output_filter_c,
-        package = passives_size,
-        P1 = _VOUT_FILTERED,
-        P2 = GND,
+        name="C_OUT",
+        value=output_filter_c,
+        package=passives_size,
+        P1=_VOUT_FILTERED,
+        P2=GND,
     )
 
 # Test points (optional)
 if add_test_points:
     TestPoint(
-        name = "TP_VOUT",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = VOUT,
+        name="TP_VOUT",
+        variant="THTPad_D1.0mm_Drill0.5mm",
+        P1=VOUT,
     )
 
     if reference_mode != ReferenceMode("Internal"):
         TestPoint(
-            name = "TP_VREF",
-            variant = "THTPad_D1.0mm_Drill0.5mm",
-            P1 = _VREF,
+            name="TP_VREF",
+            variant="THTPad_D1.0mm_Drill0.5mm",
+            P1=_VREF,
         )
 
 # PCB placement hints

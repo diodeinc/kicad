@@ -1,13 +1,13 @@
 """INA260 - Precision Digital Current and Power Monitor With Low-Drift, Precision Integrated Shunt
 
-The INA260 is a digital-output, current, power, and voltage monitor with an I²C and SMBus-compatible 
-interface with an integrated precision 2mΩ shunt resistor. It enables high-accuracy current and power 
-measurements and over-current detection at common-mode voltages that can vary from 0V to 36V, 
-independent of the supply voltage. The device features up to 16 programmable addresses, digital 
+The INA260 is a digital-output, current, power, and voltage monitor with an I²C and SMBus-compatible
+interface with an integrated precision 2mΩ shunt resistor. It enables high-accuracy current and power
+measurements and over-current detection at common-mode voltages that can vary from 0V to 36V,
+independent of the supply voltage. The device features up to 16 programmable addresses, digital
 averaging, programmable alert thresholds, and operates from a 2.7V to 5.5V supply.
 
 Configuration options:
-- connect_vbus_to_in_plus: When enabled, VBUS is internally connected to IN_PLUS for single-point 
+- connect_vbus_to_in_plus: When enabled, VBUS is internally connected to IN_PLUS for single-point
   bus voltage measurement. VBUS filtering is disabled when this option is enabled.
 
 Author: @@anthropic/claude-opus-4
@@ -24,34 +24,50 @@ FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Types
-I2cAddress = enum("0x40", "0x41", "0x42", "0x43", "0x44", "0x45", "0x46", "0x47",
-                  "0x48", "0x49", "0x4A", "0x4B", "0x4C", "0x4D", "0x4E", "0x4F")
+I2cAddress = enum(
+    "0x40",
+    "0x41",
+    "0x42",
+    "0x43",
+    "0x44",
+    "0x45",
+    "0x46",
+    "0x47",
+    "0x48",
+    "0x49",
+    "0x4A",
+    "0x4B",
+    "0x4C",
+    "0x4D",
+    "0x4E",
+    "0x4F",
+)
 AlertFunction = enum("None", "OverCurrent", "UnderCurrent", "BusOverVoltage", "BusUnderVoltage", "PowerOverLimit")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_input_filtering = config("add_input_filtering", bool, default = True)
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-add_alert_pullup = config("add_alert_pullup", bool, default = True)
-add_test_points = config("add_test_points", bool, default = False)
-connect_vbus_to_in_plus = config("connect_vbus_to_in_plus", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_input_filtering = config("add_input_filtering", bool, default=True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+add_alert_pullup = config("add_alert_pullup", bool, default=True)
+add_test_points = config("add_test_points", bool, default=False)
+connect_vbus_to_in_plus = config("connect_vbus_to_in_plus", bool, default=True)
 
 # I2C configuration
-i2c_address = config("i2c_address", I2cAddress, default = "0x40")
-i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+i2c_address = config("i2c_address", I2cAddress, default="0x40")
+i2c_pullup_value = config("i2c_pullup_value", str, default="4.7kohms")
 
 # Alert configuration
-alert_function = config("alert_function", AlertFunction, default = "OverCurrent")
-if alert_function != AlertFunction("None"): 
-    alert_pullup_value = config("alert_pullup_value", str, default = "10kohms")
+alert_function = config("alert_function", AlertFunction, default="OverCurrent")
+if alert_function != AlertFunction("None"):
+    alert_pullup_value = config("alert_pullup_value", str, default="10kohms")
 else:
     alert_pullup_value = "0ohms"
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default = "10ohms")
-    input_filter_c = config("input_filter_c", str, default = "100nF")
+    input_filter_r = config("input_filter_r", str, default="10ohms")
+    input_filter_c = config("input_filter_c", str, default="100nF")
 
 # Address mapping dictionary
 address_map = {
@@ -105,7 +121,7 @@ _VBUS_FILT = Net("VBUS_FILT") if (add_input_filtering and not connect_vbus_to_in
 
 # Address pin nets
 if a1_conn == "VS":
-    _A1 = VS.NET
+    _A1 = VS
 elif a1_conn == "SDA":
     _A1 = i2c.SDA
 elif a1_conn == "SCL":
@@ -114,7 +130,7 @@ else:  # GND
     _A1 = GND
 
 if a0_conn == "VS":
-    _A0 = VS.NET
+    _A0 = VS
 elif a0_conn == "SDA":
     _A0 = i2c.SDA
 elif a0_conn == "SCL":
@@ -124,159 +140,72 @@ else:  # GND
 
 # Main component
 Component(
-    name = "INA260",
-    symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "INA260"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-16_4.4x5mm_P0.65mm.kicad_mod"),
-    pins = {
+    name="INA260",
+    symbol=Symbol(library="@kicad-symbols/Sensor.kicad_sym", name="INA260"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/TSSOP-16_4.4x5mm_P0.65mm.kicad_mod"),
+    pins={
         "IN+": _IN_PLUS_FILT,
         "IN-": _IN_MINUS_FILT,
         "VBUS": _VBUS_FILT,
-        "VS": VS.NET,
+        "VS": VS,
         "GND": GND,
         "NC": NotConnected(),  # No connect
         "ALERT": ALERT,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
         "A0": _A0,
-        "A1": _A1
+        "A1": _A1,
     },
 )
 
 # Power supply decoupling
 if add_decoupling:
     # Local ceramic capacitor
-    Capacitor(
-        name = "C_VS",
-        value = "100nF",
-        voltage = "10V",
-        package = "0402",
-        P1 = VS.NET,
-        P2 = GND
-    )
+    Capacitor(name="C_VS", value="100nF", voltage="10V", package="0402", P1=VS, P2=GND)
 
 # Bulk capacitor
 if add_bulk_cap:
-    Capacitor(
-        name = "C_BULK",
-        value = "10uF",
-        voltage = "10V",
-        package = "0805",
-        P1 = VS.NET,
-        P2 = GND
-    )
+    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=VS, P2=GND)
 
 # Input filtering for current sense pins
 if add_input_filtering:
     # Series resistors for dV/dt protection
-    Resistor(
-        name = "R_IN_PLUS",
-        value = input_filter_r,
-        package = "0402",
-        P1 = IN_PLUS,
-        P2 = _IN_PLUS_FILT
-    )
-    
-    Resistor(
-        name = "R_IN_MINUS",
-        value = input_filter_r,
-        package = "0402",
-        P1 = IN_MINUS,
-        P2 = _IN_MINUS_FILT
-    )
-    
+    Resistor(name="R_IN_PLUS", value=input_filter_r, package="0402", P1=IN_PLUS, P2=_IN_PLUS_FILT)
+
+    Resistor(name="R_IN_MINUS", value=input_filter_r, package="0402", P1=IN_MINUS, P2=_IN_MINUS_FILT)
+
     # Filter capacitors
-    Capacitor(
-        name = "C_IN_PLUS",
-        value = input_filter_c,
-        voltage = "50V",
-        package = "0402",
-        P1 = _IN_PLUS_FILT,
-        P2 = GND
-    )
-    
-    Capacitor(
-        name = "C_IN_MINUS",
-        value = input_filter_c,
-        voltage = "50V",
-        package = "0402",
-        P1 = _IN_MINUS_FILT,
-        P2 = GND
-    )
-    
+    Capacitor(name="C_IN_PLUS", value=input_filter_c, voltage="50V", package="0402", P1=_IN_PLUS_FILT, P2=GND)
+
+    Capacitor(name="C_IN_MINUS", value=input_filter_c, voltage="50V", package="0402", P1=_IN_MINUS_FILT, P2=GND)
+
     # VBUS input filtering (only if VBUS is not connected to IN_PLUS)
     if not connect_vbus_to_in_plus:
-        Resistor(
-            name = "R_VBUS",
-            value = input_filter_r,
-            package = "0402",
-            P1 = VBUS,
-            P2 = _VBUS_FILT
-        )
-        
-        Capacitor(
-            name = "C_VBUS",
-            value = "10nF",
-            voltage = "50V",
-            package = "0402",
-            P1 = _VBUS_FILT,
-            P2 = GND
-        )
+        Resistor(name="R_VBUS", value=input_filter_r, package="0402", P1=VBUS, P2=_VBUS_FILT)
+
+        Capacitor(name="C_VBUS", value="10nF", voltage="50V", package="0402", P1=_VBUS_FILT, P2=GND)
 
 # I2C pull-up resistors
 if add_i2c_pullups:
-    Resistor(
-        name = "R_SDA",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SDA,
-        P2 = VS.NET
-    )
-    
-    Resistor(
-        name = "R_SCL",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SCL,
-        P2 = VS.NET
-    )
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VS)
+
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VS)
 
 # Alert pull-up resistor
 if alert_function != AlertFunction("None") and add_alert_pullup:
-    Resistor(
-        name = "R_ALERT",
-        value = alert_pullup_value,
-        package = "0402",
-        P1 = ALERT,
-        P2 = VS.NET
-    )
+    Resistor(name="R_ALERT", value=alert_pullup_value, package="0402", P1=ALERT, P2=VS)
 
 # Test points
 if add_test_points:
-    TestPoint(
-        name = "TP_IN_PLUS",
-        variant = "Pad_D1.5mm",
-        P1 = IN_PLUS
-    )
-    
-    TestPoint(
-        name = "TP_IN_MINUS",
-        variant = "Pad_D1.5mm",
-        P1 = IN_MINUS
-    )
-    
+    TestPoint(name="TP_IN_PLUS", variant="Pad_D1.5mm", P1=IN_PLUS)
+
+    TestPoint(name="TP_IN_MINUS", variant="Pad_D1.5mm", P1=IN_MINUS)
+
     # Only add VBUS test point if VBUS is not connected to IN_PLUS
     if not connect_vbus_to_in_plus:
-        TestPoint(
-            name = "TP_VBUS",
-            variant = "Pad_D1.5mm",
-            P1 = VBUS
-        )
-    
-    TestPoint(
-        name = "TP_VS",
-        variant = "Pad_D1.5mm",
-        P1 = VS.NET
-    )
+        TestPoint(name="TP_VBUS", variant="Pad_D1.5mm", P1=VBUS)
+
+    TestPoint(name="TP_VS", variant="Pad_D1.5mm", P1=VS)
 
 # pcb:sch C_BULK.C x=600.9800 y=354.6000 rot=0
 # pcb:sch C_IN_MINUS.C x=4.0800 y=468.9000 rot=0

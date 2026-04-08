@@ -1,12 +1,12 @@
 """ADS7044 - Ultra-Low Power, Ultra-Small Size, 12-Bit, 1-MSPS, SAR ADC
 
-The ADS7044 is a 12-bit, 1-MSPS, analog-to-digital converter (ADC) featuring industry-leading 
-ultra-low power consumption (261 µW at 1 MSPS with 1.8V AVDD) in the industry's smallest 
-package. The device supports true differential inputs with both AINP and AINM capable of 
-0V to AVDD range. With AVDD from 1.65V to 3.6V, it includes a capacitor-based SAR ADC with 
-inherent sample-and-hold. The SPI-compatible serial interface operates up to 16 MHz and 
-supports independent digital supply (DVDD) from 1.65V to 3.6V. Key features include 
-integrated offset calibration, 12-bit resolution with no missing codes, ±1 LSB INL, 
+The ADS7044 is a 12-bit, 1-MSPS, analog-to-digital converter (ADC) featuring industry-leading
+ultra-low power consumption (261 µW at 1 MSPS with 1.8V AVDD) in the industry's smallest
+package. The device supports true differential inputs with both AINP and AINM capable of
+0V to AVDD range. With AVDD from 1.65V to 3.6V, it includes a capacitor-based SAR ADC with
+inherent sample-and-hold. The SPI-compatible serial interface operates up to 16 MHz and
+supports independent digital supply (DVDD) from 1.65V to 3.6V. Key features include
+integrated offset calibration, 12-bit resolution with no missing codes, ±1 LSB INL,
 71dB SNR, and -85dB THD with 3V AVDD.
 
 IMPORTANT: Unlike other ADCs in this family, ADS7044 supports true differential inputs.
@@ -31,26 +31,26 @@ InputConfiguration = enum("SingleEnded", "Differential")
 FilterConfiguration = enum("None", "Simple", "AntiAliasing")
 
 # Configuration options
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
-add_analog_filtering = config("add_analog_filtering", bool, default = True)
-add_test_points = config("add_test_points", bool, default = False, optional = True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
+add_analog_filtering = config("add_analog_filtering", bool, default=True)
+add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # Input configuration - default to Differential to leverage ADS7044's capability
-input_configuration = config("input_configuration", InputConfiguration, default = "Differential")
-filter_configuration = config("filter_configuration", FilterConfiguration, default = "AntiAliasing")
+input_configuration = config("input_configuration", InputConfiguration, default="Differential")
+filter_configuration = config("filter_configuration", FilterConfiguration, default="AntiAliasing")
 
 # For ADS7044, differential filtering is safe due to wide AINM range
 # This config is kept for compatibility but defaults to True
-allow_differential_filtering = config("allow_differential_filtering", bool, default = True)
+allow_differential_filtering = config("allow_differential_filtering", bool, default=True)
 
 # Filter values for anti-aliasing filter (from typical application)
 if filter_configuration == FilterConfiguration("AntiAliasing"):
-    filter_r_value = config("filter_r_value", str, default = "30ohms")
-    filter_c_value = config("filter_c_value", str, default = "1nF")
+    filter_r_value = config("filter_r_value", str, default="30ohms")
+    filter_c_value = config("filter_c_value", str, default="1nF")
 
 # SPI interface configuration
-add_spi_pullup = config("add_spi_pullup", bool, default = True)
+add_spi_pullup = config("add_spi_pullup", bool, default=True)
 
 # External power supplies
 AVDD = io("AVDD", Power)
@@ -79,14 +79,14 @@ else:
 
 # Main component
 Component(
-    name = "ADS7044",
-    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS7044xDCU"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/VSSOP-8_2.3x2mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="ADS7044",
+    symbol=Symbol(library="@kicad-symbols/Analog_ADC.kicad_sym", name="ADS7044xDCU"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/VSSOP-8_2.3x2mm_P0.5mm.kicad_mod"),
+    pins={
         "AINP": _AINP_FILTERED,
         "AINM": _AINM_FILTERED if input_configuration == InputConfiguration("Differential") else _AINM,
-        "AVDD": AVDD.NET,
-        "DVDD": DVDD.NET,
+        "AVDD": AVDD,
+        "DVDD": DVDD,
         "GND": GND,
         "SDO": spi.MISO,
         "SCLK": spi.CLK,
@@ -97,202 +97,202 @@ Component(
 # Power supply decoupling
 # AVDD decoupling - datasheet recommends 1µF low ESR ceramic minimum
 Capacitor(
-    name = "C_AVDD_BULK",
-    value = "1uF",
-    voltage = "6.3V",
-    package = "0603",
-    P1 = AVDD.NET,
-    P2 = GND,
+    name="C_AVDD_BULK",
+    value="1uF",
+    voltage="6.3V",
+    package="0603",
+    P1=AVDD,
+    P2=GND,
 )
 
 if add_decoupling_caps:
     # Additional AVDD decoupling for high frequency
     Capacitor(
-        name = "C_AVDD",
-        value = "100nF",
-        voltage = "6.3V",
-        package = "0402",
-        P1 = AVDD.NET,
-        P2 = GND,
+        name="C_AVDD",
+        value="100nF",
+        voltage="6.3V",
+        package="0402",
+        P1=AVDD,
+        P2=GND,
     )
 
 # DVDD decoupling - 1µF recommended for stability
 Capacitor(
-    name = "C_DVDD_BULK",
-    value = "1uF",
-    voltage = "6.3V",
-    package = "0603",
-    P1 = DVDD.NET,
-    P2 = GND,
+    name="C_DVDD_BULK",
+    value="1uF",
+    voltage="6.3V",
+    package="0603",
+    P1=DVDD,
+    P2=GND,
 )
 
 if add_decoupling_caps:
     # Additional DVDD decoupling
     Capacitor(
-        name = "C_DVDD",
-        value = "100nF",
-        voltage = "6.3V",
-        package = "0402",
-        P1 = DVDD.NET,
-        P2 = GND,
+        name="C_DVDD",
+        value="100nF",
+        voltage="6.3V",
+        package="0402",
+        P1=DVDD,
+        P2=GND,
     )
 
 # Input filtering
 if add_analog_filtering and filter_configuration == FilterConfiguration("Simple"):
     # Simple RC filter - using typical application values
     Resistor(
-        name = "R_FILTER_P",
-        value = "30ohms",
-        package = "0402",
-        P1 = AINP,
-        P2 = _AINP_FILTERED,
+        name="R_FILTER_P",
+        value="30ohms",
+        package="0402",
+        P1=AINP,
+        P2=_AINP_FILTERED,
     )
-    
+
     # ADS7044 supports true differential inputs with AINM range 0V to AVDD
     # Differential filtering is safe and recommended for best performance
     if input_configuration == InputConfiguration("SingleEnded"):
         # Single-ended: standard differential capacitor
         Capacitor(
-            name = "C_FILTER",
-            value = "1nF",
-            voltage = "6.3V", 
-            package = "0402",
-            P1 = _AINP_FILTERED,
-            P2 = GND,
+            name="C_FILTER",
+            value="1nF",
+            voltage="6.3V",
+            package="0402",
+            P1=_AINP_FILTERED,
+            P2=GND,
             # C0G/NPO dielectric required for stability
         )
     else:  # Differential
         if allow_differential_filtering:
             # Differential filtering recommended for ADS7044
             Resistor(
-                name = "R_FILTER_M",
-                value = "30ohms",
-                package = "0402",
-                P1 = AINM,
-                P2 = _AINM_FILTERED,
+                name="R_FILTER_M",
+                value="30ohms",
+                package="0402",
+                P1=AINM,
+                P2=_AINM_FILTERED,
             )
             # Differential capacitor between inputs
             Capacitor(
-                name = "C_FILTER",
-                value = "1nF",
-                voltage = "6.3V",
-                package = "0402",
-                P1 = _AINP_FILTERED,
-                P2 = _AINM_FILTERED,
+                name="C_FILTER",
+                value="1nF",
+                voltage="6.3V",
+                package="0402",
+                P1=_AINP_FILTERED,
+                P2=_AINM_FILTERED,
                 # C0G/NPO dielectric required for stability
             )
         else:
             # Single-ended filtering (capacitor to GND)
             # Consider enabling differential filtering for better performance
             Capacitor(
-                name = "C_FILTER",
-                value = "1nF",
-                voltage = "6.3V",
-                package = "0402",
-                P1 = _AINP_FILTERED,
-                P2 = GND,
+                name="C_FILTER",
+                value="1nF",
+                voltage="6.3V",
+                package="0402",
+                P1=_AINP_FILTERED,
+                P2=GND,
                 # C0G/NPO dielectric required for stability
             )
 
 elif add_analog_filtering and filter_configuration == FilterConfiguration("AntiAliasing"):
     # Anti-aliasing filter with configurable values
     Resistor(
-        name = "R_FILTER_P",
-        value = filter_r_value,
-        package = "0402",
-        P1 = AINP,
-        P2 = _AINP_FILTERED,
+        name="R_FILTER_P",
+        value=filter_r_value,
+        package="0402",
+        P1=AINP,
+        P2=_AINP_FILTERED,
     )
-    
+
     # ADS7044 supports full differential filtering
     if input_configuration == InputConfiguration("SingleEnded"):
         # Single-ended: standard configuration
         Capacitor(
-            name = "C_FILTER",
-            value = filter_c_value,
-            voltage = "6.3V",
-            package = "0402",
-            P1 = _AINP_FILTERED,
-            P2 = GND,
+            name="C_FILTER",
+            value=filter_c_value,
+            voltage="6.3V",
+            package="0402",
+            P1=_AINP_FILTERED,
+            P2=GND,
             # C0G/NPO dielectric required for stability
         )
     else:  # Differential
         if allow_differential_filtering:
             # Differential filtering recommended for ADS7044
             Resistor(
-                name = "R_FILTER_M",
-                value = filter_r_value,
-                package = "0402",
-                P1 = AINM,
-                P2 = _AINM_FILTERED,
+                name="R_FILTER_M",
+                value=filter_r_value,
+                package="0402",
+                P1=AINM,
+                P2=_AINM_FILTERED,
             )
             # Differential capacitor - COG/NPO type recommended
             Capacitor(
-                name = "C_FILTER",
-                value = filter_c_value,
-                voltage = "6.3V",
-                package = "0402",
-                P1 = _AINP_FILTERED,
-                P2 = _AINM_FILTERED,
+                name="C_FILTER",
+                value=filter_c_value,
+                voltage="6.3V",
+                package="0402",
+                P1=_AINP_FILTERED,
+                P2=_AINM_FILTERED,
                 # C0G/NPO dielectric required for stability
             )
         else:
             # Single-ended filtering (capacitor to GND)
             Capacitor(
-                name = "C_FILTER",
-                value = filter_c_value,
-                voltage = "6.3V",
-                package = "0402",
-                P1 = _AINP_FILTERED,
-                P2 = GND,
+                name="C_FILTER",
+                value=filter_c_value,
+                voltage="6.3V",
+                package="0402",
+                P1=_AINP_FILTERED,
+                P2=GND,
                 # C0G/NPO dielectric required for stability
             )
 
 # SPI pull-up on CS line
 if add_spi_pullup:
     Resistor(
-        name = "R_CS_PULLUP",
-        value = "10kohms",
-        package = "0402",
-        P1 = spi.CS,
-        P2 = DVDD.NET,
+        name="R_CS_PULLUP",
+        value="10kohms",
+        package="0402",
+        P1=spi.CS,
+        P2=DVDD,
     )
 
 # Test points for debugging
 if add_test_points:
     TestPoint(
-        name = "TP_AINP",
-        variant = "Pad_D1.0mm",
-        P1 = _AINP_FILTERED,
+        name="TP_AINP",
+        variant="Pad_D1.0mm",
+        P1=_AINP_FILTERED,
     )
-    
+
     if input_configuration == InputConfiguration("Differential"):
         TestPoint(
-            name = "TP_AINM",
-            variant = "Pad_D1.0mm",
-            P1 = _AINM_FILTERED,
+            name="TP_AINM",
+            variant="Pad_D1.0mm",
+            P1=_AINM_FILTERED,
         )
 
 # Additional bulk capacitance for better power stability
 if add_bulk_caps:
     # Additional bulk cap on AVDD for low-frequency noise
     Capacitor(
-        name = "C_AVDD_BULK2",
-        value = "10uF",
-        voltage = "6.3V",
-        package = "0805",
-        P1 = AVDD.NET,
-        P2 = GND,
+        name="C_AVDD_BULK2",
+        value="10uF",
+        voltage="6.3V",
+        package="0805",
+        P1=AVDD,
+        P2=GND,
     )
-    
+
     # Additional bulk cap on DVDD for current spikes
     Capacitor(
-        name = "C_DVDD_BULK2",
-        value = "10uF",
-        voltage = "6.3V",
-        package = "0805",
-        P1 = DVDD.NET,
-        P2 = GND,
+        name="C_DVDD_BULK2",
+        value="10uF",
+        voltage="6.3V",
+        package="0805",
+        P1=DVDD,
+        P2=GND,
     )
 
 # pcb:sch ADS7044 x=227.6000 y=202.2000 rot=0

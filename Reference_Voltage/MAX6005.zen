@@ -1,10 +1,10 @@
 """MAX6005 - Low-Cost, Low-Power, Low-Dropout, SOT23-3 Voltage Reference
 
-The MAX6005 is a precision 5.000V series voltage reference that combines low power consumption, 
-high accuracy, and low dropout voltage in a compact SOT23-3 package. It features ±1% initial 
-accuracy, 100ppm/°C maximum temperature coefficient, and operates from a wide 5.2V to 12.6V 
-input voltage range. The device draws only 45µA maximum quiescent current and can source or 
-sink up to 400µA while maintaining excellent regulation. With only 100mV typical dropout at 
+The MAX6005 is a precision 5.000V series voltage reference that combines low power consumption,
+high accuracy, and low dropout voltage in a compact SOT23-3 package. It features ±1% initial
+accuracy, 100ppm/°C maximum temperature coefficient, and operates from a wide 5.2V to 12.6V
+input voltage range. The device draws only 45µA maximum quiescent current and can source or
+sink up to 400µA while maintaining excellent regulation. With only 100mV typical dropout at
 400µA load, it's ideal for low-voltage battery-powered applications.
 
 Key features:
@@ -22,6 +22,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX6001-MAX6005.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
@@ -35,25 +36,25 @@ OutputConfiguration = enum("Direct", "Filtered")
 
 # Configuration
 # Input filtering configuration
-input_filter_config = config("input_filter_config", InputFilterConfiguration, default = "RC")
+input_filter_config = config("input_filter_config", InputFilterConfiguration, default="RC")
 if input_filter_config == InputFilterConfiguration("RC"):
-    input_filter_r_value = config("input_filter_r_value", str, default = "10ohms")
-    input_filter_c_value = config("input_filter_c_value", str, default = "1uF")
+    input_filter_r_value = config("input_filter_r_value", str, default="10ohms")
+    input_filter_c_value = config("input_filter_c_value", str, default="1uF")
 elif input_filter_config == InputFilterConfiguration("Capacitor"):
-    input_filter_c_value = config("input_filter_c_value", str, default = "1uF")
+    input_filter_c_value = config("input_filter_c_value", str, default="1uF")
 
 # Output configuration
-output_config = config("output_config", OutputConfiguration, default = "Filtered")
+output_config = config("output_config", OutputConfiguration, default="Filtered")
 if output_config == OutputConfiguration("Filtered"):
-    output_cap_value = config("output_cap_value", str, default = "1nF")  # Max 2.2nF for stability
+    output_cap_value = config("output_cap_value", str, default="1nF")  # Max 2.2nF for stability
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
 VIN = io("VIN", Power)
 GND = io("GND", Ground)
-VREF = io("VREF", Net, default = Net("VREF_5V0"))
+VREF = io("VREF", Net, default=Net("VREF_5V0"))
 
 # Internal nets
 if input_filter_config == InputFilterConfiguration("RC"):
@@ -63,13 +64,13 @@ else:
 
 # Main component
 Component(
-    name = "MAX6005",
-    symbol = Symbol(library = "@kicad-symbols/Reference_Voltage.kicad_sym", name = "MAX6005"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23.kicad_mod"),
-    pins = {
-        "IN": _VIN_FILTERED,   # Pin 1 - Supply input
-        "OUT": VREF,           # Pin 2 - Reference output
-        "GND": GND,            # Pin 3 - Ground
+    name="MAX6005",
+    symbol=Symbol(library="@kicad-symbols/Reference_Voltage.kicad_sym", name="MAX6005"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23.kicad_mod"),
+    pins={
+        "IN": _VIN_FILTERED,  # Pin 1 - Supply input
+        "OUT": VREF,  # Pin 2 - Reference output
+        "GND": GND,  # Pin 3 - Ground
     },
 )
 
@@ -77,30 +78,30 @@ Component(
 if input_filter_config == InputFilterConfiguration("RC"):
     # Series resistor for RC filter
     Resistor(
-        name = "R_FILTER",
-        value = input_filter_r_value,
-        package = "0603",
-        P1 = VIN,
-        P2 = _VIN_FILTERED,
+        name="R_FILTER",
+        value=input_filter_r_value,
+        package="0603",
+        P1=VIN,
+        P2=_VIN_FILTERED,
     )
     # Filter capacitor
     Capacitor(
-        name = "C_FILTER",
-        value = input_filter_c_value,
-        voltage = "16V",
-        package = "0805",
-        P1 = _VIN_FILTERED,
-        P2 = GND,
+        name="C_FILTER",
+        value=input_filter_c_value,
+        voltage="16V",
+        package="0805",
+        P1=_VIN_FILTERED,
+        P2=GND,
     )
 elif input_filter_config == InputFilterConfiguration("Capacitor"):
     # Input bypass capacitor only
     Capacitor(
-        name = "C_IN",
-        value = input_filter_c_value,
-        voltage = "16V",
-        package = "0805",
-        P1 = VIN,
-        P2 = GND,
+        name="C_IN",
+        value=input_filter_c_value,
+        voltage="16V",
+        package="0805",
+        P1=VIN,
+        P2=GND,
     )
 
 # Output configuration
@@ -108,19 +109,19 @@ if output_config == OutputConfiguration("Filtered"):
     # Output capacitor for transient response
     # Note: MAX6005 is stable with 0-2.2nF output capacitance
     Capacitor(
-        name = "C_OUT",
-        value = output_cap_value,
-        voltage = "6.3V",
-        package = "0603",
-        P1 = VREF,
-        P2 = GND,
+        name="C_OUT",
+        value=output_cap_value,
+        voltage="6.3V",
+        package="0603",
+        P1=VREF,
+        P2=GND,
     )
 
 # Test points (optional)
 if add_test_points:
-    TestPoint(name = "TP_VIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VIN)
-    TestPoint(name = "TP_VREF", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VREF)
-    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name="TP_VIN", variant="THTPad_D1.0mm_Drill0.5mm", P1=VIN)
+    TestPoint(name="TP_VREF", variant="THTPad_D1.0mm_Drill0.5mm", P1=VREF)
+    TestPoint(name="TP_GND", variant="THTPad_D1.0mm_Drill0.5mm", P1=GND)
 
 # PCB placement hints for optimal layout
 # Place input capacitors close to pin 1 (IN)

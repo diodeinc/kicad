@@ -1,14 +1,14 @@
 """PCA9685BS - 16-channel 12-bit PWM Fm+ I2C-bus LED controller
 
-The PCA9685 is an I2C-bus controlled 16-channel LED controller optimized for 
-Red/Green/Blue/Amber (RGBA) color backlighting applications. Each LED output has 
-its own 12-bit resolution (4096 steps) fixed frequency individual PWM controller 
-that operates at a programmable frequency from a typical of 24 Hz to 1526 Hz with 
+The PCA9685 is an I2C-bus controlled 16-channel LED controller optimized for
+Red/Green/Blue/Amber (RGBA) color backlighting applications. Each LED output has
+its own 12-bit resolution (4096 steps) fixed frequency individual PWM controller
+that operates at a programmable frequency from a typical of 24 Hz to 1526 Hz with
 a duty cycle that is adjustable from 0% to 100%. The device features push-pull
-outputs with 25 mA sink/10 mA source capability at 5V. It operates from 2.3V to 
+outputs with 25 mA sink/10 mA source capability at 5V. It operates from 2.3V to
 5.5V and includes 1 MHz Fast-mode Plus I2C interface.
 
-The OE (Output Enable) pin is active-low - outputs are enabled when OE is low. 
+The OE (Output Enable) pin is active-low - outputs are enabled when OE is low.
 Default configuration includes a pull-down resistor to keep outputs enabled.
 When oe_pull_config is set to "None", the OE pin is exposed for external control.
 
@@ -33,39 +33,95 @@ OeConfig = enum("PullDown", "PullUp", "None")
 # Common addresses: 0x40 (all pins low), 0x7F (all pins high)
 # Each group of 8: 0x40-0x47, 0x48-0x4F, 0x50-0x57, etc.
 I2cAddress = enum(
-    "0x40", "0x41", "0x42", "0x43", "0x44", "0x45", "0x46", "0x47",
-    "0x48", "0x49", "0x4A", "0x4B", "0x4C", "0x4D", "0x4E", "0x4F",
-    "0x50", "0x51", "0x52", "0x53", "0x54", "0x55", "0x56", "0x57",
-    "0x58", "0x59", "0x5A", "0x5B", "0x5C", "0x5D", "0x5E", "0x5F",
-    "0x60", "0x61", "0x62", "0x63", "0x64", "0x65", "0x66", "0x67",
-    "0x68", "0x69", "0x6A", "0x6B", "0x6C", "0x6D", "0x6E", "0x6F",
-    "0x70", "0x71", "0x72", "0x73", "0x74", "0x75", "0x76", "0x77",
-    "0x78", "0x79", "0x7A", "0x7B", "0x7C", "0x7D", "0x7E", "0x7F"
+    "0x40",
+    "0x41",
+    "0x42",
+    "0x43",
+    "0x44",
+    "0x45",
+    "0x46",
+    "0x47",
+    "0x48",
+    "0x49",
+    "0x4A",
+    "0x4B",
+    "0x4C",
+    "0x4D",
+    "0x4E",
+    "0x4F",
+    "0x50",
+    "0x51",
+    "0x52",
+    "0x53",
+    "0x54",
+    "0x55",
+    "0x56",
+    "0x57",
+    "0x58",
+    "0x59",
+    "0x5A",
+    "0x5B",
+    "0x5C",
+    "0x5D",
+    "0x5E",
+    "0x5F",
+    "0x60",
+    "0x61",
+    "0x62",
+    "0x63",
+    "0x64",
+    "0x65",
+    "0x66",
+    "0x67",
+    "0x68",
+    "0x69",
+    "0x6A",
+    "0x6B",
+    "0x6C",
+    "0x6D",
+    "0x6E",
+    "0x6F",
+    "0x70",
+    "0x71",
+    "0x72",
+    "0x73",
+    "0x74",
+    "0x75",
+    "0x76",
+    "0x77",
+    "0x78",
+    "0x79",
+    "0x7A",
+    "0x7B",
+    "0x7C",
+    "0x7D",
+    "0x7E",
+    "0x7F",
 )
 
 # Configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-i2c_speed = config("i2c_speed", I2cSpeed, default = "Fast")
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+i2c_speed = config("i2c_speed", I2cSpeed, default="Fast")
 
 # Address configuration - 6-bit addressing (0x40-0x7F range)
-address = config("address", I2cAddress, default = "0x7F")
-expose_address_pins = config("expose_address_pins", bool, default = False)
+address = config("address", I2cAddress, default="0x7F")
+expose_address_pins = config("expose_address_pins", bool, default=False)
 
 # Clock configuration
-clock_source = config("clock_source", ClockSource, default = "Internal")
+clock_source = config("clock_source", ClockSource, default="Internal")
 if clock_source == ClockSource("External"):
-    add_extclk_series_resistor = config("add_extclk_series_resistor", bool, default = True)
+    add_extclk_series_resistor = config("add_extclk_series_resistor", bool, default=True)
 
 # OE control
-oe_config = config("oe_config", OeConfig, default = "PullDown")
+oe_config = config("oe_config", OeConfig, default="PullDown")
 
 # LED connectors
-add_led_header = config("add_led_header", bool, default = True)
+add_led_header = config("add_led_header", bool, default=True)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = False)
+add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
 VDD = io("VDD", Power)
@@ -131,27 +187,75 @@ if not expose_address_pins:
     # A0=1 adds 0x01, A1=1 adds 0x02, A2=1 adds 0x04, A3=1 adds 0x08, A4=1 adds 0x10, A5=1 adds 0x20
     # Map address enum to integer value
     address_map = {
-        I2cAddress("0x40"): 0x40, I2cAddress("0x41"): 0x41, I2cAddress("0x42"): 0x42, I2cAddress("0x43"): 0x43,
-        I2cAddress("0x44"): 0x44, I2cAddress("0x45"): 0x45, I2cAddress("0x46"): 0x46, I2cAddress("0x47"): 0x47,
-        I2cAddress("0x48"): 0x48, I2cAddress("0x49"): 0x49, I2cAddress("0x4A"): 0x4A, I2cAddress("0x4B"): 0x4B,
-        I2cAddress("0x4C"): 0x4C, I2cAddress("0x4D"): 0x4D, I2cAddress("0x4E"): 0x4E, I2cAddress("0x4F"): 0x4F,
-        I2cAddress("0x50"): 0x50, I2cAddress("0x51"): 0x51, I2cAddress("0x52"): 0x52, I2cAddress("0x53"): 0x53,
-        I2cAddress("0x54"): 0x54, I2cAddress("0x55"): 0x55, I2cAddress("0x56"): 0x56, I2cAddress("0x57"): 0x57,
-        I2cAddress("0x58"): 0x58, I2cAddress("0x59"): 0x59, I2cAddress("0x5A"): 0x5A, I2cAddress("0x5B"): 0x5B,
-        I2cAddress("0x5C"): 0x5C, I2cAddress("0x5D"): 0x5D, I2cAddress("0x5E"): 0x5E, I2cAddress("0x5F"): 0x5F,
-        I2cAddress("0x60"): 0x60, I2cAddress("0x61"): 0x61, I2cAddress("0x62"): 0x62, I2cAddress("0x63"): 0x63,
-        I2cAddress("0x64"): 0x64, I2cAddress("0x65"): 0x65, I2cAddress("0x66"): 0x66, I2cAddress("0x67"): 0x67,
-        I2cAddress("0x68"): 0x68, I2cAddress("0x69"): 0x69, I2cAddress("0x6A"): 0x6A, I2cAddress("0x6B"): 0x6B,
-        I2cAddress("0x6C"): 0x6C, I2cAddress("0x6D"): 0x6D, I2cAddress("0x6E"): 0x6E, I2cAddress("0x6F"): 0x6F,
-        I2cAddress("0x70"): 0x70, I2cAddress("0x71"): 0x71, I2cAddress("0x72"): 0x72, I2cAddress("0x73"): 0x73,
-        I2cAddress("0x74"): 0x74, I2cAddress("0x75"): 0x75, I2cAddress("0x76"): 0x76, I2cAddress("0x77"): 0x77,
-        I2cAddress("0x78"): 0x78, I2cAddress("0x79"): 0x79, I2cAddress("0x7A"): 0x7A, I2cAddress("0x7B"): 0x7B,
-        I2cAddress("0x7C"): 0x7C, I2cAddress("0x7D"): 0x7D, I2cAddress("0x7E"): 0x7E, I2cAddress("0x7F"): 0x7F,
+        I2cAddress("0x40"): 0x40,
+        I2cAddress("0x41"): 0x41,
+        I2cAddress("0x42"): 0x42,
+        I2cAddress("0x43"): 0x43,
+        I2cAddress("0x44"): 0x44,
+        I2cAddress("0x45"): 0x45,
+        I2cAddress("0x46"): 0x46,
+        I2cAddress("0x47"): 0x47,
+        I2cAddress("0x48"): 0x48,
+        I2cAddress("0x49"): 0x49,
+        I2cAddress("0x4A"): 0x4A,
+        I2cAddress("0x4B"): 0x4B,
+        I2cAddress("0x4C"): 0x4C,
+        I2cAddress("0x4D"): 0x4D,
+        I2cAddress("0x4E"): 0x4E,
+        I2cAddress("0x4F"): 0x4F,
+        I2cAddress("0x50"): 0x50,
+        I2cAddress("0x51"): 0x51,
+        I2cAddress("0x52"): 0x52,
+        I2cAddress("0x53"): 0x53,
+        I2cAddress("0x54"): 0x54,
+        I2cAddress("0x55"): 0x55,
+        I2cAddress("0x56"): 0x56,
+        I2cAddress("0x57"): 0x57,
+        I2cAddress("0x58"): 0x58,
+        I2cAddress("0x59"): 0x59,
+        I2cAddress("0x5A"): 0x5A,
+        I2cAddress("0x5B"): 0x5B,
+        I2cAddress("0x5C"): 0x5C,
+        I2cAddress("0x5D"): 0x5D,
+        I2cAddress("0x5E"): 0x5E,
+        I2cAddress("0x5F"): 0x5F,
+        I2cAddress("0x60"): 0x60,
+        I2cAddress("0x61"): 0x61,
+        I2cAddress("0x62"): 0x62,
+        I2cAddress("0x63"): 0x63,
+        I2cAddress("0x64"): 0x64,
+        I2cAddress("0x65"): 0x65,
+        I2cAddress("0x66"): 0x66,
+        I2cAddress("0x67"): 0x67,
+        I2cAddress("0x68"): 0x68,
+        I2cAddress("0x69"): 0x69,
+        I2cAddress("0x6A"): 0x6A,
+        I2cAddress("0x6B"): 0x6B,
+        I2cAddress("0x6C"): 0x6C,
+        I2cAddress("0x6D"): 0x6D,
+        I2cAddress("0x6E"): 0x6E,
+        I2cAddress("0x6F"): 0x6F,
+        I2cAddress("0x70"): 0x70,
+        I2cAddress("0x71"): 0x71,
+        I2cAddress("0x72"): 0x72,
+        I2cAddress("0x73"): 0x73,
+        I2cAddress("0x74"): 0x74,
+        I2cAddress("0x75"): 0x75,
+        I2cAddress("0x76"): 0x76,
+        I2cAddress("0x77"): 0x77,
+        I2cAddress("0x78"): 0x78,
+        I2cAddress("0x79"): 0x79,
+        I2cAddress("0x7A"): 0x7A,
+        I2cAddress("0x7B"): 0x7B,
+        I2cAddress("0x7C"): 0x7C,
+        I2cAddress("0x7D"): 0x7D,
+        I2cAddress("0x7E"): 0x7E,
+        I2cAddress("0x7F"): 0x7F,
     }
-    
+
     # Extract address bits from address value
     addr_val = address_map[address] & 0x3F  # Get lower 6 bits
-    
+
     # Connect each address pin to VDD or VSS using conditional net assignment
     _A0 = VDD if addr_val & 0x01 else VSS
     _A1 = VDD if addr_val & 0x02 else VSS
@@ -173,10 +277,10 @@ else:
 
 # Main component
 Component(
-    name = "PCA9685BS",
-    symbol = Symbol(library = "@kicad-symbols/Driver_LED.kicad_sym", name = "PCA9685BS"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-28-1EP_6x6mm_P0.65mm_EP4.25x4.25mm.kicad_mod"),
-    pins = {
+    name="PCA9685BS",
+    symbol=Symbol(library="@kicad-symbols/Driver_LED.kicad_sym", name="PCA9685BS"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-28-1EP_6x6mm_P0.65mm_EP4.25x4.25mm.kicad_mod"),
+    pins={
         "A0": _A0,
         "A1": _A1,
         "A2": _A2,
@@ -210,10 +314,10 @@ Component(
 
 # Power supply decoupling
 if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = VSS)
+    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=VSS)
 
 if add_decoupling:
-    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD, P2 = VSS)
+    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=VSS)
 
 # I2C pull-up resistors
 if add_i2c_pullups:
@@ -224,55 +328,55 @@ if add_i2c_pullups:
         pullup_value = "4.7kohms"
     else:  # FastPlus
         pullup_value = "2.2kohms"
-    
-    Resistor(name = "R_SCL", value = pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD)
-    Resistor(name = "R_SDA", value = pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD)
+
+    Resistor(name="R_SCL", value=pullup_value, package="0402", P1=i2c.SCL, P2=VDD)
+    Resistor(name="R_SDA", value=pullup_value, package="0402", P1=i2c.SDA, P2=VDD)
 
 # OE pull resistor (active LOW output enable - pull down keeps outputs enabled)
 if oe_config == OeConfig("PullDown"):
-    Resistor(name = "R_OE", value = "10kohms", package = "0402", P1 = _OE, P2 = VSS)
+    Resistor(name="R_OE", value="10kohms", package="0402", P1=_OE, P2=VSS)
 elif oe_config == OeConfig("PullUp"):
-    Resistor(name = "R_OE", value = "10kohms", package = "0402", P1 = _OE, P2 = VDD)
+    Resistor(name="R_OE", value="10kohms", package="0402", P1=_OE, P2=VDD)
 
 # External clock series resistor
 if clock_source == ClockSource("External") and add_extclk_series_resistor:
     # Series resistor for signal integrity
-    Resistor(name = "R_EXTCLK", value = "33ohms", package = "0402", P1 = EXTCLK, P2 = _EXTCLK)
+    Resistor(name="R_EXTCLK", value="33ohms", package="0402", P1=EXTCLK, P2=_EXTCLK)
 
 # LED connectors for easy connection
 # LED header
 if add_led_header:
     # Single 16-pin header for all LED outputs
     PinHeader(
-        name = "J_LED",
-        pins = 16,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = LED0,
-        P2 = LED1,
-        P3 = LED2,
-        P4 = LED3,
-        P5 = LED4,
-        P6 = LED5,
-        P7 = LED6,
-        P8 = LED7,
-        P9 = LED8,
-        P10 = LED9,
-        P11 = LED10,
-        P12 = LED11,
-        P13 = LED12,
-        P14 = LED13,
-        P15 = LED14,
-        P16 = LED15,
+        name="J_LED",
+        pins=16,
+        rows=1,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=LED0,
+        P2=LED1,
+        P3=LED2,
+        P4=LED3,
+        P5=LED4,
+        P6=LED5,
+        P7=LED6,
+        P8=LED7,
+        P9=LED8,
+        P10=LED9,
+        P11=LED10,
+        P12=LED11,
+        P13=LED12,
+        P14=LED13,
+        P15=LED14,
+        P16=LED15,
     )
 
 # Test points
 if add_test_points:
-    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
-    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+    TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SCL)
+    TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SDA)
     if oe_config == OeConfig("None"):
-        TestPoint(name = "TP_OE", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _OE)
+        TestPoint(name="TP_OE", variant="THTPad_D1.0mm_Drill0.5mm", P1=_OE)
 
 # pcb:sch C_BULK.C x=1261.3800 y=964.2000 rot=0
 # pcb:sch C_VDD.C x=1375.6800 y=964.2000 rot=0

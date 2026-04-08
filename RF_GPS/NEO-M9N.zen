@@ -1,10 +1,10 @@
 """NEO-M9N - Standard precision GNSS module
 
-The NEO-M9N is a concurrent GNSS receiver module that provides exceptional sensitivity 
-and acquisition times for all L1 GNSS systems. It supports GPS, GLONASS, Galileo, 
-and BeiDou plus SBAS and QZSS, allowing for ultra-robust meter-level positioning 
-performance. The module features the u-blox M9 standard precision GNSS platform 
-and includes advanced jamming and spoofing detection, multiple interfaces 
+The NEO-M9N is a concurrent GNSS receiver module that provides exceptional sensitivity
+and acquisition times for all L1 GNSS systems. It supports GPS, GLONASS, Galileo,
+and BeiDou plus SBAS and QZSS, allowing for ultra-robust meter-level positioning
+performance. The module features the u-blox M9 standard precision GNSS platform
+and includes advanced jamming and spoofing detection, multiple interfaces
 (UART, SPI, I2C, USB), and operates from 2.7V to 3.6V supply voltage.
 
 Author: @anthropic/claude-opus-4
@@ -30,25 +30,25 @@ AntennaType = enum("Active", "Passive", "None")
 ResetConfiguration = enum("None", "Pullup", "Button")
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "UART_I2C")
+interface_mode = config("interface_mode", InterfaceMode, default="UART_I2C")
 if interface_mode == InterfaceMode("UART_I2C"):
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 else:
     add_i2c_pullups = False
-antenna_type = config("antenna_type", AntennaType, default = "Active")
-add_usb = config("add_usb", bool, default = True)
+antenna_type = config("antenna_type", AntennaType, default="Active")
+add_usb = config("add_usb", bool, default=True)
 if add_usb:
-    power_from_usb = config("power_from_usb", bool, default = True)
+    power_from_usb = config("power_from_usb", bool, default=True)
 else:
     power_from_usb = False
-add_battery = config("add_battery", bool, default = True)
-reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
-add_safeboot_pullup = config("add_safeboot_pullup", bool, default = True)
-add_extint_pullup = config("add_extint_pullup", bool, default = True)
-add_timepulse_led = config("add_timepulse_led", bool, default = True, optional = True)
-add_rf_test_point = config("add_rf_test_point", bool, default = False, optional = True)
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
+add_battery = config("add_battery", bool, default=True)
+reset_configuration = config("reset_configuration", ResetConfiguration, default="Button")
+add_safeboot_pullup = config("add_safeboot_pullup", bool, default=True)
+add_extint_pullup = config("add_extint_pullup", bool, default=True)
+add_timepulse_led = config("add_timepulse_led", bool, default=True, optional=True)
+add_rf_test_point = config("add_rf_test_point", bool, default=False, optional=True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO - Always create these power nets
 VCC = io("VCC", Power)
@@ -119,10 +119,10 @@ else:
 
 # GNSS Module NEO M9N, VCC 2.7V to 3.6V
 NEO_M9N = Component(
-    name = "NEO-M9N",
-    symbol = Symbol(library = "@kicad-symbols/RF_GPS.kicad_sym", name = "NEO-M9N"),
-    footprint = File("@kicad-footprints/RF_GPS.pretty/ublox_NEO.kicad_mod"),
-    pins = {
+    name="NEO-M9N",
+    symbol=Symbol(library="@kicad-symbols/RF_GPS.kicad_sym", name="NEO-M9N"),
+    footprint=File("@kicad-footprints/RF_GPS.pretty/ublox_NEO.kicad_mod"),
+    pins={
         "~{SAFEBOOT}": _SAFEBOOT_N,
         "D_SEL": _D_SEL,
         "TIMEPULSE": TIMEPULSE,
@@ -142,7 +142,7 @@ NEO_M9N = Component(
         "RXD/SPI_MOSI": _RXD if interface_mode == InterfaceMode("UART_I2C") else _SPI_MOSI,
         "SDA/~{SPI_CS}": _SDA if interface_mode == InterfaceMode("UART_I2C") else _SPI_CS_N,
         "SCL/SPI_CLK": _SCL if interface_mode == InterfaceMode("UART_I2C") else _SPI_CLK,
-    }
+    },
 )
 
 # Interface-specific pins are already connected in the Component definition above
@@ -150,164 +150,164 @@ NEO_M9N = Component(
 # Interface selection
 if interface_mode == InterfaceMode("UART_I2C"):
     # D_SEL = VCC or open for UART + I2C
-    Resistor(name = "R_DSEL", value = "10kohms", package = "0402", P1 = _D_SEL, P2 = VCC)
+    Resistor(name="R_DSEL", value="10kohms", package="0402", P1=_D_SEL, P2=VCC)
 else:  # SPI mode
     # D_SEL = GND for SPI
-    Resistor(name = "R_DSEL", value = "0ohms", package = "0402", P1 = _D_SEL, P2 = GND)
+    Resistor(name="R_DSEL", value="0ohms", package="0402", P1=_D_SEL, P2=GND)
 
 # Power supply decoupling
 # Main VCC bulk capacitor
 if add_bulk_caps:
-    Capacitor(name = "C_VCC_BULK", value = "10uF", voltage = "6.3V", package = "0805", P1 = VCC, P2 = GND)
+    Capacitor(name="C_VCC_BULK", value="10uF", voltage="6.3V", package="0805", P1=VCC, P2=GND)
 
 # VCC decoupling capacitors (multiple for good high-frequency response)
 if add_decoupling_caps:
-    Capacitor(name = "C_VCC1", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
-    Capacitor(name = "C_VCC2", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+    Capacitor(name="C_VCC1", value="100nF", package="0402", P1=VCC, P2=GND)
+    Capacitor(name="C_VCC2", value="100nF", package="0402", P1=VCC, P2=GND)
 
 # Backup power circuit
 if add_battery:
     # Battery holder for RTC backup - directly connected to V_BCKP
     Component(
-        name = "BT_VBAT",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Battery_Cell"),
-        footprint = File("@kicad-footprints/Battery.pretty/BatteryHolder_Keystone_500.kicad_mod"),
-        pins = {
+        name="BT_VBAT",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="Battery_Cell"),
+        footprint=File("@kicad-footprints/Battery.pretty/BatteryHolder_Keystone_500.kicad_mod"),
+        pins={
             "+": _V_BCKP,  # Direct connection to backup voltage pin
             "-": GND,
-        }
+        },
     )
     # VBAT decoupling
     if add_decoupling_caps:
-        Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _V_BCKP, P2 = GND)
+        Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_V_BCKP, P2=GND)
 
 # Reset circuit
 if reset_configuration == ResetConfiguration("Pullup"):
     # Simple pull-up
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET_N, P2 = VCC)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET_N, P2=VCC)
 elif reset_configuration == ResetConfiguration("Button"):
     # Pull-up with button to ground
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET_N, P2 = VCC)
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _RESET_N, P2 = GND)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET_N, P2=VCC)
+    Capacitor(name="C_RESET", value="100nF", package="0402", P1=_RESET_N, P2=GND)
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": _RESET_N,
             "2": GND,
-        }
+        },
     )
 
 # SAFEBOOT_N pull-up (if enabled)
 if add_safeboot_pullup:
-    Resistor(name = "R_SAFEBOOT", value = "10kohms", package = "0402", P1 = _SAFEBOOT_N, P2 = VCC)
+    Resistor(name="R_SAFEBOOT", value="10kohms", package="0402", P1=_SAFEBOOT_N, P2=VCC)
 
 # EXTINT pull-up (if enabled)
 if add_extint_pullup:
-    Resistor(name = "R_EXTINT", value = "10kohms", package = "0402", P1 = EXTINT, P2 = VCC)
+    Resistor(name="R_EXTINT", value="10kohms", package="0402", P1=EXTINT, P2=VCC)
 
 # I2C pull-ups (only in UART+I2C mode)
 if add_i2c_pullups:
-    Resistor(name = "R_I2C_SDA", value = "4.7kohms", package = "0402", P1 = _SDA, P2 = VCC)
-    Resistor(name = "R_I2C_SCL", value = "4.7kohms", package = "0402", P1 = _SCL, P2 = VCC)
+    Resistor(name="R_I2C_SDA", value="4.7kohms", package="0402", P1=_SDA, P2=VCC)
+    Resistor(name="R_I2C_SCL", value="4.7kohms", package="0402", P1=_SCL, P2=VCC)
 
 # Antenna circuit
 if antenna_type == AntennaType("Active"):
     # Active antenna with bias-T circuit
     # Create RF bias node
     _RF_BIAS = Net("RF_BIAS")
-    
+
     # Ferrite bead from GPS antenna input to RF bias node
-    FerriteBead(name = "L_BIAS", package = "0402", P1 = _RF_IN, P2 = _RF_BIAS)
-    
+    FerriteBead(name="L_BIAS", package="0402", P1=_RF_IN, P2=_RF_BIAS)
+
     # DC blocking capacitor from RF bias node to ground
-    Capacitor(name = "C_RF_BLOCK", value = "47pF", voltage = "50V", package = "0402", P1 = _RF_BIAS, P2 = GND)
-    
+    Capacitor(name="C_RF_BLOCK", value="47pF", voltage="50V", package="0402", P1=_RF_BIAS, P2=GND)
+
     # Bias resistor from VCC_RF to RF bias node
-    Resistor(name = "R_BIAS", value = "10ohms", package = "0402", P1 = _VCC_RF, P2 = _RF_BIAS)
-    
+    Resistor(name="R_BIAS", value="10ohms", package="0402", P1=_VCC_RF, P2=_RF_BIAS)
+
     # ESD protection on antenna connection
     Component(
-        name = "D_ANT_ESD",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "D_TVS"),
-        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
-        pins = {
+        name="D_ANT_ESD",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="D_TVS"),
+        footprint=File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
+        pins={
             "A1": _RF_IN,
             "A2": GND,
-        }
+        },
     )
-    
+
     # U.FL connector for antenna
     Component(
-        name = "J_ANT",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "Conn_Coaxial"),
-        footprint = File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
-        pins = {
+        name="J_ANT",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="Conn_Coaxial"),
+        footprint=File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
+        pins={
             "In": _RF_IN,
             "Ext": GND,
-        }
+        },
     )
-    
+
 elif antenna_type == AntennaType("Passive"):
     # Passive antenna - direct connection
     # ESD protection
     Component(
-        name = "D_ANT_ESD",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "D_TVS"),
-        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
-        pins = {
+        name="D_ANT_ESD",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="D_TVS"),
+        footprint=File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
+        pins={
             "A1": _RF_IN,
             "A2": GND,
-        }
+        },
     )
-    
+
     # U.FL connector for antenna
     Component(
-        name = "J_ANT",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "Conn_Coaxial"),
-        footprint = File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
-        pins = {
+        name="J_ANT",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="Conn_Coaxial"),
+        footprint=File("@kicad-footprints/Connector_Coaxial.pretty/U.FL_Hirose_U.FL-R-SMT-1_Vertical.kicad_mod"),
+        pins={
             "In": _RF_IN,
             "Ext": GND,
-        }
+        },
     )
 
 # RF test point (if enabled)
 if add_rf_test_point:
-    TestPoint(name = "TP_RF", variant = "Pad_D1.5mm", P1 = _RF_IN)
+    TestPoint(name="TP_RF", variant="Pad_D1.5mm", P1=_RF_IN)
 
 # Timepulse LED (if enabled) - Fixed 1kΩ resistor for timepulse indication
 if add_timepulse_led:
     _LED_TP_K = Net("LED_TP_K")
     Led(
-        name = "LED_TIMEPULSE",
-        color = "yellow",
-        package = "0603",
-        A = TIMEPULSE,
-        K = _LED_TP_K,
+        name="LED_TIMEPULSE",
+        color="yellow",
+        package="0603",
+        A=TIMEPULSE,
+        K=_LED_TP_K,
     )
-    Resistor(name = "R_LED_TP", value = "1kohms", package = "0402", P1 = _LED_TP_K, P2 = GND)
+    Resistor(name="R_LED_TP", value="1kohms", package="0402", P1=_LED_TP_K, P2=GND)
 
 # Timepulse test point (NEO-M9N timepulse output - frequency configured via UBX protocol)
-TestPoint(name = "TP_TIMEPULSE_CFG", variant = "Pad_D1.5mm", P1 = TIMEPULSE)
+TestPoint(name="TP_TIMEPULSE_CFG", variant="Pad_D1.5mm", P1=TIMEPULSE)
 
 # USB circuit
 if add_usb:
     # Internal USB data nets (before series resistors)
     _USB_DM_INT = Net("USB_DM_INT")
     _USB_DP_INT = Net("USB_DP_INT")
-    
+
     # USB-C Configuration Channel nets
     _USB_CC1 = Net("USB_CC1")
     _USB_CC2 = Net("USB_CC2")
-    
+
     # USB-C connector (USB 2.0 only)
     Component(
-        name = "J_USB",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
-        pins = {
+        name="J_USB",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="USB_C_Receptacle_USB2.0_16P"),
+        footprint=File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins={
             "VBUS": VBUS,
             "GND": GND,
             "CC1": _USB_CC1,
@@ -317,69 +317,69 @@ if add_usb:
             "SBU1": Net("USB_SBU1"),
             "SBU2": Net("USB_SBU2"),
             "SHIELD": GND,
-        }
+        },
     )
-    
+
     # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
-    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
-    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
-    
+    Resistor(name="R_USB_CC1", value="5.1kohms", package="0402", P1=_USB_CC1, P2=GND)
+    Resistor(name="R_USB_CC2", value="5.1kohms", package="0402", P1=_USB_CC2, P2=GND)
+
     # USB ESD Protection
     Component(
-        name = "U_USB_ESD",
-        symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
-        footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-        pins = {
+        name="U_USB_ESD",
+        symbol=Symbol(library="@kicad-symbols/Power_Protection.kicad_sym", name="USBLC6-2SC6"),
+        footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+        pins={
             "I/O1": _USB_DM_INT,
             "I/O2": _USB_DP_INT,
             "VBUS": VBUS,
             "GND": GND,
         },
     )
-    
+
     # Series resistors on USB data lines (after ESD protection)
     # These connect to _USB_DM and _USB_DP which are already connected to NEO-M9N
-    Resistor(name = "R_USB_DM", value = "27ohms", package = "0402", P1 = _USB_DM_INT, P2 = _USB_DM)
-    Resistor(name = "R_USB_DP", value = "27ohms", package = "0402", P1 = _USB_DP_INT, P2 = _USB_DP)
-        
+    Resistor(name="R_USB_DM", value="27ohms", package="0402", P1=_USB_DM_INT, P2=_USB_DM)
+    Resistor(name="R_USB_DP", value="27ohms", package="0402", P1=_USB_DP_INT, P2=_USB_DP)
+
     # VBUS decoupling
     if add_bulk_caps:
-        Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VBUS, P2 = GND)
+        Capacitor(name="C_VBUS", value="4.7uF", package="0805", P1=VBUS, P2=GND)
     if add_decoupling_caps:
-        Capacitor(name = "C_VBUS2", value = "100nF", package = "0402", P1 = VBUS, P2 = GND)
-    
+        Capacitor(name="C_VBUS2", value="100nF", package="0402", P1=VBUS, P2=GND)
+
     # USB Power Regulation
     if power_from_usb:
         # 3.3V LDO regulator from USB 5V to VCC
         AP2112K_3_3(
-            name = "U_USB_REG",
-            VIN = Power(NET = VBUS),
-            VOUT = Power(NET = VCC),
-            GND = GND,
-            add_input_cap = add_decoupling_caps,
-            add_output_cap = add_decoupling_caps,
-            enable_control = "AlwaysOn",
+            name="U_USB_REG",
+            VIN=Power(NET=VBUS),
+            VOUT=Power(NET=VCC),
+            GND=GND,
+            add_input_cap=add_decoupling_caps,
+            add_output_cap=add_decoupling_caps,
+            enable_control="AlwaysOn",
         )
 
 # Debug header for UART (in UART mode)
 if interface_mode == InterfaceMode("UART_I2C"):
     PinHeader(
-        name = "J_UART",
-        pins = 4,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = VCC,      # VCC
-        P2 = _TXD,     # TX
-        P3 = _RXD,     # RX
-        P4 = GND,      # GND
+        name="J_UART",
+        pins=4,
+        rows=1,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=VCC,  # VCC
+        P2=_TXD,  # TX
+        P3=_RXD,  # RX
+        P4=GND,  # GND
     )
 
 # Test points for production testing
-TestPoint(name = "TP_VCC", variant = "Pad_D1.5mm", P1 = VCC)
-TestPoint(name = "TP_GND", variant = "Pad_D1.5mm", P1 = GND)
+TestPoint(name="TP_VCC", variant="Pad_D1.5mm", P1=VCC)
+TestPoint(name="TP_GND", variant="Pad_D1.5mm", P1=GND)
 if add_battery:
-    TestPoint(name = "TP_VBACKUP", variant = "Pad_D1.5mm", P1 = _V_BCKP)
+    TestPoint(name="TP_VBACKUP", variant="Pad_D1.5mm", P1=_V_BCKP)
 
 # pcb:sch C_RF_BLOCK.C x=2785.3800 y=1650.0000 rot=0
 # pcb:sch C_VBAT.C x=2709.1800 y=1230.9000 rot=0

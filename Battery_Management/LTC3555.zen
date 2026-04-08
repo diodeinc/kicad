@@ -1,12 +1,12 @@
 """LTC3555 - High Efficiency USB Power Manager + Triple Step-Down DC/DC
 
-The LTC3555 is a highly integrated USB compatible power management and battery 
-charger IC for Li-Ion/Polymer battery applications. It includes a high efficiency 
-current limited switching PowerPath manager with automatic load prioritization, 
-a battery charger, an ideal diode and three general purpose synchronous step-down 
-switching regulators. The LTC3555 limits input current to either 100mA or 500mA 
-for USB applications or 1A for adapter-powered applications. Two of the three 
-general purpose switching regulators can provide up to 400mA and the third can 
+The LTC3555 is a highly integrated USB compatible power management and battery
+charger IC for Li-Ion/Polymer battery applications. It includes a high efficiency
+current limited switching PowerPath manager with automatic load prioritization,
+a battery charger, an ideal diode and three general purpose synchronous step-down
+switching regulators. The LTC3555 limits input current to either 100mA or 500mA
+for USB applications or 1A for adapter-powered applications. Two of the three
+general purpose switching regulators can provide up to 400mA and the third can
 deliver 1A. The entire product can be controlled via I²C or simple I/O.
 
 Features:
@@ -38,66 +38,82 @@ Mosfet = Module("@stdlib/generics/Mosfet.zen")
 CurrentLimitMode = enum("100mA", "500mA", "1A", "Suspend")
 ChargeCurrentMode = enum("100mA", "200mA", "400mA", "600mA", "800mA", "1000mA", "1200mA", "1500mA")
 BuckMode = enum("PulseSkip", "ForcedBurst", "LDO", "Burst")
-VoltageConfig = enum("0.425V", "0.450V", "0.475V", "0.500V", "0.525V", "0.550V", "0.575V", "0.600V", 
-                     "0.625V", "0.650V", "0.675V", "0.700V", "0.725V", "0.750V", "0.775V", "0.800V")
+VoltageConfig = enum(
+    "0.425V",
+    "0.450V",
+    "0.475V",
+    "0.500V",
+    "0.525V",
+    "0.550V",
+    "0.575V",
+    "0.600V",
+    "0.625V",
+    "0.650V",
+    "0.675V",
+    "0.700V",
+    "0.725V",
+    "0.750V",
+    "0.775V",
+    "0.800V",
+)
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-enable_ntc = config("enable_ntc", bool, default = True)
-charge_current = config("charge_current", ChargeCurrentMode, default = "1000mA")
-current_limit = config("current_limit", CurrentLimitMode, default = "500mA")
-enable_i2c = config("enable_i2c", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+enable_ntc = config("enable_ntc", bool, default=True)
+charge_current = config("charge_current", ChargeCurrentMode, default="1000mA")
+current_limit = config("current_limit", CurrentLimitMode, default="500mA")
+enable_i2c = config("enable_i2c", bool, default=True)
 if enable_i2c:
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-enable_buck1 = config("enable_buck1", bool, default = True)
-enable_buck2 = config("enable_buck2", bool, default = True)
-enable_buck3 = config("enable_buck3", bool, default = True)
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+enable_buck1 = config("enable_buck1", bool, default=True)
+enable_buck2 = config("enable_buck2", bool, default=True)
+enable_buck3 = config("enable_buck3", bool, default=True)
 if not enable_i2c:
-    buck_mode = config("buck_mode", BuckMode, default = "Burst")
+    buck_mode = config("buck_mode", BuckMode, default="Burst")
 
 # Buck output voltage configurations
 if enable_buck1:
-    buck1_output_voltage = config("buck1_output_voltage", float, default = 1.8)  # Buck1 output in volts
+    buck1_output_voltage = config("buck1_output_voltage", float, default=1.8)  # Buck1 output in volts
 if enable_buck2:
-    buck2_output_voltage = config("buck2_output_voltage", float, default = 1.8)  # Buck2 output in volts
+    buck2_output_voltage = config("buck2_output_voltage", float, default=1.8)  # Buck2 output in volts
     if enable_i2c:
         # FB servo voltage only applies in I2C mode
-        buck2_fb_voltage = config("buck2_fb_voltage", VoltageConfig, default = "0.800V")
+        buck2_fb_voltage = config("buck2_fb_voltage", VoltageConfig, default="0.800V")
 if enable_buck3:
-    buck3_output_voltage = config("buck3_output_voltage", float, default = 3.3)  # Buck3 output in volts
+    buck3_output_voltage = config("buck3_output_voltage", float, default=3.3)  # Buck3 output in volts
     if enable_i2c:
         # FB servo voltage only applies in I2C mode
-        buck3_fb_voltage = config("buck3_fb_voltage", VoltageConfig, default = "0.800V")
+        buck3_fb_voltage = config("buck3_fb_voltage", VoltageConfig, default="0.800V")
 
-add_external_ideal_diode = config("add_external_ideal_diode", bool, default = True)
-add_charge_led = config("add_charge_led", bool, default = True)
+add_external_ideal_diode = config("add_external_ideal_diode", bool, default=True)
+add_charge_led = config("add_charge_led", bool, default=True)
 
 # External IO
 VBUS = io("VBUS", Power)
-VOUT = io("VOUT", Net, default = Net("VOUT"))
-BAT = io("BAT", Net, default = Net("BAT"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
+BAT = io("BAT", Net, default=Net("BAT"))
 GND = io("GND", Ground)
 
 if enable_i2c:
-    i2c = io("I2C", I2c, default = I2c("I2C"))
-    DVCC = io("DVCC", Net, default = Net("DVCC"))
+    i2c = io("I2C", I2c, default=I2c("I2C"))
+    DVCC = io("DVCC", Net, default=Net("DVCC"))
 else:
     # Manual control pins
-    EN1 = io("EN1", Net, default = Net("EN1")) if enable_buck1 else None
-    EN2 = io("EN2", Net, default = Net("EN2")) if enable_buck2 else None  
-    EN3 = io("EN3", Net, default = Net("EN3")) if enable_buck3 else None
-    ILIM0 = io("ILIM0", Net, default = Net("ILIM0"))
-    ILIM1 = io("ILIM1", Net, default = Net("ILIM1"))
+    EN1 = io("EN1", Net, default=Net("EN1")) if enable_buck1 else None
+    EN2 = io("EN2", Net, default=Net("EN2")) if enable_buck2 else None
+    EN3 = io("EN3", Net, default=Net("EN3")) if enable_buck3 else None
+    ILIM0 = io("ILIM0", Net, default=Net("ILIM0"))
+    ILIM1 = io("ILIM1", Net, default=Net("ILIM1"))
 
 # Buck outputs
-BUCK1_OUT = io("BUCK1_OUT", Net, default = Net("BUCK1_OUT")) if enable_buck1 else None
-BUCK2_OUT = io("BUCK2_OUT", Net, default = Net("BUCK2_OUT")) if enable_buck2 else None
-BUCK3_OUT = io("BUCK3_OUT", Net, default = Net("BUCK3_OUT")) if enable_buck3 else None
+BUCK1_OUT = io("BUCK1_OUT", Net, default=Net("BUCK1_OUT")) if enable_buck1 else None
+BUCK2_OUT = io("BUCK2_OUT", Net, default=Net("BUCK2_OUT")) if enable_buck2 else None
+BUCK3_OUT = io("BUCK3_OUT", Net, default=Net("BUCK3_OUT")) if enable_buck3 else None
 
 # Status outputs
-CHRG_STAT = io("CHRG_STAT", Net, default = Net("CHRG_STAT"))
-RST3 = io("RST3", Net, default = Net("RST3")) if enable_buck3 else None
+CHRG_STAT = io("CHRG_STAT", Net, default=Net("CHRG_STAT"))
+RST3 = io("RST3", Net, default=Net("RST3")) if enable_buck3 else None
 
 # Internal nets
 _SW = Net("SW")
@@ -153,10 +169,10 @@ else:
 
 # High Efficiency USB Power Manager + Triple Step-Down DC/DC, 4.2V float, QFN-28
 Component(
-    name = "LTC3555",
-    symbol = Symbol(library = "@kicad-symbols/Battery_Management.kicad_sym", name = "LTC3555"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-28-1EP_4x5mm_P0.5mm_EP2.65x3.65mm.kicad_mod"),
-    pins = {
+    name="LTC3555",
+    symbol=Symbol(library="@kicad-symbols/Battery_Management.kicad_sym", name="LTC3555"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-28-1EP_4x5mm_P0.5mm_EP2.65x3.65mm.kicad_mod"),
+    pins={
         "LDO3V3": _LDO3V3,
         "CLPROG": _CLPROG,
         "NTC": _NTC,
@@ -185,37 +201,37 @@ Component(
         "SW": _SW,
         "I_{LIM0}": _ILIM0,
         "I_{LIM1}": _ILIM1,
-        "GND": GND
+        "GND": GND,
     },
 )
 
 # Input Capacitor - Required for USB input
 if add_input_cap:
-    Capacitor(name = "C_VBUS", value = "10uF", package = "0805", P1 = VBUS, P2 = GND)
+    Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND)
 
 # Output Capacitor - Required for PowerPath output stability
 if add_output_cap:
-    Capacitor(name = "C_VOUT", value = "22uF", package = "0805", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_VOUT_BULK", value = "22uF", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_VOUT", value="22uF", package="0805", P1=VOUT, P2=GND)
+    Capacitor(name="C_VOUT_BULK", value="22uF", package="0805", P1=VOUT, P2=GND)
 
 
 # PowerPath Switching Regulator Inductor
-Inductor(name = "L_SW", value = "3.3uH", package = "1210", P1 = _SW, P2 = VOUT)
+Inductor(name="L_SW", value="3.3uH", package="1210", P1=_SW, P2=VOUT)
 
 # USB Current Limit Programming
 # Current limit resistor values from datasheet
 clprog_table = {
-    CurrentLimitMode("100mA"): "3kohm",        # 100mA mode
-    CurrentLimitMode("500mA"): "0.59kohm",         # 500mA mode  
-    CurrentLimitMode("1A"): "0.301kohm",            # 1A mode
-    CurrentLimitMode("Suspend"): "30kohm"      # Suspend mode
+    CurrentLimitMode("100mA"): "3kohm",  # 100mA mode
+    CurrentLimitMode("500mA"): "0.59kohm",  # 500mA mode
+    CurrentLimitMode("1A"): "0.301kohm",  # 1A mode
+    CurrentLimitMode("Suspend"): "30kohm",  # Suspend mode
 }
 r_clprog_value = clprog_table.get(current_limit, "590ohm")
-Resistor(name = "R_CLPROG", value = r_clprog_value, package = "0402", P1 = _CLPROG, P2 = GND)
+Resistor(name="R_CLPROG", value=r_clprog_value, package="0402", P1=_CLPROG, P2=GND)
 
 # CLPROG filter capacitor - 0.47uF or larger per datasheet (in series with filter resistor)
-Capacitor(name = "C_CLPROG", value = "0.47uF", package = "0402", P1 = _CLPROG, P2 = _CLPROG_FILTER)
-Resistor(name = "R_CLPROG_FILTER", value = "8.2ohms", package = "0402", P1 = _CLPROG_FILTER, P2 = GND)
+Capacitor(name="C_CLPROG", value="0.47uF", package="0402", P1=_CLPROG, P2=_CLPROG_FILTER)
+Resistor(name="R_CLPROG_FILTER", value="8.2ohms", package="0402", P1=_CLPROG_FILTER, P2=GND)
 
 # Charge Current Programming Resistor
 charge_current_table = {
@@ -229,183 +245,199 @@ charge_current_table = {
     ChargeCurrentMode("1500mA"): "0.681kohm",
 }
 r_prog_value = charge_current_table.get(charge_current, "1020ohm")
-Resistor(name = "R_PROG", value = r_prog_value, package = "0402", P1 = _PROG, P2 = GND)
+Resistor(name="R_PROG", value=r_prog_value, package="0402", P1=_PROG, P2=GND)
 
 # NTC Thermistor Circuit (if enabled)
 if enable_ntc:
     # Bias resistor from VBUS to NTC (10k for 10k NTC at 25°C)
-    Resistor(name = "R_NTC_BIAS", value = "10000ohm", package = "0402", P1 = VBUS, P2 = _NTC)
+    Resistor(name="R_NTC_BIAS", value="10000ohm", package="0402", P1=VBUS, P2=_NTC)
     # NTC thermistor (10k at 25°C)
     Thermistor(
-        name = "R_NTC",
-        value = "10000ohm",
-        package = "0402",
-        temperature_coefficient = "NTC",
-        P1 = _NTC,
-        P2 = GND,
+        name="R_NTC",
+        value="10000ohm",
+        package="0402",
+        temperature_coefficient="NTC",
+        P1=_NTC,
+        P2=GND,
     )
 
 # LDO3V3 Output Capacitor
-Capacitor(name = "C_LDO3V3", value = "1uF", package = "0603", P1 = _LDO3V3, P2 = GND)
+Capacitor(name="C_LDO3V3", value="1uF", package="0603", P1=_LDO3V3, P2=GND)
 
 # External Ideal Diode (Si2333DS)
 if add_external_ideal_diode:
     # P-channel MOSFET (Si2333DS) for external ideal diode
     Mosfet(
-        name = "Q_IDEAL",
-        channel = "P",
-        package = "SOT-23-3",
-        G = _GATE,
-        S = VOUT,
-        D = BAT,
+        name="Q_IDEAL",
+        channel="P",
+        package="SOT-23-3",
+        G=_GATE,
+        S=VOUT,
+        D=BAT,
     )
-    
-    Capacitor(name = "C_BATT", value = "100uF", package = "1210", P1 = BAT, P2 = GND )
+
+    Capacitor(name="C_BATT", value="100uF", package="1210", P1=BAT, P2=GND)
 
 # Buck Converter 1 Components
 if enable_buck1:
     # Input capacitor
-    Capacitor(name = "C_VIN1", value = "1uF", package = "0603", P1 = _VIN1, P2 = GND)
-    
+    Capacitor(name="C_VIN1", value="1uF", package="0603", P1=_VIN1, P2=GND)
+
     # Output inductor - 4.7uH recommended for 400mA converters
-    Inductor(name = "L_BUCK1", value = "4.7uH", package = "0805", P1 = _SW1, P2 = BUCK1_OUT)
-    
+    Inductor(name="L_BUCK1", value="4.7uH", package="0805", P1=_SW1, P2=BUCK1_OUT)
+
     # Output capacitor
-    Capacitor(name = "C_BUCK1", value = "10uF", package = "0805", P1 = BUCK1_OUT, P2 = GND)
-    
+    Capacitor(name="C_BUCK1", value="10uF", package="0805", P1=BUCK1_OUT, P2=GND)
+
     # Feedback resistors for fixed 0.8V reference (Buck1 is always 0.8V)
     # VOUT = 0.8V * (1 + R1/R2)
     # For desired output: R1/R2 = (VOUT/0.8) - 1
     if buck1_output_voltage <= 0.8:
         # For voltages <= 0.8V, direct connection
-        Resistor(name = "R_FB1_TOP", value = "0ohm", package = "0402", P1 = BUCK1_OUT, P2 = _FB1)
+        Resistor(name="R_FB1_TOP", value="0ohm", package="0402", P1=BUCK1_OUT, P2=_FB1)
     else:
         ratio = (buck1_output_voltage / 0.8) - 1
         # Using R2 = 100k as base
         r1_value = 100 * ratio
         r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-        Resistor(name = "R_FB1_TOP", value = r1_str, package = "0402", P1 = BUCK1_OUT, P2 = _FB1)
-        Resistor(name = "R_FB1_BOT", value = "100kohm", package = "0402", P1 = _FB1, P2 = GND)
-    
+        Resistor(name="R_FB1_TOP", value=r1_str, package="0402", P1=BUCK1_OUT, P2=_FB1)
+        Resistor(name="R_FB1_BOT", value="100kohm", package="0402", P1=_FB1, P2=GND)
+
     # Feedback compensation capacitor
-    Capacitor(name = "C_FB1", value = "10pF", package = "0402", P1 = BUCK1_OUT, P2 = _FB1)
+    Capacitor(name="C_FB1", value="10pF", package="0402", P1=BUCK1_OUT, P2=_FB1)
 
 # Buck Converter 2 Components
 if enable_buck2:
     # Input capacitor
-    Capacitor(name = "C_VIN2", value = "1uF", package = "0603", P1 = _VIN2, P2 = GND)
-    
+    Capacitor(name="C_VIN2", value="1uF", package="0603", P1=_VIN2, P2=GND)
+
     # Output inductor - 4.7uH recommended for 400mA converters
-    Inductor(name = "L_BUCK2", value = "4.7uH", package = "0805", P1 = _SW2, P2 = BUCK2_OUT)
-    
+    Inductor(name="L_BUCK2", value="4.7uH", package="0805", P1=_SW2, P2=BUCK2_OUT)
+
     # Output capacitor
-    Capacitor(name = "C_BUCK2", value = "10uF", package = "0805", P1 = BUCK2_OUT, P2 = GND)
-    
+    Capacitor(name="C_BUCK2", value="10uF", package="0805", P1=BUCK2_OUT, P2=GND)
+
     # Feedback resistors - Buck2 has programmable FB voltage in I2C mode
     # VOUT = VFB * (1 + R1/R2)
     if enable_i2c:
         # With I2C, FB can be programmed from 0.425V to 0.8V
         # Get numeric value from VoltageConfig enum
         fb_voltage_map = {
-            VoltageConfig("0.425V"): 0.425, VoltageConfig("0.450V"): 0.450,
-            VoltageConfig("0.475V"): 0.475, VoltageConfig("0.500V"): 0.500,
-            VoltageConfig("0.525V"): 0.525, VoltageConfig("0.550V"): 0.550,
-            VoltageConfig("0.575V"): 0.575, VoltageConfig("0.600V"): 0.600,
-            VoltageConfig("0.625V"): 0.625, VoltageConfig("0.650V"): 0.650,
-            VoltageConfig("0.675V"): 0.675, VoltageConfig("0.700V"): 0.700,
-            VoltageConfig("0.725V"): 0.725, VoltageConfig("0.750V"): 0.750,
-            VoltageConfig("0.775V"): 0.775, VoltageConfig("0.800V"): 0.800,
+            VoltageConfig("0.425V"): 0.425,
+            VoltageConfig("0.450V"): 0.450,
+            VoltageConfig("0.475V"): 0.475,
+            VoltageConfig("0.500V"): 0.500,
+            VoltageConfig("0.525V"): 0.525,
+            VoltageConfig("0.550V"): 0.550,
+            VoltageConfig("0.575V"): 0.575,
+            VoltageConfig("0.600V"): 0.600,
+            VoltageConfig("0.625V"): 0.625,
+            VoltageConfig("0.650V"): 0.650,
+            VoltageConfig("0.675V"): 0.675,
+            VoltageConfig("0.700V"): 0.700,
+            VoltageConfig("0.725V"): 0.725,
+            VoltageConfig("0.750V"): 0.750,
+            VoltageConfig("0.775V"): 0.775,
+            VoltageConfig("0.800V"): 0.800,
         }
         fb_voltage = fb_voltage_map.get(buck2_fb_voltage, 0.8)
-        
+
         if buck2_output_voltage <= fb_voltage:
             # For output <= FB voltage, direct connection
-            Resistor(name = "R_FB2_TOP", value = "0ohm", package = "0402", P1 = BUCK2_OUT, P2 = _FB2)
+            Resistor(name="R_FB2_TOP", value="0ohm", package="0402", P1=BUCK2_OUT, P2=_FB2)
         else:
             ratio = (buck2_output_voltage / fb_voltage) - 1
             r1_value = 100 * ratio
             r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name = "R_FB2_TOP", value = r1_str, package = "0402", P1 = BUCK2_OUT, P2 = _FB2)
-            Resistor(name = "R_FB2_BOT", value = "100kohm", package = "0402", P1 = _FB2, P2 = GND)
+            Resistor(name="R_FB2_TOP", value=r1_str, package="0402", P1=BUCK2_OUT, P2=_FB2)
+            Resistor(name="R_FB2_BOT", value="100kohm", package="0402", P1=_FB2, P2=GND)
     else:
         # Without I2C, FB is fixed at 0.8V
         if buck2_output_voltage <= 0.8:
             # For voltages <= 0.8V, direct connection
-            Resistor(name = "R_FB2_TOP", value = "0ohm", package = "0402", P1 = BUCK2_OUT, P2 = _FB2)
+            Resistor(name="R_FB2_TOP", value="0ohm", package="0402", P1=BUCK2_OUT, P2=_FB2)
         else:
             ratio = (buck2_output_voltage / 0.8) - 1
             r1_value = 100 * ratio
             r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name = "R_FB2_TOP", value = r1_str, package = "0402", P1 = BUCK2_OUT, P2 = _FB2)
-            Resistor(name = "R_FB2_BOT", value = "100kohm", package = "0402", P1 = _FB2, P2 = GND)
-    
+            Resistor(name="R_FB2_TOP", value=r1_str, package="0402", P1=BUCK2_OUT, P2=_FB2)
+            Resistor(name="R_FB2_BOT", value="100kohm", package="0402", P1=_FB2, P2=GND)
+
     # Feedback compensation capacitor
-    Capacitor(name = "C_FB2", value = "10pF", package = "0402", P1 = BUCK2_OUT, P2 = _FB2)
+    Capacitor(name="C_FB2", value="10pF", package="0402", P1=BUCK2_OUT, P2=_FB2)
 
 # Buck Converter 3 Components
 if enable_buck3:
     # Input capacitor
-    Capacitor(name = "C_VIN3", value = "1uF", package = "0603", P1 = _VIN3, P2 = GND)
-    
+    Capacitor(name="C_VIN3", value="1uF", package="0603", P1=_VIN3, P2=GND)
+
     # Output inductor - 2.2uH recommended for 1A converter
-    Inductor(name = "L_BUCK3", value = "2.2uH", package = "0805", P1 = _SW3, P2 = BUCK3_OUT)
-    
+    Inductor(name="L_BUCK3", value="2.2uH", package="0805", P1=_SW3, P2=BUCK3_OUT)
+
     # Output capacitor
-    Capacitor(name = "C_BUCK3", value = "22uF", package = "0805", P1 = BUCK3_OUT, P2 = GND)
-    
+    Capacitor(name="C_BUCK3", value="22uF", package="0805", P1=BUCK3_OUT, P2=GND)
+
     # Feedback resistors - Buck3 has programmable FB voltage in I2C mode
     # VOUT = VFB * (1 + R1/R2)
     if enable_i2c:
         # With I2C, FB can be programmed from 0.425V to 0.8V
         # Get numeric value from VoltageConfig enum
         fb_voltage_map = {
-            VoltageConfig("0.425V"): 0.425, VoltageConfig("0.450V"): 0.450,
-            VoltageConfig("0.475V"): 0.475, VoltageConfig("0.500V"): 0.500,
-            VoltageConfig("0.525V"): 0.525, VoltageConfig("0.550V"): 0.550,
-            VoltageConfig("0.575V"): 0.575, VoltageConfig("0.600V"): 0.600,
-            VoltageConfig("0.625V"): 0.625, VoltageConfig("0.650V"): 0.650,
-            VoltageConfig("0.675V"): 0.675, VoltageConfig("0.700V"): 0.700,
-            VoltageConfig("0.725V"): 0.725, VoltageConfig("0.750V"): 0.750,
-            VoltageConfig("0.775V"): 0.775, VoltageConfig("0.800V"): 0.800,
+            VoltageConfig("0.425V"): 0.425,
+            VoltageConfig("0.450V"): 0.450,
+            VoltageConfig("0.475V"): 0.475,
+            VoltageConfig("0.500V"): 0.500,
+            VoltageConfig("0.525V"): 0.525,
+            VoltageConfig("0.550V"): 0.550,
+            VoltageConfig("0.575V"): 0.575,
+            VoltageConfig("0.600V"): 0.600,
+            VoltageConfig("0.625V"): 0.625,
+            VoltageConfig("0.650V"): 0.650,
+            VoltageConfig("0.675V"): 0.675,
+            VoltageConfig("0.700V"): 0.700,
+            VoltageConfig("0.725V"): 0.725,
+            VoltageConfig("0.750V"): 0.750,
+            VoltageConfig("0.775V"): 0.775,
+            VoltageConfig("0.800V"): 0.800,
         }
         fb_voltage = fb_voltage_map.get(buck3_fb_voltage, 0.8)
-        
+
         if buck3_output_voltage <= fb_voltage:
             # For output <= FB voltage, direct connection
-            Resistor(name = "R_FB3_TOP", value = "0ohm", package = "0402", P1 = BUCK3_OUT, P2 = _FB3)
+            Resistor(name="R_FB3_TOP", value="0ohm", package="0402", P1=BUCK3_OUT, P2=_FB3)
         else:
             ratio = (buck3_output_voltage / fb_voltage) - 1
             r1_value = 100 * ratio
             r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name = "R_FB3_TOP", value = r1_str, package = "0402", P1 = BUCK3_OUT, P2 = _FB3)
-            Resistor(name = "R_FB3_BOT", value = "100kohm", package = "0402", P1 = _FB3, P2 = GND)
+            Resistor(name="R_FB3_TOP", value=r1_str, package="0402", P1=BUCK3_OUT, P2=_FB3)
+            Resistor(name="R_FB3_BOT", value="100kohm", package="0402", P1=_FB3, P2=GND)
     else:
         # Without I2C, FB is fixed at 0.8V
         if buck3_output_voltage <= 0.8:
             # For voltages <= 0.8V, direct connection
-            Resistor(name = "R_FB3_TOP", value = "0ohm", package = "0402", P1 = BUCK3_OUT, P2 = _FB3)
+            Resistor(name="R_FB3_TOP", value="0ohm", package="0402", P1=BUCK3_OUT, P2=_FB3)
         else:
             ratio = (buck3_output_voltage / 0.8) - 1
             r1_value = 100 * ratio
             r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name = "R_FB3_TOP", value = r1_str, package = "0402", P1 = BUCK3_OUT, P2 = _FB3)
-            Resistor(name = "R_FB3_BOT", value = "100kohm", package = "0402", P1 = _FB3, P2 = GND)
-    
+            Resistor(name="R_FB3_TOP", value=r1_str, package="0402", P1=BUCK3_OUT, P2=_FB3)
+            Resistor(name="R_FB3_BOT", value="100kohm", package="0402", P1=_FB3, P2=GND)
+
     # Feedback compensation capacitor
-    Capacitor(name = "C_FB3", value = "10pF", package = "0402", P1 = BUCK3_OUT, P2 = _FB3)
+    Capacitor(name="C_FB3", value="10pF", package="0402", P1=BUCK3_OUT, P2=_FB3)
 
 # Charge Status LED
 if add_charge_led:
     _CHRG_LED = Net("CHRG_LED")
-    Resistor(name = "R_CHRG", value = "10kohm", package = "0402", P1 = VOUT, P2 = _CHRG_LED)
-    Led(name = "LED_CHRG", package = "0603", A = _CHRG_LED, K = CHRG_STAT, color = "green")
+    Resistor(name="R_CHRG", value="10kohm", package="0402", P1=VOUT, P2=_CHRG_LED)
+    Led(name="LED_CHRG", package="0603", A=_CHRG_LED, K=CHRG_STAT, color="green")
 
 # I2C Pull-ups (if I2C enabled)
 if enable_i2c and add_i2c_pullups:
-    Resistor(name = "R_I2C_SCL_PU", value = "4.7kohm", package = "0402", P1 = i2c.SCL, P2 = DVCC)
-    Resistor(name = "R_I2C_SDA_PU", value = "4.7kohm", package = "0402", P1 = i2c.SDA, P2 = DVCC)
+    Resistor(name="R_I2C_SCL_PU", value="4.7kohm", package="0402", P1=i2c.SCL, P2=DVCC)
+    Resistor(name="R_I2C_SDA_PU", value="4.7kohm", package="0402", P1=i2c.SDA, P2=DVCC)
     # DVCC decoupling
-    Capacitor(name = "C_DVCC", value = "100nF", package = "0402", P1 = DVCC, P2 = GND)
+    Capacitor(name="C_DVCC", value="100nF", package="0402", P1=DVCC, P2=GND)
 
 # Manual control pull-downs (if not using I2C) - all control pins have internal 2uA pull-downs
 if not enable_i2c:
@@ -417,43 +449,43 @@ if not enable_i2c:
     #   1   |   1   | 500mA
     if current_limit == CurrentLimitMode("100mA"):
         # ILIM1 = 0, ILIM0 = 0
-        Resistor(name = "R_ILIM0_PD", value = "100kohm", package = "0402", P1 = ILIM0, P2 = GND)
-        Resistor(name = "R_ILIM1_PD", value = "100kohm", package = "0402", P1 = ILIM1, P2 = GND)
+        Resistor(name="R_ILIM0_PD", value="100kohm", package="0402", P1=ILIM0, P2=GND)
+        Resistor(name="R_ILIM1_PD", value="100kohm", package="0402", P1=ILIM1, P2=GND)
     elif current_limit == CurrentLimitMode("500mA"):
-        # ILIM1 = 1, ILIM0 = 1  
-        Resistor(name = "R_ILIM0_PU", value = "100kohm", package = "0402", P1 = ILIM0, P2 = VBUS)
-        Resistor(name = "R_ILIM1_PU", value = "100kohm", package = "0402", P1 = ILIM1, P2 = VBUS)
+        # ILIM1 = 1, ILIM0 = 1
+        Resistor(name="R_ILIM0_PU", value="100kohm", package="0402", P1=ILIM0, P2=VBUS)
+        Resistor(name="R_ILIM1_PU", value="100kohm", package="0402", P1=ILIM1, P2=VBUS)
     elif current_limit == CurrentLimitMode("1A"):
         # ILIM1 = 0, ILIM0 = 1
-        Resistor(name = "R_ILIM0_PU", value = "100kohm", package = "0402", P1 = ILIM0, P2 = VBUS)
-        Resistor(name = "R_ILIM1_PD", value = "100kohm", package = "0402", P1 = ILIM1, P2 = GND)
+        Resistor(name="R_ILIM0_PU", value="100kohm", package="0402", P1=ILIM0, P2=VBUS)
+        Resistor(name="R_ILIM1_PD", value="100kohm", package="0402", P1=ILIM1, P2=GND)
     else:  # Suspend
         # ILIM1 = 1, ILIM0 = 0
-        Resistor(name = "R_ILIM0_PD", value = "100kohm", package = "0402", P1 = ILIM0, P2 = GND)
-        Resistor(name = "R_ILIM1_PU", value = "100kohm", package = "0402", P1 = ILIM1, P2 = VBUS)
-    
+        Resistor(name="R_ILIM0_PD", value="100kohm", package="0402", P1=ILIM0, P2=GND)
+        Resistor(name="R_ILIM1_PU", value="100kohm", package="0402", P1=ILIM1, P2=VBUS)
+
     # Buck mode control via SCL/SDA pins (when I2C disabled)
     # Use pull resistors to avoid conflicts with I2C bus if connected
     if buck_mode == BuckMode("PulseSkip"):
         # Mode 00: SCL=0, SDA=0
-        Resistor(name = "R_SCL_PD", value = "100kohm", package = "0402", P1 = _SCL, P2 = GND)
-        Resistor(name = "R_SDA_PD", value = "100kohm", package = "0402", P1 = _SDA, P2 = GND)
+        Resistor(name="R_SCL_PD", value="100kohm", package="0402", P1=_SCL, P2=GND)
+        Resistor(name="R_SDA_PD", value="100kohm", package="0402", P1=_SDA, P2=GND)
     elif buck_mode == BuckMode("ForcedBurst"):
         # Mode 01: SCL=0, SDA=1
-        Resistor(name = "R_SCL_PD", value = "100kohm", package = "0402", P1 = _SCL, P2 = GND)
-        Resistor(name = "R_SDA_PU", value = "100kohm", package = "0402", P1 = _SDA, P2 = VOUT)
+        Resistor(name="R_SCL_PD", value="100kohm", package="0402", P1=_SCL, P2=GND)
+        Resistor(name="R_SDA_PU", value="100kohm", package="0402", P1=_SDA, P2=VOUT)
     elif buck_mode == BuckMode("LDO"):
         # Mode 10: SCL=1, SDA=0
-        Resistor(name = "R_SCL_PU", value = "100kohm", package = "0402", P1 = _SCL, P2 = VOUT)
-        Resistor(name = "R_SDA_PD", value = "100kohm", package = "0402", P1 = _SDA, P2 = GND)
+        Resistor(name="R_SCL_PU", value="100kohm", package="0402", P1=_SCL, P2=VOUT)
+        Resistor(name="R_SDA_PD", value="100kohm", package="0402", P1=_SDA, P2=GND)
     else:  # Burst mode
         # Mode 11: SCL=1, SDA=1
-        Resistor(name = "R_SCL_PU", value = "100kohm", package = "0402", P1 = _SCL, P2 = VOUT)
-        Resistor(name = "R_SDA_PU", value = "100kohm", package = "0402", P1 = _SDA, P2 = VOUT)
+        Resistor(name="R_SCL_PU", value="100kohm", package="0402", P1=_SCL, P2=VOUT)
+        Resistor(name="R_SDA_PU", value="100kohm", package="0402", P1=_SDA, P2=VOUT)
 
 # RST3 pull-up (if Buck3 enabled)
 if enable_buck3:
-    Resistor(name = "R_RST3_PU", value = "100kohm", package = "0402", P1 = RST3, P2 = BUCK3_OUT)
+    Resistor(name="R_RST3_PU", value="100kohm", package="0402", P1=RST3, P2=BUCK3_OUT)
 
 # pcb:sch C_BUCK1.C x=1401.0800 y=1472.2000 rot=0
 # pcb:sch C_BUCK2.C x=1299.4800 y=1611.9000 rot=0

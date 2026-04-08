@@ -1,10 +1,10 @@
 """LM73-1 - 2.7V, SOT-23, 11- to 14-Bit Digital Temperature Sensor with 2-Wire Interface
 
-The LM73 is an integrated, digital-output temperature sensor featuring an incremental 
-Delta-Sigma ADC with a two-wire interface that is compatible with the SMBus and I²C 
-interfaces. It provides ±1°C accuracy from -10°C to 80°C and features programmable 
-resolution from 11 to 14 bits. The device includes an open-drain ALERT output that 
-goes active when temperature exceeds a programmable limit. Available in a compact 
+The LM73 is an integrated, digital-output temperature sensor featuring an incremental
+Delta-Sigma ADC with a two-wire interface that is compatible with the SMBus and I²C
+interfaces. It provides ±1°C accuracy from -10°C to 80°C and features programmable
+resolution from 11 to 14 bits. The device includes an open-drain ALERT output that
+goes active when temperature exceeds a programmable limit. Available in a compact
 SOT-23 package, it operates from 2.7V to 5.5V with typical operating current of 320µA.
 
 Author: @Anthropic/claude-4-opus-20250514
@@ -23,55 +23,55 @@ I2cAddress = enum("0x4C", "0x4D", "0x4E")  # LM73-1 addresses
 Resolution = enum("11bit", "12bit", "13bit", "14bit")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_pullups = config("add_pullups", bool, default = True)
-enable_alert = config("enable_alert", bool, default = True)
-i2c_address = config("i2c_address", I2cAddress, default = "0x4C")
-resolution = config("resolution", Resolution, default = "11bit")
+add_decoupling = config("add_decoupling", bool, default=True)
+add_pullups = config("add_pullups", bool, default=True)
+enable_alert = config("enable_alert", bool, default=True)
+i2c_address = config("i2c_address", I2cAddress, default="0x4C")
+resolution = config("resolution", Resolution, default="11bit")
 
 # External IO
-i2c = io("I2C", I2c, default = I2c("I2C"))
+i2c = io("I2C", I2c, default=I2c("I2C"))
 VDD = io("VDD", Power)
 GND = io("GND", Ground)
-ALERT = io("ALERT", Net, default = Net("ALERT")) if enable_alert else None
+ALERT = io("ALERT", Net, default=Net("ALERT")) if enable_alert else None
 
 # Address configuration
 _ADDR = GND if i2c_address == I2cAddress("0x4D") else VDD if i2c_address == I2cAddress("0x4E") else Net("ADDR_FLOAT")
 
 # 11 to 14 Bit digital temperature sensor with 2 wire interface, SOT23-6
 Component(
-    name = "LM73-1",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Temperature.kicad_sym", name = "LM73-1"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-    pins = {
+    name="LM73-1",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Temperature.kicad_sym", name="LM73-1"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins={
         "SMBDAT": i2c.SDA,
         "SMBCLK": i2c.SCL,
         "V_{DD}": VDD,
         "GND": GND,
         "ADDR": _ADDR,
-        "~{ALERT}": ALERT if enable_alert else NotConnected()
+        "~{ALERT}": ALERT if enable_alert else NotConnected(),
     },
 )
 
 # Power Supply Decoupling - Datasheet recommends 100nF and 10µF
 if add_decoupling:
     # Primary decoupling capacitor
-    Capacitor(name = "C_DEC", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    
+    Capacitor(name="C_DEC", value="100nF", package="0402", P1=VDD, P2=GND)
+
     # Bulk capacitor
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
 
 # I2C Pull-up Resistors - Required for proper I2C/SMBus operation
 if add_pullups:
     # SDA pull-up resistor
-    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VDD)
-    
+    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=i2c.SDA, P2=VDD)
+
     # SCL pull-up resistor
-    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VDD)
+    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=i2c.SCL, P2=VDD)
 
 # Alert Output Pull-up Resistor - Required for open-drain output
 if enable_alert:
-    Resistor(name = "R_ALERT", value = "10kohms", package = "0402", P1 = ALERT, P2 = VDD)
+    Resistor(name="R_ALERT", value="10kohms", package="0402", P1=ALERT, P2=VDD)
 
 # Address pin configuration for float state
 if i2c_address == I2cAddress("0x4C"):

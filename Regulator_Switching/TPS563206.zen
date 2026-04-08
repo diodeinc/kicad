@@ -11,6 +11,7 @@ Author: @@anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps563206.pdf
 """
+
 load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
@@ -28,22 +29,22 @@ EnableConfig = enum("AlwaysOn", "External", "Pullup")
 FeedforwardCapValue = enum("None", "10pF", "18pF", "22pF", "47pF", "100pF")
 
 # Configuration
-output_voltage = config("output_voltage", OutputVoltage, default = "3.3V")
-inductor_value = config("inductor_value", InductorValue, default = "4.7uH")
-output_cap_config = config("output_cap_config", OutputCapacitorConfig, default = "3x22uF")
-bootstrap_cap = config("bootstrap_cap", BootstrapCapValue, default = "100nF")
-input_cap_config = config("input_cap_config", InputCapConfig, default = "Enhanced")
-enable_config = config("enable_config", EnableConfig, default = "AlwaysOn")
-feedforward_cap = config("feedforward_cap", FeedforwardCapValue, default = "18pF")
+output_voltage = config("output_voltage", OutputVoltage, default="3.3V")
+inductor_value = config("inductor_value", InductorValue, default="4.7uH")
+output_cap_config = config("output_cap_config", OutputCapacitorConfig, default="3x22uF")
+bootstrap_cap = config("bootstrap_cap", BootstrapCapValue, default="100nF")
+input_cap_config = config("input_cap_config", InputCapConfig, default="Enhanced")
+enable_config = config("enable_config", EnableConfig, default="AlwaysOn")
+feedforward_cap = config("feedforward_cap", FeedforwardCapValue, default="18pF")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN"))
-VOUT = io("VOUT", Net, default = Net("VOUT"))
+VIN = io("VIN", Net, default=Net("VIN"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
 GND = io("GND", Ground)
 
 # Enable pin configuration
 if enable_config == EnableConfig("External"):
-    EN = io("EN", Net, default = Net("EN"))
+    EN = io("EN", Net, default=Net("EN"))
 else:
     EN = Net("EN")
 
@@ -58,21 +59,14 @@ if enable_config == EnableConfig("AlwaysOn"):
     EN = VIN
 elif enable_config == EnableConfig("Pullup"):
     # Pull-up resistor to VIN with external control capability
-    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN, P2 = VIN)
+    Resistor(name="R_EN", value="100kohms", package="0402", P1=EN, P2=VIN)
 
 # Main component - 3A Synchronous Step-Down Voltage Regulator in FCCM mode
 Component(
-    name = "TPS563206",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "TPS563206"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-563.kicad_mod"),
-    pins = {
-        "GND": GND,
-        "SW": _SW,
-        "VIN": VIN,
-        "FB": _VFB,
-        "EN": EN,
-        "BST": _VBST
-    },
+    name="TPS563206",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Switching.kicad_sym", name="TPS563206"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-563.kicad_mod"),
+    pins={"GND": GND, "SW": _SW, "VIN": VIN, "FB": _VFB, "EN": EN, "BST": _VBST},
 )
 
 # Feedback resistor divider - values based on output voltage selection and Table 7-2
@@ -111,37 +105,41 @@ else:  # 7.0V
 
 # Feedback resistors (1% tolerance recommended)
 if output_voltage != OutputVoltage("0.6V"):
-    Resistor(name = "R_TOP", value = r_top, package = "0402", P1 = VOUT, P2 = _VFB)
-    Resistor(name = "R_BOT", value = r_bot, package = "0402", P1 = _VFB, P2 = GND)
+    Resistor(name="R_TOP", value=r_top, package="0402", P1=VOUT, P2=_VFB)
+    Resistor(name="R_BOT", value=r_bot, package="0402", P1=_VFB, P2=GND)
 else:
     # Direct connection for 0.6V output
     _VFB = VOUT
 
 # Optional feedforward capacitor for improved transient response (recommended for Vout >= 2.5V)
 if feedforward_cap != FeedforwardCapValue("None") and output_voltage != OutputVoltage("0.6V"):
-    if output_voltage in [OutputVoltage("2.5V"), OutputVoltage("3.3V"), OutputVoltage("5.0V"), 
-                          OutputVoltage("6.5V"), OutputVoltage("7.0V")]:
-        Capacitor(name = "C_FF", value = feedforward_cap.value, voltage = "16V", package = "0402", P1 = VOUT, P2 = _VFB)
+    if output_voltage in [
+        OutputVoltage("2.5V"),
+        OutputVoltage("3.3V"),
+        OutputVoltage("5.0V"),
+        OutputVoltage("6.5V"),
+        OutputVoltage("7.0V"),
+    ]:
+        Capacitor(name="C_FF", value=feedforward_cap.value, voltage="16V", package="0402", P1=VOUT, P2=_VFB)
 
 # Bootstrap capacitor (required - 0.1μF between BST and SW)
-Capacitor(name = "C_BST", value = bootstrap_cap.value, voltage = "10V", package = "0402", P1 = _VBST, P2 = _SW)
+Capacitor(name="C_BST", value=bootstrap_cap.value, voltage="10V", package="0402", P1=_VBST, P2=_SW)
 
 # Input capacitors
 if input_cap_config == InputCapConfig("Basic"):
     # Minimum recommended input capacitance
-    Capacitor(name = "C_IN1", value = "10uF", voltage = "25V", package = "0805", P1 = VIN, P2 = GND)
-    Capacitor(name = "C_IN2", value = "100nF", voltage = "25V", package = "0402", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN1", value="10uF", voltage="25V", package="0805", P1=VIN, P2=GND)
+    Capacitor(name="C_IN2", value="100nF", voltage="25V", package="0402", P1=VIN, P2=GND)
 else:  # Enhanced
     # Enhanced input capacitance for lower input ripple
-    Capacitor(name = "C_IN1", value = "10uF", voltage = "25V", package = "0805", P1 = VIN, P2 = GND)
-    Capacitor(name = "C_IN2", value = "10uF", voltage = "25V", package = "0805", P1 = VIN, P2 = GND)
-    Capacitor(name = "C_IN3", value = "100nF", voltage = "25V", package = "0402", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN1", value="10uF", voltage="25V", package="0805", P1=VIN, P2=GND)
+    Capacitor(name="C_IN2", value="10uF", voltage="25V", package="0805", P1=VIN, P2=GND)
+    Capacitor(name="C_IN3", value="100nF", voltage="25V", package="0402", P1=VIN, P2=GND)
 
 # Output inductor - select appropriate value based on output voltage (Table 7-2)
 if output_voltage in [OutputVoltage("0.6V"), OutputVoltage("0.8V")]:
     default_ind = "1.5uH"
-elif output_voltage in [OutputVoltage("1.05V"), OutputVoltage("1.2V"), OutputVoltage("1.5V"), 
-                      OutputVoltage("1.8V")]:
+elif output_voltage in [OutputVoltage("1.05V"), OutputVoltage("1.2V"), OutputVoltage("1.5V"), OutputVoltage("1.8V")]:
     default_ind = "2.2uH"
 elif output_voltage == OutputVoltage("2.5V"):
     default_ind = "3.3uH"
@@ -153,26 +151,26 @@ else:  # 6.5V, 7.0V
 # Use configured value if it's appropriate, otherwise use default
 ind_val = inductor_value.value
 
-Inductor(name = "L_OUT", value = ind_val, package = "1210", P1 = _SW, P2 = VOUT)
+Inductor(name="L_OUT", value=ind_val, package="1210", P1=_SW, P2=VOUT)
 
 # Output capacitors - configuration based on selection (minimum 2x22μF recommended)
 if output_cap_config == OutputCapacitorConfig("2x22uF"):
-    Capacitor(name = "C_OUT1", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT2", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT1", value="22uF", voltage="10V", package="0805", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT2", value="22uF", voltage="10V", package="0805", P1=VOUT, P2=GND)
 elif output_cap_config == OutputCapacitorConfig("3x22uF"):
-    Capacitor(name = "C_OUT1", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT2", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT3", value = "22uF", voltage = "10V", package = "0805", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT1", value="22uF", voltage="10V", package="0805", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT2", value="22uF", voltage="10V", package="0805", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT3", value="22uF", voltage="10V", package="0805", P1=VOUT, P2=GND)
 elif output_cap_config == OutputCapacitorConfig("2x33uF"):
-    Capacitor(name = "C_OUT1", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT2", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT1", value="33uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT2", value="33uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
 elif output_cap_config == OutputCapacitorConfig("3x33uF"):
-    Capacitor(name = "C_OUT1", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT2", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT3", value = "33uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT1", value="33uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT2", value="33uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT3", value="33uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
 else:  # 2x47uF
-    Capacitor(name = "C_OUT1", value = "47uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
-    Capacitor(name = "C_OUT2", value = "47uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT1", value="47uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
+    Capacitor(name="C_OUT2", value="47uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
 
 # pcb:sch C_BST.C x=359.6800 y=1611.9000 rot=270
 # pcb:sch C_IN1.C x=-313.4200 y=1573.8000 rot=0

@@ -1,13 +1,13 @@
 """MAX31820 - 1-Wire Ambient Temperature Sensor, ±0.5°C accuracy, TO-92
 
-The MAX31820 is a digital thermometer that provides 9-bit to 12-bit Celsius temperature 
-measurements with ±0.5°C accuracy over a +10°C to +45°C temperature range. Over its 
-entire -55°C to +125°C operating range, the device has ±2.0°C accuracy. The device 
-communicates over a 1-Wire bus that requires only one data line (and ground) for 
-communication with a central microprocessor. It can derive power directly from the 
-data line ("parasite power"), eliminating the need for an external power supply. 
-Each MAX31820 has a unique 64-bit serial code, allowing multiple devices to function 
-on the same 1-Wire bus. Available in a 3-pin TO-92 package designed to measure 
+The MAX31820 is a digital thermometer that provides 9-bit to 12-bit Celsius temperature
+measurements with ±0.5°C accuracy over a +10°C to +45°C temperature range. Over its
+entire -55°C to +125°C operating range, the device has ±2.0°C accuracy. The device
+communicates over a 1-Wire bus that requires only one data line (and ground) for
+communication with a central microprocessor. It can derive power directly from the
+data line ("parasite power"), eliminating the need for an external power supply.
+Each MAX31820 has a unique 64-bit serial code, allowing multiple devices to function
+on the same 1-Wire bus. Available in a 3-pin TO-92 package designed to measure
 ambient temperature above the board.
 
 Key features:
@@ -40,23 +40,23 @@ PassiveSize = enum("0402", "0603", "0805", "1206")
 
 # Configuration
 # Power configuration
-power_mode = config("power_mode", PowerMode, default = "External")
+power_mode = config("power_mode", PowerMode, default="External")
 if power_mode == PowerMode("External"):
-    add_bulk_cap = config("add_bulk_cap", bool, default = True)
-    add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+    add_bulk_cap = config("add_bulk_cap", bool, default=True)
+    add_decoupling_cap = config("add_decoupling_cap", bool, default=True)
 
 # 1-Wire bus configuration
-pullup_value = config("pullup_value", str, default = "4.7kohms")
+pullup_value = config("pullup_value", str, default="4.7kohms")
 if power_mode == PowerMode("Parasite"):
-    add_fet_input_resistor = config("add_fet_input_resistor", bool, default = False)
+    add_fet_input_resistor = config("add_fet_input_resistor", bool, default=False)
     if add_fet_input_resistor:
-        fet_input_resistor_value = config("fet_input_resistor_value", str, default = "330ohms")
+        fet_input_resistor_value = config("fet_input_resistor_value", str, default="330ohms")
 
 # Test and debug configuration
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # Component size configuration
-passives_size = config("passives_size", PassiveSize, default = "0603")
+passives_size = config("passives_size", PassiveSize, default="0603")
 
 # External IO
 VDD = io("VDD", Power)
@@ -71,8 +71,8 @@ _VDD_CHIP = GND if power_mode == PowerMode("Parasite") else VDD
 
 # Strong pullup control signal (optional)
 if power_mode == PowerMode("Parasite"):
-    PULLUP_CTRL = io("pullup_ctrl", Net, default = Net("PULLUP_CTRL"))
-    PULLUP_GATE_VDD = io("pullup_gate_vdd", Net, default = Net("PULLUP_GATE_VDD"))
+    PULLUP_CTRL = io("pullup_ctrl", Net, default=Net("PULLUP_CTRL"))
+    PULLUP_GATE_VDD = io("pullup_gate_vdd", Net, default=Net("PULLUP_GATE_VDD"))
     _PULLUP_CTRL = PULLUP_CTRL
     _PULLUP_GATE_VDD = PULLUP_GATE_VDD
 else:
@@ -81,13 +81,13 @@ else:
 
 # Main component - 1-Wire Ambient Temperature Sensor TO-92
 Component(
-    name = "MAX31820",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Temperature.kicad_sym", name = "MAX31820"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_THT.pretty/TO-92_Inline.kicad_mod"),
-    pins = {
-        "V_{DD}": _VDD_CHIP,    # Pin 3
-        "GND": GND,              # Pin 1
-        "DQ": _DQ                # Pin 2
+    name="MAX31820",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Temperature.kicad_sym", name="MAX31820"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_THT.pretty/TO-92_Inline.kicad_mod"),
+    pins={
+        "V_{DD}": _VDD_CHIP,  # Pin 3
+        "GND": GND,  # Pin 1
+        "DQ": _DQ,  # Pin 2
     },
 )
 
@@ -96,79 +96,55 @@ if power_mode == PowerMode("External"):
     # Bulk Power Supply Capacitor
     if add_bulk_cap:
         # Use one size larger for bulk capacitor, or same size if already large
-        bulk_size = "0805" if passives_size == PassiveSize("0603") or passives_size == PassiveSize("0402") else passives_size.value
-        Capacitor(
-            name = "C_BULK",
-            value = "10uF",
-            voltage = "6.3V",
-            dielectric = "X7R",
-            package = bulk_size,
-            P1 = VDD,
-            P2 = GND
+        bulk_size = (
+            "0805"
+            if passives_size == PassiveSize("0603") or passives_size == PassiveSize("0402")
+            else passives_size.value
         )
+        Capacitor(name="C_BULK", value="10uF", voltage="6.3V", dielectric="X7R", package=bulk_size, P1=VDD, P2=GND)
 
     # Power Supply Decoupling Capacitor
     if add_decoupling_cap:
         Capacitor(
-            name = "C_VDD",
-            value = "100nF",
-            voltage = "6.3V",
-            dielectric = "X7R",
-            package = passives_size.value,
-            P1 = VDD,
-            P2 = GND
+            name="C_VDD", value="100nF", voltage="6.3V", dielectric="X7R", package=passives_size.value, P1=VDD, P2=GND
         )
 
 # 1-Wire pullup resistor (always required)
 # Typical value is 4.7kΩ for short cable runs
 # Can be reduced to 2.2kΩ for longer cables or multiple devices
-Resistor(
-    name = "R_PULLUP",
-    value = pullup_value,
-    package = passives_size.value,
-    P1 = _DQ,
-    P2 = VDD
-)
+Resistor(name="R_PULLUP", value=pullup_value, package=passives_size.value, P1=_DQ, P2=VDD)
 
 # Strong pullup circuit for parasite power mode
 # Required for temperature conversions and EEPROM writes
-if  power_mode == PowerMode("Parasite"):
+if power_mode == PowerMode("Parasite"):
     # P-channel MOSFET for strong pullup
     # Active low control signal enables strong pullup
-    Mosfet(
-        name = "Q_PULLUP",
-        package = "SOT-23-3",
-        channel = "N",
-        mpn = "NMOS_SOT23",
-        G = _PULLUP_CTRL,
-        D = _DQ,
-        S = VDD
-    )
-    
+    Mosfet(name="Q_PULLUP", package="SOT-23-3", channel="N", mpn="NMOS_SOT23", G=_PULLUP_CTRL, D=_DQ, S=VDD)
+
     # Gate pull-up resistor to ensure MOSFET is off by default
     # Connects gate to external control voltage for proper biasing
     # Value is configurable to accommodate different switching speeds and power requirements
     if add_fet_input_resistor:
         Resistor(
-            name = "R_GATE",
-            value = fet_input_resistor_value,
-            package = passives_size.value,
-            P1 = _PULLUP_CTRL,
-            P2 = _PULLUP_GATE_VDD
+            name="R_GATE",
+            value=fet_input_resistor_value,
+            package=passives_size.value,
+            P1=_PULLUP_CTRL,
+            P2=_PULLUP_GATE_VDD,
         )
 
 # Test Points
 if add_test_points:
-    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
-    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
-    TestPoint(name = "TP_DQ", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _DQ)
+    TestPoint(name="TP_VDD", variant="THTPad_D1.0mm_Drill0.5mm", P1=VDD)
+    TestPoint(name="TP_GND", variant="THTPad_D1.0mm_Drill0.5mm", P1=GND)
+    TestPoint(name="TP_DQ", variant="THTPad_D1.0mm_Drill0.5mm", P1=_DQ)
     if power_mode == PowerMode("Parasite"):
         if add_fet_input_resistor:
             # When resistor is present, test point connects to the gate VDD supply
-            TestPoint(name = "TP_GATE_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _PULLUP_GATE_VDD)
+            TestPoint(name="TP_GATE_VDD", variant="THTPad_D1.0mm_Drill0.5mm", P1=_PULLUP_GATE_VDD)
         else:
             # When no resistor, test point connects directly to MOSFET gate
-            TestPoint(name = "TP_GATE", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _PULLUP_CTRL)
+            TestPoint(name="TP_GATE", variant="THTPad_D1.0mm_Drill0.5mm", P1=_PULLUP_CTRL)
 
 # Layout recommendations:
 # 1. Keep the MAX31820 away from heat sources on the board

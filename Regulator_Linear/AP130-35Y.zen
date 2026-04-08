@@ -1,9 +1,9 @@
 """AP130-35Y - 300mA Low Dropout Linear Regulator, 3.5V Fixed Output
 
-The AP130-35Y is a 300mA fixed output voltage (3.5V) low dropout linear regulator 
-featuring ultra-low dropout voltage (400mV at 300mA) and low quiescent current 
-(50μA typical). It includes internal current limiting, thermal shutdown, and 
-short circuit protection with current fold-back. The device operates from 2.7V 
+The AP130-35Y is a 300mA fixed output voltage (3.5V) low dropout linear regulator
+featuring ultra-low dropout voltage (400mV at 300mA) and low quiescent current
+(50μA typical). It includes internal current limiting, thermal shutdown, and
+short circuit protection with current fold-back. The device operates from 2.7V
 to 5.5V input voltage range, making it ideal for battery-powered applications.
 
 Author: @anthropic/claude-opus-4
@@ -26,111 +26,111 @@ EnableControl = enum("AlwaysOn", "PullUp", "PullDown", "None")
 InputFilterType = enum("None", "RC", "LC", "FerriteBead")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default = "1uF")
-    
-add_output_cap = config("add_output_cap", bool, default = True)
+    input_cap_value = config("input_cap_value", str, default="1uF")
+
+add_output_cap = config("add_output_cap", bool, default=True)
 # Output capacitor configuration - only if output cap is enabled
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default = "10uF")
+    output_cap_value = config("output_cap_value", str, default="10uF")
 
 
-add_bypass_cap = config("add_bypass_cap", bool, default = False)
+add_bypass_cap = config("add_bypass_cap", bool, default=False)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "100nF")
+    bypass_cap_value = config("bypass_cap_value", str, default="100nF")
 
 # Input filtering
-input_filter_type = config("input_filter_type", InputFilterType, default = "None")
+input_filter_type = config("input_filter_type", InputFilterType, default="None")
 if input_filter_type == InputFilterType("RC"):
-    input_filter_r = config("input_filter_r", str, default = "10ohms")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    input_filter_r = config("input_filter_r", str, default="10ohms")
+    input_filter_c = config("input_filter_c", str, default="10uF")
 elif input_filter_type == InputFilterType("LC"):
-    input_filter_l = config("input_filter_l", str, default = "4.7uH")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    input_filter_l = config("input_filter_l", str, default="4.7uH")
+    input_filter_c = config("input_filter_c", str, default="10uF")
 elif input_filter_type == InputFilterType("FerriteBead"):
-    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default = "600ohms@100MHz")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default="600ohms@100MHz")
+    input_filter_c = config("input_filter_c", str, default="10uF")
 
-    
+
 # Additional bulk capacitor configuration
-add_output_bulk_cap = config("add_output_bulk_cap", bool, default = False, optional = True)
+add_output_bulk_cap = config("add_output_bulk_cap", bool, default=False, optional=True)
 if add_output_bulk_cap:
-    output_bulk_cap_value = config("output_bulk_cap_value", str, default = "10uF")
+    output_bulk_cap_value = config("output_bulk_cap_value", str, default="10uF")
 
 # Additional features
-add_power_good_led = config("add_power_good_led", bool, default = False, optional = True)
-add_test_points = config("add_test_points", bool, default = False, optional = True)
+add_power_good_led = config("add_power_good_led", bool, default=False, optional=True)
+add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IO
-VIN = io("VIN", Power, default = Power("VIN"))
-VOUT = io("VOUT", Power, default = Power("VOUT"))
+VIN = io("VIN", Power, default=Power("VIN"))
+VOUT = io("VOUT", Power, default=Power("VOUT"))
 GND = io("GND", Ground)
 
 # Internal nets
-_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN.NET
+_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN
 
 # Main regulator component - AP130-35Y has only 3 pins (VI, GND, VO)
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AP130-35Y"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-3.kicad_mod"),
-    pins = {
-        "VI": _VIN_FILT,    # Input
-        "GND": GND,         # Ground
-        "VO": VOUT.NET      # Output
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="AP130-35Y"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-3.kicad_mod"),
+    pins={
+        "VI": _VIN_FILT,  # Input
+        "GND": GND,  # Ground
+        "VO": VOUT,  # Output
     },
 )
 
 # Input filtering
 if input_filter_type == InputFilterType("RC"):
-    Resistor(name = "R_FILT", value = input_filter_r, package = "0603", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
-    
+    Resistor(name="R_FILT", value=input_filter_r, package="0603", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
+
 elif input_filter_type == InputFilterType("LC"):
-    Inductor(name = "L_FILT", value = input_filter_l, package = "1210", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
-    
+    Inductor(name="L_FILT", value=input_filter_l, package="1210", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
+
 elif input_filter_type == InputFilterType("FerriteBead"):
-    FerriteBead(name = "FB_IN", package = "0805", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    FerriteBead(name="FB_IN", package="0805", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
 
 # Input capacitor (datasheet recommends 1uF minimum)
 if add_input_cap:
-    Capacitor(name = "C_IN", value = input_cap_value, package = "0603", P1 = _VIN_FILT, P2 = GND)
-    
+    Capacitor(name="C_IN", value=input_cap_value, package="0603", P1=_VIN_FILT, P2=GND)
+
 # Bypass capacitor for improved noise performance
 if add_bypass_cap:
-    Capacitor(name = "C_BYP", value = bypass_cap_value, package = "0402", P1 = _VIN_FILT, P2 = GND)
+    Capacitor(name="C_BYP", value=bypass_cap_value, package="0402", P1=_VIN_FILT, P2=GND)
 
 # Output capacitor (datasheet specifies 10uF minimum for stability)
 if add_output_cap:
     # Use X7R or X5R dielectric ceramic as recommended
-    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT.NET, P2 = GND)
+    Capacitor(name="C_OUT", value=output_cap_value, package="0603", P1=VOUT, P2=GND)
 
 # Additional bulk output capacitor
 if add_output_bulk_cap:
-    Capacitor(name = "C_BULK", value = output_bulk_cap_value, package = "0805", P1 = VOUT.NET, P2 = GND)
+    Capacitor(name="C_BULK", value=output_bulk_cap_value, package="0805", P1=VOUT, P2=GND)
 
 # Power good LED indicator
 if add_power_good_led:
     _LED_K = Net("LED_K")
     Led(
-        name = "LED_PWR",
-        color = "green",
-        package = "0603",
-        A = VOUT.NET,
-        K = _LED_K,
+        name="LED_PWR",
+        color="green",
+        package="0603",
+        A=VOUT,
+        K=_LED_K,
     )
     # LED current limiting resistor for 3.5V
     # Assuming 2V LED forward voltage, 5mA current: R = (3.5-2)/0.005 = 300Ω
-    Resistor(name = "R_LED", value = "330ohms", package = "0402", P1 = _LED_K, P2 = GND)
+    Resistor(name="R_LED", value="330ohms", package="0402", P1=_LED_K, P2=GND)
 
 # Test points for debugging
 if add_test_points:
-    TestPoint(name = "TP_VIN", variant = "Pad_D2.0mm", P1 = VIN.NET)
-    TestPoint(name = "TP_VOUT", variant = "Pad_D2.0mm", P1 = VOUT.NET)
-    TestPoint(name = "TP_GND", variant = "Pad_D2.0mm", P1 = GND)
+    TestPoint(name="TP_VIN", variant="Pad_D2.0mm", P1=VIN)
+    TestPoint(name="TP_VOUT", variant="Pad_D2.0mm", P1=VOUT)
+    TestPoint(name="TP_GND", variant="Pad_D2.0mm", P1=GND)
 
 # pcb:sch C_BYP.C x=-21.3200 y=341.9000 rot=0
 # pcb:sch C_IN.C x=-110.2200 y=341.9000 rot=0

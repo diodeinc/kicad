@@ -1,10 +1,10 @@
 """MAX38909 - 2A High-Performance LDO Linear Regulator
 
-The MAX38909 is a fast transient response, high-PSRR nMOS linear regulator that delivers up to 2A 
-load current. It supports a wide input supply range from 0.9V to 5.5V, and BIAS voltage range from 
-2.7V to 20V. The device features ±1% output accuracy over line, load, and temperature variations, 
-requiring only 300mV of input-to-output headroom at full load. The output voltage can be adjusted 
-from 0.6V to 5.0V using external feedback resistors. The LDO includes programmable soft-start, 
+The MAX38909 is a fast transient response, high-PSRR nMOS linear regulator that delivers up to 2A
+load current. It supports a wide input supply range from 0.9V to 5.5V, and BIAS voltage range from
+2.7V to 20V. The device features ±1% output accuracy over line, load, and temperature variations,
+requiring only 300mV of input-to-output headroom at full load. The output voltage can be adjusted
+from 0.6V to 5.0V using external feedback resistors. The LDO includes programmable soft-start,
 overcurrent protection, thermal shutdown, and reverse-current protection.
 
 Key features:
@@ -24,6 +24,7 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX38909.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
@@ -32,33 +33,35 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Types
-OutputVoltage = enum("0.8V", "0.9V", "1.0V", "1.2V", "1.5V", "1.8V", "2.5V", "2.7V", "3.0V", "3.3V", "3.6V", "4.5V", "5.0V")
+OutputVoltage = enum(
+    "0.8V", "0.9V", "1.0V", "1.2V", "1.5V", "1.8V", "2.5V", "2.7V", "3.0V", "3.3V", "3.6V", "4.5V", "5.0V"
+)
 EnableConfiguration = enum("PullUp", "PullDown", "UserDefined")
 PowerOkConfiguration = enum("None", "Pullup", "TestPoint")
 PowerOkPullupSupply = enum("Internal", "External")
 
 # Configuration
 # Output voltage configuration
-output_voltage = config("output_voltage", OutputVoltage, default = "3.3V")
+output_voltage = config("output_voltage", OutputVoltage, default="3.3V")
 
 # Enable configuration
-enable_configuration = config("enable_configuration", EnableConfiguration, default = "PullUp")
+enable_configuration = config("enable_configuration", EnableConfiguration, default="PullUp")
 
 # Power-OK configuration
-pok_configuration = config("pok_configuration", PowerOkConfiguration, default = "TestPoint")
+pok_configuration = config("pok_configuration", PowerOkConfiguration, default="TestPoint")
 if pok_configuration != PowerOkConfiguration("None"):
-    pok_pullup_value = config("pok_pullup_value", str, default = "100kohms")
-    pok_pullup_supply = config("pok_pullup_supply", PowerOkPullupSupply, default = "Internal")
+    pok_pullup_value = config("pok_pullup_value", str, default="100kohms")
+    pok_pullup_supply = config("pok_pullup_supply", PowerOkPullupSupply, default="Internal")
 
 # Capacitor configuration
-add_input_bulk_cap = config("add_input_bulk_cap", bool, default = True)
-add_bias_cap = config("add_bias_cap", bool, default = True)
+add_input_bulk_cap = config("add_input_bulk_cap", bool, default=True)
+add_bias_cap = config("add_bias_cap", bool, default=True)
 if add_bias_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "47nF")  # 1nF to 100nF range
-add_output_bulk_cap = config("add_output_bulk_cap", bool, default = True)
+    bypass_cap_value = config("bypass_cap_value", str, default="47nF")  # 1nF to 100nF range
+add_output_bulk_cap = config("add_output_bulk_cap", bool, default=True)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
 VIN = io("VIN", Power)
@@ -108,80 +111,80 @@ r2_value, r1_value = feedback_values[output_voltage]
 
 # Main component
 Component(
-    name = "MAX38909",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "MAX38909xTD"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/TDFN-14-1EP_3x3mm_P0.4mm_EP1.78x2.35mm.kicad_mod"),
-    pins = {
-        "IN": VIN,        # Pins 1,2,3,4 - all connected to IN
-        "BIAS": VBIAS,    # Pin 5
-        "EN": _EN,        # Pin 6
-        "GND": GND,       # Pin 7 and EP (exposed pad)
-        "POK": _POK,      # Pin 8
-        "FB": _FB,        # Pin 9
-        "BYP": _BYP,      # Pin 10
-        "OUT": VOUT,      # Pins 11,12,13,14 - all connected to OUT
+    name="MAX38909",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="MAX38909xTD"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/TDFN-14-1EP_3x3mm_P0.4mm_EP1.78x2.35mm.kicad_mod"),
+    pins={
+        "IN": VIN,  # Pins 1,2,3,4 - all connected to IN
+        "BIAS": VBIAS,  # Pin 5
+        "EN": _EN,  # Pin 6
+        "GND": GND,  # Pin 7 and EP (exposed pad)
+        "POK": _POK,  # Pin 8
+        "FB": _FB,  # Pin 9
+        "BYP": _BYP,  # Pin 10
+        "OUT": VOUT,  # Pins 11,12,13,14 - all connected to OUT
     },
 )
 
 # Input capacitors (22µF ceramic required, place close to IN pins)
-Capacitor(name = "C_IN1", value = "22uF", voltage = "10V", package = "1206", P1 = VIN, P2 = GND)
-Capacitor(name = "C_IN2", value = "100nF", voltage = "10V", package = "0402", P1 = VIN, P2 = GND)
+Capacitor(name="C_IN1", value="22uF", voltage="10V", package="1206", P1=VIN, P2=GND)
+Capacitor(name="C_IN2", value="100nF", voltage="10V", package="0402", P1=VIN, P2=GND)
 
 # Bulk input capacitor (optional)
 if add_input_bulk_cap:
-    Capacitor(name = "C_IN_BULK", value = "47uF", voltage = "10V", package = "1210", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN_BULK", value="47uF", voltage="10V", package="1210", P1=VIN, P2=GND)
 
 # BIAS capacitor (1µF recommended)
 if add_bias_cap:
-    Capacitor(name = "C_BIAS", value = "1uF", voltage = "25V", package = "0603", P1 = VBIAS, P2 = GND)
+    Capacitor(name="C_BIAS", value="1uF", voltage="25V", package="0603", P1=VBIAS, P2=GND)
 
 # Output capacitors (22µF ceramic required, place close to OUT pins)
-Capacitor(name = "C_OUT1", value = "22uF", voltage = "10V", package = "1206", P1 = VOUT, P2 = GND)
-Capacitor(name = "C_OUT2", value = "100nF", voltage = "10V", package = "0402", P1 = VOUT, P2 = GND)
+Capacitor(name="C_OUT1", value="22uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT2", value="100nF", voltage="10V", package="0402", P1=VOUT, P2=GND)
 
 # Bulk output capacitor (optional)
 if add_output_bulk_cap:
-    Capacitor(name = "C_OUT_BULK", value = "47uF", voltage = "10V", package = "1210", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT_BULK", value="47uF", voltage="10V", package="1210", P1=VOUT, P2=GND)
 
 # Bypass capacitor (sets soft-start rate and noise filtering)
-Capacitor(name = "C_BYP", value = bypass_cap_value, voltage = "10V", package = "0402", P1 = VOUT, P2 = _BYP)
+Capacitor(name="C_BYP", value=bypass_cap_value, voltage="10V", package="0402", P1=VOUT, P2=_BYP)
 
 # Feedback resistor divider
 # VOUT = VFB × (1 + R2/R1), where VFB = 0.6V
-Resistor(name = "R_FB_TOP", value = r2_value, package = "0402", P1 = VOUT, P2 = _FB)
-Resistor(name = "R_FB_BOT", value = r1_value, package = "0402", P1 = _FB, P2 = GND)
+Resistor(name="R_FB_TOP", value=r2_value, package="0402", P1=VOUT, P2=_FB)
+Resistor(name="R_FB_BOT", value=r1_value, package="0402", P1=_FB, P2=GND)
 
 # Enable configuration
 if enable_configuration == EnableConfiguration("PullUp"):
     # Pull-up resistor to BIAS for enable
-    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = _EN, P2 = VBIAS)
+    Resistor(name="R_EN", value="100kohms", package="0402", P1=_EN, P2=VBIAS)
 elif enable_configuration == EnableConfiguration("PullDown"):
     # Pull-down resistor to GND for default disabled
-    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = _EN, P2 = GND)
+    Resistor(name="R_EN", value="100kohms", package="0402", P1=_EN, P2=GND)
 # If UserDefined, EN is exposed as external IO for user control
 
 # Power-OK configuration
 if pok_configuration == PowerOkConfiguration("Pullup"):
     # Pull-up resistor for open-drain POK output
     if pok_pullup_supply == PowerOkPullupSupply("Internal"):
-        Resistor(name = "R_POK", value = pok_pullup_value, package = "0402", P1 = _POK, P2 = VOUT)
+        Resistor(name="R_POK", value=pok_pullup_value, package="0402", P1=_POK, P2=VOUT)
     else:  # External supply
-        Resistor(name = "R_POK", value = pok_pullup_value, package = "0402", P1 = _POK, P2 = POK_PULLUP)
-        
+        Resistor(name="R_POK", value=pok_pullup_value, package="0402", P1=_POK, P2=POK_PULLUP)
+
 elif pok_configuration == PowerOkConfiguration("TestPoint"):
     # Pull-up resistor and test point
     if pok_pullup_supply == PowerOkPullupSupply("Internal"):
-        Resistor(name = "R_POK", value = pok_pullup_value, package = "0402", P1 = _POK, P2 = VOUT)
+        Resistor(name="R_POK", value=pok_pullup_value, package="0402", P1=_POK, P2=VOUT)
     else:  # External supply
-        Resistor(name = "R_POK", value = pok_pullup_value, package = "0402", P1 = _POK, P2 = POK_PULLUP)
-    TestPoint(name = "TP_POK", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _POK)
+        Resistor(name="R_POK", value=pok_pullup_value, package="0402", P1=_POK, P2=POK_PULLUP)
+    TestPoint(name="TP_POK", variant="THTPad_D1.0mm_Drill0.5mm", P1=_POK)
 
 # Optional test points
 if add_test_points:
-    TestPoint(name = "TP_VIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VIN)
-    TestPoint(name = "TP_VOUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VOUT)
-    TestPoint(name = "TP_FB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _FB)
-    TestPoint(name = "TP_EN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _EN)
+    TestPoint(name="TP_VIN", variant="THTPad_D1.0mm_Drill0.5mm", P1=VIN)
+    TestPoint(name="TP_VOUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=VOUT)
+    TestPoint(name="TP_FB", variant="THTPad_D1.0mm_Drill0.5mm", P1=_FB)
+    TestPoint(name="TP_EN", variant="THTPad_D1.0mm_Drill0.5mm", P1=_EN)
 
 # pcb:sch MAX38909 x=341.9000 y=380.0000 rot=0
 # pcb:sch C_IN1.C x=-199.1200 y=456.2000 rot=0

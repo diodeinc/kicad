@@ -1,18 +1,19 @@
 """LM2576HVS-12 - 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator
 
-The LM2576HVS-12 is a monolithic integrated circuit that provides all the active 
-functions for a step-down (buck) switching regulator, capable of driving 3A load 
-with excellent line and load regulation. This high voltage version accepts input 
+The LM2576HVS-12 is a monolithic integrated circuit that provides all the active
+functions for a step-down (buck) switching regulator, capable of driving 3A load
+with excellent line and load regulation. This high voltage version accepts input
 voltages up to 60V and provides a fixed 12V output. It features a 52kHz fixed-
-frequency internal oscillator, requires only four external components, and includes 
-TTL-shutdown capability for low-power standby mode. The device offers high efficiency 
-and includes cycle-by-cycle current limiting and thermal shutdown for full protection 
+frequency internal oscillator, requires only four external components, and includes
+TTL-shutdown capability for low-power standby mode. The device offers high efficiency
+and includes cycle-by-cycle current limiting and thermal shutdown for full protection
 under fault conditions.
 
 Author: @Anthropic/claude-4-opus-20250514
 Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 """
+
 load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
@@ -25,17 +26,17 @@ Diode = Module("@stdlib/generics/Diode.zen")
 InductorValue = enum("68uH", "100uH", "150uH", "220uH", "330uH")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-add_inductor = config("add_inductor", bool, default = True)
-add_catch_diode = config("add_catch_diode", bool, default = True)
-enable_control = config("enable_control", bool, default = True)
-inductor_value = config("inductor_value", InductorValue, default = "100uH")
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+add_inductor = config("add_inductor", bool, default=True)
+add_catch_diode = config("add_catch_diode", bool, default=True)
+enable_control = config("enable_control", bool, default=True)
+inductor_value = config("inductor_value", InductorValue, default="100uH")
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN"))
-VOUT = io("VOUT", Net, default = Net("VOUT"))
-ON_OFF = io("ON_OFF", Net, default = Net("ON/OFF")) if enable_control else GND
+VIN = io("VIN", Net, default=Net("VIN"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
+ON_OFF = io("ON_OFF", Net, default=Net("ON/OFF")) if enable_control else GND
 GND = io("GND", Ground)
 
 # Internal nets
@@ -44,10 +45,10 @@ _FB = VOUT  # For fixed voltage version, FB connects directly to output
 
 # 12V, 3A SIMPLE SWITCHER® Step-Down Voltage Regulator, High Voltage Input, TO-263
 Component(
-    name = "LM2576HVS-12",
-    symbol = Symbol("@kicad-symbols/Regulator_Switching.kicad_sym:LM2576HVS-12"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-263-5_TabPin3.kicad_mod"),
-    pins = {
+    name="LM2576HVS-12",
+    symbol=Symbol("@kicad-symbols/Regulator_Switching.kicad_sym:LM2576HVS-12"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/TO-263-5_TabPin3.kicad_mod"),
+    pins={
         "VIN": VIN,
         "~{ON}/OFF": ON_OFF,
         "GND": GND,
@@ -58,41 +59,41 @@ Component(
 
 # Input Capacitor - Datasheet recommends minimum 100µF
 if add_input_cap:
-    Capacitor(name = "C_IN", value = "100uF", package = "1210", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN", value="100uF", package="1210", P1=VIN, P2=GND)
 
     # Additional high-frequency decoupling
-    Capacitor(name = "C_IN_HF", value = "100nF", package = "0603", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN_HF", value="100nF", package="0603", P1=VIN, P2=GND)
 
 # Output Inductor - Required for buck converter operation
 if add_inductor:
-    Inductor(name = "L_OUT", value = inductor_value.value, package = "1210", P1 = _SW, P2 = VOUT)
+    Inductor(name="L_OUT", value=inductor_value.value, package="1210", P1=_SW, P2=VOUT)
 
 # Catch Diode - Required for inductor current return path
 if add_catch_diode:
     # Schottky diode for best efficiency - 1N5822 (3A, 40V Schottky)
     Diode(
-        name = "D_CATCH",
-        variant = "Schottky",
-        package = "SOD-123",
-        mpn = "1N5822",
-        v_r = "40V",
-        i_f = "3A",
-        K = _SW,
-        A = GND,
+        name="D_CATCH",
+        variant="Schottky",
+        package="SOD-123",
+        mpn="1N5822",
+        v_r="40V",
+        i_f="3A",
+        K=_SW,
+        A=GND,
     )
 
 # Output Capacitor - For filtering and stability
 if add_output_cap:
     # Main output capacitor
-    Capacitor(name = "C_OUT", value = "1000uF", package = "1210", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT", value="1000uF", package="1210", P1=VOUT, P2=GND)
 
     # Additional ceramic for high frequency
-    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0603", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT_HF", value="100nF", package="0603", P1=VOUT, P2=GND)
 
 # Enable Control
 if enable_control:
     # Pull-down resistor to ensure regulator is ON by default
-    Resistor(name = "R_EN", value = "10kohms", package = "0603", P1 = ON_OFF, P2 = GND)
+    Resistor(name="R_EN", value="10kohms", package="0603", P1=ON_OFF, P2=GND)
 
 # pcb:sch LM2576HVS-12 x=152.4000 y=241.3000 rot=0
 # pcb:sch C_IN.C x=-165.1000 y=279.4000 rot=0

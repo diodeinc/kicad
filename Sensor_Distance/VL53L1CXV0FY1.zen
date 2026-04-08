@@ -17,7 +17,7 @@ Datasheet: https://www.espressif.com/sites/default/files/documentation/vl53l1x_d
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
-# Dependencies  
+# Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
@@ -29,23 +29,23 @@ ResetMode = enum("None", "PullUp", "PullDown")
 # Configuration
 
 # Interrupt configuration
-interrupt_mode = config("interrupt_mode", InterruptMode, default = "PullUp")
+interrupt_mode = config("interrupt_mode", InterruptMode, default="PullUp")
 
-# Reset/shutdown configuration  
-reset_mode = config("reset_mode", ResetMode, default = "PullUp")
+# Reset/shutdown configuration
+reset_mode = config("reset_mode", ResetMode, default="PullUp")
 
 # Power supply filtering
-add_avdd_filtering = config("add_avdd_filtering", bool, default = True)
-add_avddvcsel_filtering = config("add_avddvcsel_filtering", bool, default = True)
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_avdd_filtering = config("add_avdd_filtering", bool, default=True)
+add_avddvcsel_filtering = config("add_avddvcsel_filtering", bool, default=True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
 
 # I2C pull-ups (typically on host side)
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "2.4kohms")
+    i2c_pullup_value = config("i2c_pullup_value", str, default="2.4kohms")
 
 # Component size
-passives_size = config("passives_size", str, default = "0402")
+passives_size = config("passives_size", str, default="0402")
 
 # External IO
 VDD = io("VDD", Power)
@@ -66,8 +66,8 @@ if reset_mode != ResetMode("None"):
 # Power supply nets - all connect to main VDD/GND
 # The VL53L1X supports both standard (1.8V I/O) and 2V8 modes,
 # but the power connections remain the same in both modes
-_AVDD = VDD.NET
-_AVDDVCSEL = VDD.NET
+_AVDD = VDD
+_AVDDVCSEL = VDD
 _AVSSVCSEL = GND
 _DNC = Net("DNC")  # Do not connect
 
@@ -77,10 +77,10 @@ _XSHUT = XSHUT if reset_mode != ResetMode("None") else Net("XSHUT")
 
 # 4m distance ranging ToF sensor, Optical LGA12
 Component(
-    name = "VL53L1CXV0FY1",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Distance.kicad_sym", name = "VL53L1CXV0FY1"),
-    footprint = File("@kicad-footprints/Sensor_Distance.pretty/ST_VL53L1x.kicad_mod"),
-    pins = {
+    name="VL53L1CXV0FY1",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Distance.kicad_sym", name="VL53L1CXV0FY1"),
+    footprint=File("@kicad-footprints/Sensor_Distance.pretty/ST_VL53L1x.kicad_mod"),
+    pins={
         "AVDDVCSEL": _AVDDVCSEL,
         "AVSSVCSEL": _AVSSVCSEL,
         "GND": GND,
@@ -89,55 +89,55 @@ Component(
         "DNC": _DNC,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
-        "AVDD": _AVDD
-    }
+        "AVDD": _AVDD,
+    },
 )
 
 # Bulk capacitor
 if add_bulk_cap:
     bulk_size = "0805" if passives_size == "0402" else passives_size
-    Capacitor(name = "C_BULK", value = "10uF", package = bulk_size, P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package=bulk_size, P1=VDD, P2=GND)
 
 # AVDD decoupling capacitors (placed close to pin 11)
 if add_avdd_filtering:
-    Capacitor(name = "C_AVDD1", value = "100nF", package = passives_size, P1 = _AVDD, P2 = GND)
-    Capacitor(name = "C_AVDD2", value = "4.7uF", package = passives_size, P1 = _AVDD, P2 = GND)
+    Capacitor(name="C_AVDD1", value="100nF", package=passives_size, P1=_AVDD, P2=GND)
+    Capacitor(name="C_AVDD2", value="4.7uF", package=passives_size, P1=_AVDD, P2=GND)
 
 # AVDDVCSEL decoupling capacitors (placed close to pins 1 and 2)
 if add_avddvcsel_filtering:
-    Capacitor(name = "C_VCSEL1", value = "100nF", package = passives_size, P1 = _AVDDVCSEL, P2 = _AVSSVCSEL)
-    Capacitor(name = "C_VCSEL2", value = "4.7uF", package = passives_size, P1 = _AVDDVCSEL, P2 = _AVSSVCSEL)
+    Capacitor(name="C_VCSEL1", value="100nF", package=passives_size, P1=_AVDDVCSEL, P2=_AVSSVCSEL)
+    Capacitor(name="C_VCSEL2", value="4.7uF", package=passives_size, P1=_AVDDVCSEL, P2=_AVSSVCSEL)
 
 # XSHUT pull resistor
 if reset_mode == ResetMode("PullUp"):
-    Resistor(name = "R_XSHUT", value = "10kohms", package = passives_size, P1 = _XSHUT, P2 = VDD.NET)
+    Resistor(name="R_XSHUT", value="10kohms", package=passives_size, P1=_XSHUT, P2=VDD)
 elif reset_mode == ResetMode("PullDown"):
-    Resistor(name = "R_XSHUT", value = "10kohms", package = passives_size, P1 = _XSHUT, P2 = GND)
+    Resistor(name="R_XSHUT", value="10kohms", package=passives_size, P1=_XSHUT, P2=GND)
 # None means no pull resistor
 
 # GPIO1 interrupt pull resistor
 if interrupt_mode == InterruptMode("PullUp"):
-    Resistor(name = "R_GPIO1", value = "10kohms", package = passives_size, P1 = _GPIO1, P2 = VDD.NET)
+    Resistor(name="R_GPIO1", value="10kohms", package=passives_size, P1=_GPIO1, P2=VDD)
 elif interrupt_mode == InterruptMode("PullDown"):
-    Resistor(name = "R_GPIO1", value = "10kohms", package = passives_size, P1 = _GPIO1, P2 = GND)
+    Resistor(name="R_GPIO1", value="10kohms", package=passives_size, P1=_GPIO1, P2=GND)
 
 # I2C pull-up resistors (typically on host side of the bus)
 if add_i2c_pullups:
-    Resistor(name = "R_SDA", value = i2c_pullup_value, package = passives_size, P1 = i2c.SDA, P2 = VDD.NET)
-    Resistor(name = "R_SCL", value = i2c_pullup_value, package = passives_size, P1 = i2c.SCL, P2 = VDD.NET)
+    Resistor(name="R_SDA", value=i2c_pullup_value, package=passives_size, P1=i2c.SDA, P2=VDD)
+    Resistor(name="R_SCL", value=i2c_pullup_value, package=passives_size, P1=i2c.SCL, P2=VDD)
 
 # DNC (Do Not Connect) pin - must be left floating
 # No connection needed - the _DNC net remains unconnected
 
 # Test points for debugging (optional)
-add_test_points = config("add_test_points", bool, default = False, optional = True)
+add_test_points = config("add_test_points", bool, default=False, optional=True)
 if add_test_points:
-    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
-    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
+    TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SDA)
+    TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SCL)
     if interrupt_mode != InterruptMode("None"):
-        TestPoint(name = "TP_GPIO1", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _GPIO1)
+        TestPoint(name="TP_GPIO1", variant="THTPad_D1.0mm_Drill0.5mm", P1=_GPIO1)
     if reset_mode != ResetMode("None"):
-        TestPoint(name = "TP_XSHUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _XSHUT)
+        TestPoint(name="TP_XSHUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=_XSHUT)
 
 # PCB placement hints for optimal performance
 # pcb:sch C_BULK.C x=-224.5200 y=291.1000 rot=0
