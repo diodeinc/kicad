@@ -83,13 +83,13 @@ if add_sense_resistor:
     # When using internal sense resistor, VDD_SENSE is the power being monitored
     VDD_SENSE = io("VDD_SENSE", Power)
     # RS+ connects directly to VDD_SENSE (high side)
-    RS_PLUS = VDD_SENSE
+    RS_P = VDD_SENSE
     # RS- is an internal net (low side)
-    RS_MINUS = Net("RS_MINUS_INT")
+    RS_N = Net("RS_MINUS_INT")
 else:
     # External sense resistor configuration
-    RS_PLUS = io("RS+", Net)
-    RS_MINUS = io("RS-", Net)
+    RS_P = io("RS+", Net)
+    RS_N = io("RS-", Net)
 
 # Reference voltage input
 SET = io("SET", Net)
@@ -131,8 +131,8 @@ Component(
     footprint=File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
     pins={
         "OUT": OUT,  # Pin 1
-        "RS+": RS_PLUS,  # Pin 2
-        "RS-": RS_MINUS,  # Pin 3
+        "RS+": RS_P,  # Pin 2
+        "RS-": RS_N,  # Pin 3
         "SET": SET,  # Pin 4
         "GND": GND,  # Pin 5
         "SCL": i2c.SCL,  # Pin 6
@@ -163,8 +163,8 @@ if add_sense_resistor:
         name="R_SENSE",
         value=sense_resistor_value,
         package="2512",  # Larger package for power handling
-        P1=RS_PLUS,  # Connected to VDD_SENSE
-        P2=RS_MINUS,  # Connected to load side
+        P1=RS_P,  # Connected to VDD_SENSE
+        P2=RS_N,  # Connected to load side
     )
 
     # Load resistor between RS- and GND
@@ -172,7 +172,7 @@ if add_sense_resistor:
         name="R_LOAD",
         value=load_resistor_value,
         package="1206",  # Larger package for power handling
-        P1=RS_MINUS,
+        P1=RS_N,
         P2=GND,
     )
 
@@ -216,8 +216,8 @@ Capacitor(name="C_SET", value="1uF", package="0603", P1=SET, P2=GND)
 
 # Test points (optional)
 if add_test_points:
-    TestPoint(name="TP_RS_PLUS", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_PLUS)
-    TestPoint(name="TP_RS_MINUS", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_MINUS)
+    TestPoint(name="TP_RS_P", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_P)
+    TestPoint(name="TP_RS_N", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_N)
     TestPoint(name="TP_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=OUT)
     TestPoint(name="TP_SET", variant="THTPad_D1.0mm_Drill0.5mm", P1=SET)
 
@@ -237,6 +237,6 @@ if add_test_points:
 # pcb:sch R_SET2.R x=-23.8600 y=557.8000 rot=0
 # pcb:sch VDD_SENSE.1 x=67.5800 y=240.3000 rot=0
 # pcb:sch TP_OUT.TP x=308.8800 y=250.4600 rot=0
-# pcb:sch TP_RS_MINUS.TP x=-110.2200 y=428.2600 rot=270
-# pcb:sch TP_RS_PLUS.TP x=-110.2200 y=237.7600 rot=270
+# pcb:sch TP_RS_N.TP x=-110.2200 y=428.2600 rot=270
+# pcb:sch TP_RS_P.TP x=-110.2200 y=237.7600 rot=270
 # pcb:sch TP_SET.TP x=67.5800 y=491.7600 rot=0

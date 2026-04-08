@@ -114,12 +114,12 @@ GND = io("GND", Ground)
 i2c = io("I2C", I2c)  # I2C communication interface
 
 # Bus voltage monitoring pins
-IN_PLUS = io("IN_PLUS", Net)  # Positive shunt voltage input
-IN_MINUS = io("IN_MINUS", Net)  # Negative shunt voltage input / Bus voltage sense
+IN_P = io("IN_P", Net)  # Positive shunt voltage input
+IN_N = io("IN_N", Net)  # Negative shunt voltage input / Bus voltage sense
 
 # Internal nets
-_IN_PLUS_FILT = Net("IN_PLUS_FILT") if add_input_filtering else IN_PLUS
-_IN_MINUS_FILT = Net("IN_MINUS_FILT") if add_input_filtering else IN_MINUS
+_IN_P_FILT = Net("IN_PLUS_FILT") if add_input_filtering else IN_P
+_IN_N_FILT = Net("IN_MINUS_FILT") if add_input_filtering else IN_N
 
 # Address pin nets
 if a1_conn == "VS":
@@ -146,8 +146,8 @@ Component(
     symbol=Symbol(library="@kicad-symbols/Sensor_Energy.kicad_sym", name="INA219AxD"),
     footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
     pins={
-        "IN+": _IN_PLUS_FILT,
-        "IN-": _IN_MINUS_FILT,
+        "IN+": _IN_P_FILT,
+        "IN-": _IN_N_FILT,
         "VS": VS,
         "GND": GND,
         "SDA": i2c.SDA,
@@ -168,14 +168,14 @@ if add_decoupling:
 # Input filtering
 if add_input_filtering:
     # Series resistors for dV/dt protection
-    Resistor(name="R_IN_PLUS", value=input_filter_r, package="0402", P1=IN_PLUS, P2=_IN_PLUS_FILT)
+    Resistor(name="R_IN_P", value=input_filter_r, package="0402", P1=IN_P, P2=_IN_P_FILT)
 
-    Resistor(name="R_IN_MINUS", value=input_filter_r, package="0402", P1=IN_MINUS, P2=_IN_MINUS_FILT)
+    Resistor(name="R_IN_N", value=input_filter_r, package="0402", P1=IN_N, P2=_IN_N_FILT)
 
     # Filter capacitors
-    Capacitor(name="C_IN_PLUS", value=input_filter_c, voltage="50V", package="0402", P1=_IN_PLUS_FILT, P2=GND)
+    Capacitor(name="C_IN_P", value=input_filter_c, voltage="50V", package="0402", P1=_IN_P_FILT, P2=GND)
 
-    Capacitor(name="C_IN_MINUS", value=input_filter_c, voltage="50V", package="0402", P1=_IN_MINUS_FILT, P2=GND)
+    Capacitor(name="C_IN_N", value=input_filter_c, voltage="50V", package="0402", P1=_IN_N_FILT, P2=GND)
 
 # Overvoltage protection
 if add_overvoltage_protection:
@@ -184,7 +184,7 @@ if add_overvoltage_protection:
         name="D_TVS",
         symbol=Symbol(library="@kicad-symbols/Diode.kicad_sym", name="SMAJ26A"),
         footprint=File("@kicad-footprints/Diode_SMD.pretty/D_SOD-123.kicad_mod"),
-        pins={"A1": IN_MINUS, "A2": GND},
+        pins={"A1": IN_N, "A2": GND},
     )
 
 # I2C pull-up resistors
@@ -195,9 +195,9 @@ if add_i2c_pullups:
 
 # Test points
 if add_test_points:
-    TestPoint(name="TP_IN_PLUS", variant="Pad_D1.5mm", P1=IN_PLUS)
+    TestPoint(name="TP_IN_P", variant="Pad_D1.5mm", P1=IN_P)
 
-    TestPoint(name="TP_IN_MINUS", variant="Pad_D1.5mm", P1=IN_MINUS)
+    TestPoint(name="TP_IN_N", variant="Pad_D1.5mm", P1=IN_N)
 
     TestPoint(name="TP_VS", variant="Pad_D1.5mm", P1=VS)
 
@@ -207,24 +207,24 @@ Resistor(
     name="R_SHUNT",
     value=shunt_resistance,
     package="2512",  # Large SMD package for power handling
-    P1=IN_PLUS,
-    P2=IN_MINUS,
+    P1=IN_P,
+    P2=IN_N,
 )
 
 # pcb:sch C_BULK.C x=270.7800 y=49.8000 rot=0
-# pcb:sch C_IN_MINUS.C x=753.3800 y=227.6000 rot=0
-# pcb:sch C_IN_PLUS.C x=512.0800 y=49.8000 rot=0
+# pcb:sch C_IN_N.C x=753.3800 y=227.6000 rot=0
+# pcb:sch C_IN_P.C x=512.0800 y=49.8000 rot=0
 # pcb:sch C_VS.C x=385.0800 y=49.8000 rot=0
 # pcb:sch D_TVS x=595.9000 y=265.7000 rot=90
 # pcb:sch FB_VS.FB x=174.5140 y=-39.1000 rot=90
 # pcb:sch INA219A x=811.8000 y=49.8000 rot=0
-# pcb:sch R_IN_MINUS.R x=700.0400 y=164.1000 rot=270
-# pcb:sch R_IN_PLUS.R x=700.0400 y=49.8000 rot=270
+# pcb:sch R_IN_N.R x=700.0400 y=164.1000 rot=270
+# pcb:sch R_IN_P.R x=700.0400 y=49.8000 rot=270
 # pcb:sch R_SCL.R x=1042.9400 y=11.7000 rot=180
 # pcb:sch R_SDA.R x=1119.1400 y=11.7000 rot=180
 # pcb:sch R_SHUNT x=444.7700 y=-128.0000 rot=0
-# pcb:sch TP_IN_MINUS.TP x=626.3800 y=334.2800 rot=180
-# pcb:sch TP_IN_PLUS.TP x=626.3800 y=-97.5200 rot=0
+# pcb:sch TP_IN_N.TP x=626.3800 y=334.2800 rot=180
+# pcb:sch TP_IN_P.TP x=626.3800 y=-97.5200 rot=0
 # pcb:sch TP_VS.TP x=397.7800 y=-135.6200 rot=0
 # pcb:sch GND.1 x=900.7000 y=354.6000 rot=0
 # pcb:sch VCC.1 x=905.7800 y=-26.4000 rot=0
