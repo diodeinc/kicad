@@ -416,7 +416,6 @@ if add_low_speed_oscillator:
         package="3215_2Pin",
         XIN=_PC14,
         XOUT=_PC15,
-        GND=GND,
     )
     Capacitor(name="C_OSC3", value="12pF", package="0402", P1=_PC14, P2=GND)
     Capacitor(name="C_OSC4", value="12pF", package="0402", P1=_PC15, P2=GND)

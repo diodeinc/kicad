@@ -337,7 +337,7 @@ if hf_clock_source == ClockSource("Crystal"):
 
 # Low frequency crystal oscillator
 if add_lf_clock:
-    Crystal(name="Y_LF", frequency="32.768kHz", package="3215_2Pin", XIN=_XL1, XOUT=_XL2, GND=GND)
+    Crystal(name="Y_LF", frequency="32.768kHz", package="3215_2Pin", XIN=_XL1, XOUT=_XL2)
     Capacitor(name="C_XL1", value=lf_crystal_capacitor_value, package="0402", P1=_XL1, P2=GND)
     Capacitor(name="C_XL2", value=lf_crystal_capacitor_value, package="0402", P1=_XL2, P2=GND)
 

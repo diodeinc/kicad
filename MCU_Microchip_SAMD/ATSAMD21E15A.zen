@@ -286,7 +286,6 @@ if add_low_speed_oscillator:
         package="3215_2Pin",
         XIN=_XIN32,
         XOUT=_XOUT32,
-        GND=GND,
     )
 
     # Load capacitors for low speed oscillator
