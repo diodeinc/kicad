@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tmp114.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,7 +46,7 @@ add_test_points = config("add_test_points", bool, default=True, optional=True)
 passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.08V to 1.98V"))
 GND = io("GND", Ground)
 
 # I2C interface

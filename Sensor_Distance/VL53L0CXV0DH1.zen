@@ -14,6 +14,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/vl53l0x.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -51,7 +52,7 @@ if interrupt_config == InterruptConfig("Pullup"):
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.6V to 3.5V"))
 GND = io("GND", Ground)
 I2C = io("I2C", I2c, default=I2c())
 

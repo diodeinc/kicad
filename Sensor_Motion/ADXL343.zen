@@ -21,6 +21,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/A
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -71,9 +72,9 @@ if use_int1 or use_int2:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VS = io("VS", Power)
+VS = io("VS", Power, checks=voltage_within("2V to 3.6V"))
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Power)
+    VDD_IO = io("VDD_IO", Power, checks=voltage_within("2V to 3.6V"))
 else:
     VDD_IO = io("VDD_IO", Net, default=VS)
 GND = io("GND", Ground)

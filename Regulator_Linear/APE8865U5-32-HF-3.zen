@@ -13,6 +13,7 @@ Datasheet: https://www.apec-usa.com/datasheet/APE8865-3.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +35,7 @@ passive_size = config("passive_size", PackageSize, default="0603")
 shutdown_config = config("shutdown_config", ShutdownConfig, default="PullUp")
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("3.5V to 5.5V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

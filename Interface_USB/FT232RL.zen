@@ -16,6 +16,7 @@ Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
 """
 
 load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -70,7 +71,7 @@ elif communication_mode == CommunicationMode("UART"):
 
 NRESET = io("NRESET", Net) if power_config == PowerConfig("BusPowered") else Net("RESET")
 
-VUSB = io("VUSB", Power)
+VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 VOUT_3V3 = Net("VOUT_3V3")
 GND = io("GND", Ground)
 

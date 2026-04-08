@@ -12,6 +12,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f103c8.pdf
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -74,7 +75,7 @@ if add_usb:
     power_from_usb = config("power_from_usb", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
 GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user

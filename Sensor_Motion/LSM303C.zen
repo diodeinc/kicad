@@ -16,6 +16,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/lsm303c.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,9 +46,9 @@ enable_int_mag = config("enable_int_mag", bool, default=True)
 enable_drdy_mag = config("enable_drdy_mag", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.9V to 3.6V"))
 if seperate_vdd_vddio:
-    VDD_IO = io("VDD_IO", Power)
+    VDD_IO = io("VDD_IO", Power, checks=voltage_within("1.9V to 3.6V"))
 else:
     VDD_IO = VDD
 GND = io("GND", Ground)

@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm2672.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,7 +49,7 @@ optimize_for_size = config("optimize_for_size", bool, default=False)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("15V to 40V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

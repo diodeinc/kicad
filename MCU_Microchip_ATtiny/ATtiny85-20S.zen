@@ -19,6 +19,7 @@ Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit
 """
 
 load("@stdlib/interfaces.zen", "Spi", "I2c", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -61,7 +62,7 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VUSB = io("VUSB", Power)
+    VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 
 # GPIO pins - conditionally exposed based on configuration
 # PB0 - AREF/MOSI/SDA

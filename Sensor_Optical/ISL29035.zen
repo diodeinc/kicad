@@ -14,6 +14,7 @@ Datasheet: https://www.renesas.com/us/en/www/doc/datasheet/isl29035.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +35,7 @@ if add_interrupt_pullup:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IOs
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.25V to 3.63V"))
 GND = io("GND", Ground)
 
 # I2C interface

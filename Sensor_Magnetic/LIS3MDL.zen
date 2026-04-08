@@ -12,6 +12,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/lis3mdl.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -41,12 +42,12 @@ add_bulk_cap = config("add_bulk_cap", bool, default=True)
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.9V to 3.6V"))
 GND = io("GND", Ground)
 
 # VDD_IO - can be same as VDD or separate
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Power)
+    VDD_IO = io("VDD_IO", Power, checks=voltage_within("1.9V to 3.6V"))
 else:
     VDD_IO = VDD
 

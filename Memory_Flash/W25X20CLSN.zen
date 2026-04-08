@@ -15,6 +15,7 @@ Datasheet: http://www.winbond.com/resource-files/w25x20cl_f%2020140325.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,7 +34,7 @@ if not enable_hold:
 
 # External IO
 spi = io("spi", Spi, default=Spi("spi"))
-VCC = io("VCC", Power)
+VCC = io("VCC", Power, checks=voltage_within("2.3V to 3.6V"))
 GND = io("GND", Ground)
 
 # Additional IO based on configuration

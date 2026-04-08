@@ -14,6 +14,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina169.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -62,7 +63,7 @@ gain_map = {
 load_resistor_value = gain_map[gain_setting]
 
 # External IO
-V_PLUS = io("V+", Power)  # Power supply (2.7-60V)
+V_PLUS = io("V+", Power, checks=voltage_within("2.7V to 60V"))  # Power supply (2.7-60V)
 GND = io("GND", Ground)
 
 # Current sensing inputs

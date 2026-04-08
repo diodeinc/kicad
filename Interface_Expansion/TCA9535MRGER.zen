@@ -33,6 +33,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tca9535.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -80,7 +81,7 @@ if add_unused_io_resistors or unused_port_handling == UnusedPortHandling("PullUp
 add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
-VCC = io("VCC", Power)
+VCC = io("VCC", Power, checks=voltage_within("1.65V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface

@@ -15,6 +15,7 @@ Datasheet: https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,7 +43,7 @@ add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, defaul
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("1.25V to 18.8V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

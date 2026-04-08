@@ -14,6 +14,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/lis331hh.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -55,10 +56,10 @@ else:
     add_vddio_decoupling = False
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.16V to 3.6V"))
 # VDD_IO - can be same as VDD or separate
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Power)
+    VDD_IO = io("VDD_IO", Power, checks=voltage_within("2.16V to 3.6V"))
 else:
     VDD_IO = VDD
 GND = io("GND", Ground)

@@ -21,6 +21,7 @@ Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -59,7 +60,7 @@ i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x60"))
 
 # External IO
 i2c = io("I2C", I2c, default=I2c("I2C"))
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.7V to 5.5V"))
 VSS = io("VSS", Ground)
 VOUT = io("VOUT", Net, default=Net("VOUT"))
 

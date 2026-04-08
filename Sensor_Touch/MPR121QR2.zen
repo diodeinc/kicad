@@ -15,6 +15,7 @@ Datasheet: https://www.nxp.com/docs/en/data-sheet/MPR121.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,7 +40,7 @@ add_electrode_header = config("add_electrode_header", bool, default=True)
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
 VSS = io("VSS", Ground)
 
 # I2C interface

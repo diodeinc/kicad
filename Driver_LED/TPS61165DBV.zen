@@ -48,6 +48,7 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tps61165.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -80,7 +81,7 @@ else:
 circuit_mode = config("circuit_mode", CircuitMode, default="Typical")
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("3V to 18V"))
 GND = io("GND", Ground)
 LED_ANODE = io("LED_ANODE", Net, default=Net("LED_ANODE"))
 LED_CATHODE = io("LED_CATHODE", Net, default=Net("LED_CATHODE"))

@@ -14,6 +14,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f072cb.pdf
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "CanTtl", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -79,7 +80,7 @@ if add_can:
     add_can_termination = config("add_can_termination", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
 GND = io("GND", Ground)
 
 # Optional VDDIO2 supply for specific I/Os

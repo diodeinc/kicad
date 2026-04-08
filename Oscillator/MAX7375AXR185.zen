@@ -28,6 +28,7 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,7 +55,7 @@ if add_series_termination:
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VCC = io("VCC", Power)
+VCC = io("VCC", Power, checks=voltage_within("2.7V to 5.5V"))
 GND = io("GND", Ground)
 CLOCK_OUT = io("CLOCK_OUT", Net, default=Net("CLK_1M8432"))
 

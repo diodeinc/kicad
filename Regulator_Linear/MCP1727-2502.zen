@@ -16,6 +16,7 @@ Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,7 +43,7 @@ if add_power_good_delay:
     power_good_delay_cap = config("power_good_delay_cap", Capacitance, default="1000pF")
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("2.3V to 6V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

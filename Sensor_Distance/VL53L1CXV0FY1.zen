@@ -17,6 +17,7 @@ Datasheet: https://www.espressif.com/sites/default/files/documentation/vl53l1x_d
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,7 +50,7 @@ if add_i2c_pullups:
 passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.6V to 3.5V"))
 GND = io("GND", Ground)
 
 # I2C interface

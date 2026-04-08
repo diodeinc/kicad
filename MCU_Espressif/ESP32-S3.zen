@@ -14,6 +14,7 @@ Datasheet: https://www.espressif.com/documentation/esp32-s3_datasheet_en.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Import TLV70033 module from validated parts
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
@@ -98,7 +99,7 @@ GND = io("GND", Ground)
 # USB IO (if enabled)
 if add_usb_circuit:
     usb = io("USB", Usb2, default=Usb2("USB"))
-    VUSB = io("VUSB", Power)
+    VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 
 # JTAG IO (if enabled)
 if add_jtag_header:

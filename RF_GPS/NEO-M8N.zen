@@ -12,6 +12,7 @@ Datasheet: https://www.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_UBX-1
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,8 +51,8 @@ add_bulk_caps = config("add_bulk_caps", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO - Always create these power nets
-VCC = io("VCC", Power)
-VBUS = io("VBUS", Power)
+VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
+VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
 GND = io("GND", Ground)
 
 # Interface IO - conditional based on configuration

@@ -16,6 +16,7 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32g431cb.pdf
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -78,7 +79,7 @@ if add_usb:
 add_fdcan = config("add_fdcan", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
 GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
