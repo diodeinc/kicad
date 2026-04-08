@@ -80,8 +80,7 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends 0.47μF bypass capacitor
-if add_input_cap:
-    Capacitor(name="C_IN", value="470nF", package="0603", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="470nF", package="0603", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - REF32xx is stable with most capacitive loads
 if add_output_cap:

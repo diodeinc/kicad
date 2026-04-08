@@ -175,14 +175,11 @@ if add_decoupling_caps:
     Capacitor(name="C_VDD2", value="1uF", package="0603", P1=VDD, P2=GND)
 
 # Reset circuit
-if add_reset_pullup:
-    Resistor(name="R_RST", value="10kohms", package="0402", P1=RST, P2=VDD)
-if add_reset_cap:
-    Capacitor(name="C_RST", value="100nF", package="0402", P1=RST, P2=GND)
+Resistor(name="R_RST", value="10kohms", package="0402", P1=RST, P2=VDD, dnp=not add_reset_pullup)
+Capacitor(name="C_RST", value="100nF", package="0402", P1=RST, P2=GND, dnp=not add_reset_cap)
 
 # CS pull-up
-if add_cs_pullup:
-    Resistor(name="R_CS", value="10kohms", package="0402", P1=spi.CS, P2=VDD)
+Resistor(name="R_CS", value="10kohms", package="0402", P1=spi.CS, P2=VDD, dnp=not add_cs_pullup)
 
 # Power mode specific components
 if power_mode == PowerMode("LowPower"):

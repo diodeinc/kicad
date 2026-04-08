@@ -299,10 +299,8 @@ Inductor(name="L_VDD3P3", value="2nH", package="0402", P1=VDD, P2=_VDD3P3)
 Capacitor(name="C_VDD3P3_OUT", value="100nF", package="0402", P1=_VDD3P3, P2=GND)
 
 # Power connections with ferrite beads for noise isolation
-if add_vdda_filtering:
-    FerriteBead(name="FB_VDDA", package="0603", P1=VDD, P2=_VDDA)
-if add_rtc_filtering:
-    FerriteBead(name="FB_VDD3P3_RTC", package="0603", P1=VDD, P2=_VDD3P3_RTC)
+FerriteBead(name="FB_VDDA", package="0603", P1=VDD, P2=_VDDA, dnp=not add_vdda_filtering)
+FerriteBead(name="FB_VDD3P3_RTC", package="0603", P1=VDD, P2=_VDD3P3_RTC, dnp=not add_rtc_filtering)
 
 # Crystal Oscillator
 if clock_source == ClockSource("Crystal"):
@@ -329,8 +327,14 @@ if clock_source == ClockSource("Crystal"):
     Capacitor(name="C_XTAL2", value=crystal_capacitor_value, package="0402", P1=crystal_out, P2=GND)
 
     # Series resistor for oscillator stability (if enabled)
-    if add_crystal_series_resistor:
-        Resistor(name="R_OSC", value=crystal_series_resistor, package="0402", P1=_R_OSC, P2=_XTAL_N)
+    Resistor(
+        name="R_OSC",
+        value=crystal_series_resistor,
+        package="0402",
+        P1=_R_OSC,
+        P2=_XTAL_N,
+        dnp=not add_crystal_series_resistor,
+    )
 
 # Low Speed Oscillator for RTC
 if add_low_speed_oscillator:
@@ -420,8 +424,7 @@ elif boot_configuration == BootConfiguration("Button"):
 # VDD_SPI is always connected to VDD (3.3V) on ESP32-C3
 
 # VDD_SPI decoupling
-if add_vdd_spi_circuit:
-    Capacitor(name="C_VDD_SPI", value="100nF", package="0402", P1=_VDD_SPI, P2=GND)
+Capacitor(name="C_VDD_SPI", value="100nF", package="0402", P1=_VDD_SPI, P2=GND, dnp=not add_vdd_spi_circuit)
 
 # USB Circuit
 if add_usb_circuit:
@@ -549,20 +552,20 @@ if add_antenna:
     )
 
 # JTAG Header
-if add_jtag_header:
-    PinHeader(
-        name="J_JTAG",
-        pins=6,
-        rows=1,
-        pitch="2.54mm",
-        orientation="Vertical",
-        P1=VDD,  # VDD
-        P2=jtag.TMS,  # TMS
-        P3=jtag.TCK,  # TCK
-        P4=jtag.TDO,  # TDO
-        P5=jtag.TDI,  # TDI
-        P6=GND,  # GND
-    )
+PinHeader(
+    name="J_JTAG",
+    pins=6,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=jtag.TMS,  # TMS
+    P3=jtag.TCK,  # TCK
+    P4=jtag.TDO,  # TDO
+    P5=jtag.TDI,  # TDI
+    P6=GND,  # GND,
+    dnp=not add_jtag_header,
+)
 
 # pcb:sch C_BULK1.C x=689.8800 y=1027.7000 rot=0
 # pcb:sch C_BULK2.C x=778.7800 y=1027.7000 rot=0

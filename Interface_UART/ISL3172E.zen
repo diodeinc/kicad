@@ -69,8 +69,7 @@ Component(
 )
 
 # Power supply decoupling - as per datasheet Figure 1
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=VCC, P2=GND)
+Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_cap)
 
 if add_decoupling_caps:
     # 0.1µF decoupling cap as shown in typical circuits
@@ -90,8 +89,9 @@ if de_pullup:
     _DE_INT = DE
 
 # Bus termination
-if add_bus_termination:
-    Resistor(name="R_TERM", value=termination_resistance, package="0603", P1=RS485_A, P2=RS485_B)
+Resistor(
+    name="R_TERM", value=termination_resistance, package="0603", P1=RS485_A, P2=RS485_B, dnp=not add_bus_termination
+)
 
 # Fail-safe biasing network
 if add_fail_safe_biasing:

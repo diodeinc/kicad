@@ -89,12 +89,10 @@ Component(
 )
 
 # Bulk capacitor (4.7uF as shown in application schematic)
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="4.7uF", voltage="10V", package="0603", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="4.7uF", voltage="10V", package="0603", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power supply decoupling (100nF as shown in application schematic)
-if add_decoupling:
-    Capacitor(name="C_VDD", value="100nF", voltage="10V", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_VDD", value="100nF", voltage="10V", package="0402", P1=VDD, P2=GND, dnp=not add_decoupling)
 
 # XSHUT control
 if shutdown_control == ShutdownControl("PullupOnly"):

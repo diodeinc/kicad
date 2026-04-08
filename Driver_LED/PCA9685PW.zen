@@ -316,11 +316,9 @@ Component(
 )
 
 # Power supply decoupling
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=VSS)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=VSS, dnp=not add_bulk_cap)
 
-if add_decoupling:
-    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=VSS)
+Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=VSS, dnp=not add_decoupling)
 
 # I2C pull-up resistors
 if add_i2c_pullups:

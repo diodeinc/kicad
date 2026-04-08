@@ -76,8 +76,7 @@ else:  # SPI mode
 # Interrupt IO
 if use_interrupt:
     _INT_PIN = io("INT", Net)
-    if add_interrupt_pullup:
-        Resistor(name="R_INT_PU", value="10kohms", package="0402", P1=_INT_PIN, P2=VDDIO)
+    Resistor(name="R_INT_PU", value="10kohms", package="0402", P1=_INT_PIN, P2=VDDIO, dnp=not add_interrupt_pullup)
 else:
     _INT_PIN = Net("_INT")  # Floating if interrupt not used
 
@@ -148,15 +147,14 @@ Component(
 )
 
 # REGOUT Capacitor - Required for internal LDO
-if add_regout_cap:
-    Capacitor(name="C_REGOUT", value="100nF", voltage="6.3V", package="0402", P1=_REGOUT, P2=GND)
+Capacitor(name="C_REGOUT", value="100nF", voltage="6.3V", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
 
 # VDD Power Supply Capacitors
-if add_vdd_bulk_cap:
-    Capacitor(name="C_VDD_BULK", value="2.2uF", voltage="6.3V", package="0603", P1=VDD, P2=GND)
+Capacitor(name="C_VDD_BULK", value="2.2uF", voltage="6.3V", package="0603", P1=VDD, P2=GND, dnp=not add_vdd_bulk_cap)
 
-if add_vdd_bypass_cap:
-    Capacitor(name="C_VDD_BYPASS", value="100nF", voltage="6.3V", package="0402", P1=VDD, P2=GND)
+Capacitor(
+    name="C_VDD_BYPASS", value="100nF", voltage="6.3V", package="0402", P1=VDD, P2=GND, dnp=not add_vdd_bypass_cap
+)
 
 # VDDIO Bypass Capacitor (only when VDDIO is separate)
 if add_vddio_bypass_cap and separate_vddio:

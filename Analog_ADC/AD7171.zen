@@ -81,8 +81,7 @@ if add_decoupling:
     Capacitor(name="C_HF", value="10nF", package="0402", P1=VDD, P2=GND)
 
 # Bulk Capacitor - Datasheet recommends 10µF tantalum
-if add_bulk:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk)
 
 # Input RC Filtering - Table 8 from datasheet
 if add_input_filter:
@@ -108,8 +107,7 @@ if add_input_filter:
     Capacitor(name="C_AINN", value=filter_config["C"], package="0402", P1=_AIN_N_FILT, P2=GND)
 
 # Pull-up resistor for DOUT/RDY (open-drain output)
-if add_pullup:
-    Resistor(name="R_PULLUP", value="10kohms", package="0402", P1=spi.MISO, P2=VDD)
+Resistor(name="R_PULLUP", value="10kohms", package="0402", P1=spi.MISO, P2=VDD, dnp=not add_pullup)
 
 # Reference decoupling (if using external reference)
 if use_external_ref:

@@ -86,8 +86,7 @@ else:
     _VDD_FILT = VDD
 
 # Bulk capacitor - 10uF for PGA-103 as per application circuit
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="1206", P1=_VDD_FILT, P2=GND)
+Capacitor(name="C_BULK", value="10uF", voltage="10V", package="1206", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
 
 # Decoupling capacitors - PGA-103 specific values
 if add_decoupling:

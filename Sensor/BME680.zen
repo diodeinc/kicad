@@ -110,8 +110,7 @@ if add_power_decoupling:
     Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
 
     # VDDIO decoupling - place close to pin 6
-    if add_vddio_separation:
-        Capacitor(name="C_VDDIO", value="100nF", package="0402", P1=VDDIO, P2=GND)
+    Capacitor(name="C_VDDIO", value="100nF", package="0402", P1=VDDIO, P2=GND, dnp=not add_vddio_separation)
 
 # Test Points (optional)
 if add_test_points:

@@ -73,8 +73,7 @@ if add_i2c_pullups:
 
 # Interrupt pull-up resistor
 # INT pin is open-drain output - typical circuit shows 4.7k pull-up
-if add_interrupt_pullup:
-    Resistor(name="R_INT_PU", value=i2c_pullup_value, package="0402", P1=INT, P2=VDD)
+Resistor(name="R_INT_PU", value=i2c_pullup_value, package="0402", P1=INT, P2=VDD, dnp=not add_interrupt_pullup)
 
 # Test points for debugging
 if add_test_points:

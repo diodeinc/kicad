@@ -193,8 +193,7 @@ if add_external_load_caps:
 if add_core_decoupling:
     Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
 
-    if add_bulk_cap:
-        Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
+    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Output bank decoupling capacitors
 if vddoa_config != OutputBankConfig("Disabled"):

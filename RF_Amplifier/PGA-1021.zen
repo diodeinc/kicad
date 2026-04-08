@@ -86,8 +86,7 @@ else:
     _VDD_FILT = VDD
 
 # Bulk capacitor - use 0.1uF as per datasheet
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="100nF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND)
+Capacitor(name="C_BULK", value="100nF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
 
 # Decoupling capacitors
 if add_decoupling:
@@ -122,8 +121,9 @@ Capacitor(name="C_IN", value=input_cap_value, voltage="50V", package="0402", P1=
 
 # Input termination resistor (optional)
 # Connects from RF input (after DC blocking cap) to ground for impedance matching
-if add_input_termination:
-    Resistor(name="R_TERM", value=input_termination_value, package="0402", P1=_RFIN_INT, P2=GND)
+Resistor(
+    name="R_TERM", value=input_termination_value, package="0402", P1=_RFIN_INT, P2=GND, dnp=not add_input_termination
+)
 
 # Output coupling capacitor - use 1nF as per datasheet recommended application circuit
 if output_coupling_freq == OutputCouplingFreq("LowFreq"):

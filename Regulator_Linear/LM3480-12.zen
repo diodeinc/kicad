@@ -42,16 +42,13 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends minimum 0.1µF for stability
-if add_input_cap:
-    Capacitor(name="C_IN", value=input_cap_value, package="0603", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value=input_cap_value, package="0603", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Datasheet recommends minimum 0.1µF for stability and transient performance
-if add_output_cap:
-    Capacitor(name="C_OUT", value=output_cap_value, package="0603", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT", value=output_cap_value, package="0603", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Optional bulk input capacitor for improved transient response
-if add_bulk_input_cap:
-    Capacitor(name="C_IN_BULK", value=bulk_input_cap_value, package="0805", P1=VIN, P2=GND)
+Capacitor(name="C_IN_BULK", value=bulk_input_cap_value, package="0805", P1=VIN, P2=GND, dnp=not add_bulk_input_cap)
 
 # pcb:sch LM3480-12 x=177.8000 y=165.1000 rot=0
 # pcb:sch C_IN x=-50.8000 y=0.0000 rot=90

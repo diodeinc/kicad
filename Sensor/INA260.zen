@@ -166,8 +166,7 @@ if add_decoupling:
     Capacitor(name="C_VS", value="100nF", voltage="10V", package="0402", P1=VS, P2=GND)
 
 # Bulk capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=VS, P2=GND)
+Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=VS, P2=GND, dnp=not add_bulk_cap)
 
 # Input filtering for current sense pins
 if add_input_filtering:

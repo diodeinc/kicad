@@ -144,8 +144,7 @@ if add_test_points:
     TestPoint(name="TP_CLK_IN", variant="THTPad_D1.0mm_Drill0.5mm", P1=CLK_IN)
     TestPoint(name="TP_CLK_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=CLK_OUT)
 
-    if add_aux_output:
-        TestPoint(name="TP_AUX_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=AUX_OUT)
+    TestPoint(name="TP_AUX_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=AUX_OUT, dnp=not add_aux_output)
 
     if reference_source == ReferenceSource("External"):
         TestPoint(name="TP_REF_CLK", variant="THTPad_D1.0mm_Drill0.5mm", P1=REF_CLK)

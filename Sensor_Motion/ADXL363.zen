@@ -143,8 +143,7 @@ if add_io_decoupling:
     Capacitor(name="C_VDD_IO", value="100nF", voltage="6.3V", package="0402", P1=_VDD_IO, P2=GND)
 
 # Bulk capacitor for power supply
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=_VS, P2=GND)
+Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=_VS, P2=GND, dnp=not add_bulk_cap)
 
 # Interrupt pull-up resistors
 if add_interrupt_pullups:

@@ -149,14 +149,14 @@ if add_decoupling_caps:
     )
 
 # Additional bulk capacitance for better power stability
-if add_bulk_caps:
-    Capacitor(
-        name="C_VDD_BULK",
-        value="10uF",
-        package="0805",
-        P1=VDD,
-        P2=GND,
-    )
+Capacitor(
+    name="C_VDD_BULK",
+    value="10uF",
+    package="0805",
+    P1=VDD,
+    P2=GND,
+    dnp=not add_bulk_caps,
+)
 
 # I2C pull-up resistors
 if add_i2c_pullups:

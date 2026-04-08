@@ -123,8 +123,7 @@ if add_decoupling:
     Capacitor(name="C_VDDIO", value="10nF", package="0402", P1=VDDIO, P2=GND)
 
 # Regulator Filter Capacitor - Required on REGOUT pin per datasheet BOM: 100nF, 2V
-if add_regout_cap:
-    Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND)
+Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
 
 # I2C Pull-up Resistors - Required for proper I2C operation
 if add_i2c_pullups and interface_type == Interface("I2C"):
@@ -138,8 +137,7 @@ if add_aux_i2c and add_aux_i2c_pullups:
     Resistor(name="R_AUX_CL", value="4.7kohms", package="0402", P1=_AUX_CL, P2=VDDIO)
 
 # Interrupt pull-up resistor (optional but recommended)
-if enable_interrupt:
-    Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VDDIO)
+Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VDDIO, dnp=not enable_interrupt)
 
 # SPI interface pull-up for CS (when using I2C mode to disable SPI)
 if interface_type == Interface("I2C"):

@@ -110,8 +110,15 @@ Component(
 
 
 # Output capacitor
-if add_output_capacitor:
-    Capacitor(name="C_OUT", value=output_capacitor_value, voltage="6.3V", package="0805", P1=_BAT, P2=GND)
+Capacitor(
+    name="C_OUT",
+    value=output_capacitor_value,
+    voltage="6.3V",
+    package="0805",
+    P1=_BAT,
+    P2=GND,
+    dnp=not add_output_capacitor,
+)
 
 # Programming resistor for charge current setting
 # Based on datasheet table: RPROG (kΩ) vs IBAT (mA)

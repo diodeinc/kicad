@@ -67,12 +67,10 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends ≥10μF low ESR
-if add_input_cap:
-    Capacitor(name="C_IN", value="10uF", package="0805", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="10uF", package="0805", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Datasheet recommends ≥10μF low ESR
-if add_output_cap:
-    Capacitor(name="C_OUT", value=output_cap_value.value, package="0805", P1=_VOUT_FILT, P2=GND)
+Capacitor(name="C_OUT", value=output_cap_value.value, package="0805", P1=_VOUT_FILT, P2=GND, dnp=not add_output_cap)
 
 # Flying Capacitor C1 - Charge pump 1
 Capacitor(name="C1", value=flying_cap_value.value, package="0603", P1=_C1_PLUS, P2=_C1_MINUS_SHDN)

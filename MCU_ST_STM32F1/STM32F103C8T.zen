@@ -231,8 +231,7 @@ Component(
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0402", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling - One capacitor per VDD pin (3 total)
 if add_power_decoupling:
@@ -429,18 +428,18 @@ if add_usb:
         )
 
 # SWD Header
-if add_swd_header:
-    PinHeader(
-        name="J_SWD",
-        pins=4,
-        rows=1,
-        pitch="2.54mm",
-        orientation="Vertical",
-        P1=VDD,  # VDD
-        P2=swd.SWDIO,  # SWDIO
-        P3=swd.SWCLK,  # SWCLK
-        P4=GND,  # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=4,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWDIO,  # SWDIO
+    P3=swd.SWCLK,  # SWCLK
+    P4=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
 # pcb:sch C_OSC1.C x=181.8800 y=786.4000 rot=90

@@ -43,12 +43,10 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends 1μF ceramic
-if add_input_cap:
-    Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Required for stability, minimum 1μF
-if add_output_cap:
-    Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Enable Control
 if enable_control and add_enable_pullup:

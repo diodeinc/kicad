@@ -153,8 +153,7 @@ if add_led_test_points:
 if led_current_range == LEDCurrentRange("Max"):
     # For maximum current (up to 51mA), ensure robust power delivery
     # Additional bulk capacitance for high current pulses
-    if add_led_bypass_caps:
-        Capacitor(name="C_VLED_BULK", value="22uF", package="1206", P1=_VLED_PLUS, P2=PGND)
+    Capacitor(name="C_VLED_BULK", value="22uF", package="1206", P1=_VLED_PLUS, P2=PGND, dnp=not add_led_bypass_caps)
 
 # pcb:sch C_VDD1.C x=-72.1200 y=672.1000 rot=0
 # pcb:sch C_VDD2.C x=29.4800 y=672.1000 rot=0

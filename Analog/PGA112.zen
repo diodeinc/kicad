@@ -159,8 +159,7 @@ _DIO = spi.MOSI  # For write operations
 # The actual bidirectional behavior is handled by the IC
 
 # SPI pull-up resistor on CS
-if add_spi_pullup:
-    Resistor(name="R_CS_PU", value="10kohms", package="0402", P1=spi.CS, P2=_DVDD)
+Resistor(name="R_CS_PU", value="10kohms", package="0402", P1=spi.CS, P2=_DVDD, dnp=not add_spi_pullup)
 
 # Test points
 if add_test_points:

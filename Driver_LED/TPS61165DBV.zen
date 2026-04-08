@@ -216,8 +216,7 @@ if add_output_caps:
     Capacitor(name="C_OUT", value="1uF", voltage="50V", package="0805", P1=LED_ANODE, P2=GND)
 
 # Optional bootstrap capacitor for improved efficiency at high duty cycles
-if add_bootstrap_cap:
-    Capacitor(name="C_BST", value="100nF", voltage="50V", package="0402", P1=LED_ANODE, P2=_SW)
+Capacitor(name="C_BST", value="100nF", voltage="50V", package="0402", P1=LED_ANODE, P2=_SW, dnp=not add_bootstrap_cap)
 
 
 # LED load - connect LEDs in series between LED_ANODE and LED_CATHODE

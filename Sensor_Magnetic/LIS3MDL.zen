@@ -119,8 +119,7 @@ if add_decoupling:
         Capacitor(name="C_VDDIO", value="100nF", package="0402", P1=VDD_IO, P2=GND)
 
 # Bulk capacitor (C2 per datasheet)
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # I2C pull-up resistors
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:

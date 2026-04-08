@@ -90,15 +90,15 @@ Capacitor(
 )
 
 # Additional bulk capacitance for power supply stability
-if add_decoupling_caps:
-    Capacitor(
-        name="C_BULK",
-        value=bulk_cap_value,
-        package="0805",
-        dielectric="X5R",
-        P1=VDD,
-        P2=GND,
-    )
+Capacitor(
+    name="C_BULK",
+    value=bulk_cap_value,
+    package="0805",
+    dielectric="X5R",
+    P1=VDD,
+    P2=GND,
+    dnp=not add_decoupling_caps,
+)
 
 # Input filter to reduce noise and limit bandwidth
 # RC filter helps meet the ADC's input capacitance charging requirements

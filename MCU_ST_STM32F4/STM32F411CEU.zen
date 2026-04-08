@@ -250,8 +250,7 @@ Component(
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling - One capacitor per VDD pin (3 total for STM32F411)
 if add_power_decoupling:
@@ -435,8 +434,14 @@ if clock_source == ClockSource("Crystal"):
     Capacitor(name="C_HSE2", value=crystal_capacitor_value, package="0402", P1=crystal_out, P2=GND)
 
     # Series resistor for oscillator stability (if enabled)
-    if add_crystal_series_resistor:
-        Resistor(name="R_OSC", value=crystal_series_resistor, package="0402", P1=_R_OSC, P2=_PH1)
+    Resistor(
+        name="R_OSC",
+        value=crystal_series_resistor,
+        package="0402",
+        P1=_R_OSC,
+        P2=_PH1,
+        dnp=not add_crystal_series_resistor,
+    )
 
 # Low Speed Oscillator for RTC
 if add_low_speed_oscillator:
@@ -541,18 +546,18 @@ if add_usb:
         )
 
 # SWD Header
-if add_swd_header:
-    PinHeader(
-        name="J_SWD",
-        pins=4,
-        rows=1,
-        pitch="2.54mm",
-        orientation="Vertical",
-        P1=VDD,  # VDD
-        P2=swd.SWDIO,  # SWDIO
-        P3=swd.SWCLK,  # SWCLK
-        P4=GND,  # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=4,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWDIO,  # SWDIO
+    P3=swd.SWCLK,  # SWCLK
+    P4=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # SPI Flash Memory
 if add_spi_flash:
@@ -581,14 +586,14 @@ if add_spi_flash:
     Resistor(name="R_FLASH_HOLD", value="10kohms", package="0402", P1=_FLASH_HOLD, P2=VDD)
 
     # Decoupling capacitor for flash
-    if add_power_decoupling:
-        Capacitor(
-            name="C_FLASH",
-            value="100nF",
-            package="0402",
-            P1=VDD,
-            P2=GND,
-        )
+    Capacitor(
+        name="C_FLASH",
+        value="100nF",
+        package="0402",
+        P1=VDD,
+        P2=GND,
+        dnp=not add_power_decoupling,
+    )
 
 # pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
 # pcb:sch C_HSE1.C x=194.5800 y=1294.4000 rot=0

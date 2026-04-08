@@ -172,16 +172,13 @@ Component(
 )
 
 # REGOUT Capacitor - Required for internal LDO
-if add_regout_cap:
-    Capacitor(name="C_REGOUT", value="100nF", voltage="2V", package="0402", P1=_REGOUT, P2=GND)
+Capacitor(name="C_REGOUT", value="100nF", voltage="2V", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
 
 # VDD Bypass Capacitor
-if add_vdd_bypass_cap:
-    Capacitor(name="C_VDD", value="100nF", voltage="4V", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_VDD", value="100nF", voltage="4V", package="0402", P1=VDD, P2=GND, dnp=not add_vdd_bypass_cap)
 
 # VDDIO Bypass Capacitor
-if add_vddio_bypass_cap:
-    Capacitor(name="C_VDDIO", value="100nF", voltage="4V", package="0402", P1=VDDIO, P2=GND)
+Capacitor(name="C_VDDIO", value="100nF", voltage="4V", package="0402", P1=VDDIO, P2=GND, dnp=not add_vddio_bypass_cap)
 
 # I2C Pull-up Resistors
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:

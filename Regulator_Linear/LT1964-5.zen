@@ -90,37 +90,37 @@ Component(
 )
 
 # Input capacitor
-if add_input_cap:
-    Capacitor(
-        name="C_IN",
-        value=input_cap_value,
-        voltage=input_cap_voltage,
-        package="0805",
-        P1=VIN,
-        P2=GND,
-    )
+Capacitor(
+    name="C_IN",
+    value=input_cap_value,
+    voltage=input_cap_voltage,
+    package="0805",
+    P1=VIN,
+    P2=GND,
+    dnp=not add_input_cap,
+)
 
 # Output capacitor
-if add_output_cap:
-    Capacitor(
-        name="C_OUT",
-        value=output_cap_value,
-        voltage=output_cap_voltage,
-        package="0805",
-        P1=VOUT,
-        P2=GND,
-    )
+Capacitor(
+    name="C_OUT",
+    value=output_cap_value,
+    voltage=output_cap_voltage,
+    package="0805",
+    P1=VOUT,
+    P2=GND,
+    dnp=not add_output_cap,
+)
 
 # Bypass capacitor for noise reduction
-if add_bypass_cap:
-    Capacitor(
-        name="C_BYP",
-        value=bypass_cap_value,
-        voltage="10V",
-        package="0603",
-        P1=VOUT,
-        P2=_BYP,
-    )
+Capacitor(
+    name="C_BYP",
+    value=bypass_cap_value,
+    voltage="10V",
+    package="0603",
+    P1=VOUT,
+    P2=_BYP,
+    dnp=not add_bypass_cap,
+)
 
 # Shutdown control circuit
 if shutdown_logic == ShutdownLogic("AlwaysOn"):

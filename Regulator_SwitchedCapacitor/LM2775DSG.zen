@@ -70,8 +70,7 @@ if add_output_cap:
     Capacitor(name="C_OUT_HF", value="100nF", package="0402", P1=VOUT, P2=GND)
 
 # Flying Capacitor - Required 1µF ceramic (non-polarized)
-if add_flying_cap:
-    Capacitor(name="C_FLY", value="1uF", package="0603", P1=_C1_PLUS, P2=_C1_MINUS)
+Capacitor(name="C_FLY", value="1uF", package="0603", P1=_C1_PLUS, P2=_C1_MINUS, dnp=not add_flying_cap)
 
 # Enable Control Pull-up
 if enable_control:

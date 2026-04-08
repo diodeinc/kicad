@@ -84,8 +84,7 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends 1-2µF ceramic
-if add_input_cap:
-    Capacitor(name="C_VBT", value="2.2uF", package="0603", P1=VBT, P2=GND)
+Capacitor(name="C_VBT", value="2.2uF", package="0603", P1=VBT, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitors - Datasheet recommends minimum 22µF on VDH, 1-2µF on VDP
 if add_output_caps:
@@ -96,12 +95,10 @@ if add_output_caps:
     Capacitor(name="C_VDP", value="2.2uF", package="0603", P1=VDP, P2=GND)
 
 # Storage Capacitor - Energy storage element
-if add_storage_cap:
-    Capacitor(name="C_STORAGE", value=storage_capacitance.value, package="1206", P1=_CAP, P2=GND)
+Capacitor(name="C_STORAGE", value=storage_capacitance.value, package="1206", P1=_CAP, P2=GND, dnp=not add_storage_cap)
 
 # Inductor - Required between LX1 and LX2, 15µH nominal with >1A saturation current
-if add_inductor:
-    Inductor(name="L1", value="15uH", package="1210", P1=_LX1, P2=_LX2)
+Inductor(name="L1", value="15uH", package="1210", P1=_LX1, P2=_LX2, dnp=not add_inductor)
 
 # I2C Pull-up Resistors
 if enable_i2c_pullups:
@@ -109,8 +106,7 @@ if enable_i2c_pullups:
     Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=i2c.SDA, P2=VDP)
 
 # START Pin Pull-down - Ensures device stays in standby when not actively driven
-if enable_start_pulldown:
-    Resistor(name="R_START", value="100kohms", package="0402", P1=START, P2=GND)
+Resistor(name="R_START", value="100kohms", package="0402", P1=START, P2=GND, dnp=not enable_start_pulldown)
 
 # Address Configuration - ADR pin sets I2C address
 # ADR = 0 (GND) → I2C address 0x2E (010 1110 R/Wn)

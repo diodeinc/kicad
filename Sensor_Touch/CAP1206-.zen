@@ -115,8 +115,7 @@ if add_power_filtering:
     Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND)
 
 # Decoupling capacitor (close to VDD pin)
-if add_decoupling:
-    Capacitor(name="C_VDD", value="0.1uF", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_VDD", value="0.1uF", package="0402", P1=VDD, P2=GND, dnp=not add_decoupling)
 
 # Series resistors for touch sensor inputs (optional for ESD protection)
 if add_series_resistors:

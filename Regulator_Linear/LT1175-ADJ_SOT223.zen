@@ -59,25 +59,25 @@ Component(
 
 # Input capacitor (recommended to ensure stability)
 # For negative regulators, capacitor polarity is important
-if add_input_cap:
-    Capacitor(
-        name="C_IN",
-        value=input_cap_value,
-        package="0805",
-        P1=GND,
-        P2=_VIN,
-    )
+Capacitor(
+    name="C_IN",
+    value=input_cap_value,
+    package="0805",
+    P1=GND,
+    P2=_VIN,
+    dnp=not add_input_cap,
+)
 
 # Output capacitor (required for stability - minimum 2.2μF with low ESR)
 # Tantalum or ceramic recommended for low ESR
-if add_output_cap:
-    Capacitor(
-        name="C_OUT",
-        value=output_cap_value,
-        package="0805",
-        P1=_VOUT,
-        P2=GND,
-    )
+Capacitor(
+    name="C_OUT",
+    value=output_cap_value,
+    package="0805",
+    P1=_VOUT,
+    P2=GND,
+    dnp=not add_output_cap,
+)
 
 # Test points for debugging
 if add_test_points:

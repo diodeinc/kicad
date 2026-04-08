@@ -207,8 +207,7 @@ Component(
 )
 
 # Input Capacitor - Required for USB input
-if add_input_cap:
-    Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND)
+Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Required for PowerPath output stability
 if add_output_cap:
@@ -485,8 +484,7 @@ if not enable_i2c:
         Resistor(name="R_SDA_PU", value="100kohm", package="0402", P1=_SDA, P2=VOUT)
 
 # RST3 pull-up (if Buck3 enabled)
-if enable_buck3:
-    Resistor(name="R_RST3_PU", value="100kohm", package="0402", P1=RST3, P2=BUCK3_OUT)
+Resistor(name="R_RST3_PU", value="100kohm", package="0402", P1=RST3, P2=BUCK3_OUT, dnp=not enable_buck3)
 
 # pcb:sch C_BUCK1.C x=1401.0800 y=1472.2000 rot=0
 # pcb:sch C_BUCK2.C x=1299.4800 y=1611.9000 rot=0

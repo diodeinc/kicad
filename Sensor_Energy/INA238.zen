@@ -179,8 +179,7 @@ if add_input_filtering:
     Capacitor(name="C_IN_MINUS", value=input_filter_c, voltage="100V", package="0402", P1=_VIN_MINUS_FILT, P2=GND)
 
 # Bus voltage protection resistor
-if add_bus_resistor:
-    Resistor(name="R_VBUS", value=bus_series_resistor, package="0402", P1=VBUS, P2=_VBUS_FILT)
+Resistor(name="R_VBUS", value=bus_series_resistor, package="0402", P1=VBUS, P2=_VBUS_FILT, dnp=not add_bus_resistor)
 
 # Overvoltage protection
 if add_overvoltage_protection:

@@ -106,10 +106,16 @@ if power_mode == PowerMode("External"):
         Capacitor(name="C_BULK", value="10uF", voltage="6.3V", dielectric="X7R", package=bulk_size, P1=VDD, P2=GND)
 
     # Power Supply Decoupling Capacitor
-    if add_decoupling_cap:
-        Capacitor(
-            name="C_VDD", value="100nF", voltage="6.3V", dielectric="X7R", package=passives_size.value, P1=VDD, P2=GND
-        )
+    Capacitor(
+        name="C_VDD",
+        value="100nF",
+        voltage="6.3V",
+        dielectric="X7R",
+        package=passives_size.value,
+        P1=VDD,
+        P2=GND,
+        dnp=not add_decoupling_cap,
+    )
 
 # 1-Wire pullup resistor (always required)
 # Typical value is 4.7kΩ for short cable runs
@@ -126,14 +132,14 @@ if power_mode == PowerMode("Parasite"):
     # Gate pull-up resistor to ensure MOSFET is off by default
     # Connects gate to external control voltage for proper biasing
     # Value is configurable to accommodate different switching speeds and power requirements
-    if add_fet_input_resistor:
-        Resistor(
-            name="R_GATE",
-            value=fet_input_resistor_value,
-            package=passives_size.value,
-            P1=_PULLUP_CTRL,
-            P2=_PULLUP_GATE_VDD,
-        )
+    Resistor(
+        name="R_GATE",
+        value=fet_input_resistor_value,
+        package=passives_size.value,
+        P1=_PULLUP_CTRL,
+        P2=_PULLUP_GATE_VDD,
+        dnp=not add_fet_input_resistor,
+    )
 
 # Test Points
 if add_test_points:

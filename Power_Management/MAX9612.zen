@@ -150,8 +150,7 @@ Capacitor(name="C_VCC1", value="0.1uF", package="0402", P1=VCC, P2=GND)
 Capacitor(name="C_VCC2", value="4.7uF", package="0603", P1=VCC, P2=GND)
 
 # Bulk capacitor (if enabled)
-if add_bulk_capacitor:
-    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_capacitor)
 
 # Sense resistor configuration (optional)
 if add_sense_resistor:

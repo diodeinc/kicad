@@ -74,8 +74,7 @@ Component(
 )
 
 # Input capacitor
-if add_input_cap:
-    Capacitor(name="C_IN", value=input_cap_value, package="0805", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value=input_cap_value, package="0805", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output capacitor
 if add_output_cap:
@@ -94,14 +93,14 @@ if add_output_cap:
     )
 
 # Bypass capacitor for low noise operation
-if add_bypass_cap:
-    Capacitor(
-        name="C_BYP",
-        value=bypass_cap_value,
-        package="0402",
-        P1=VOUT,
-        P2=_BYP,
-    )
+Capacitor(
+    name="C_BYP",
+    value=bypass_cap_value,
+    package="0402",
+    P1=VOUT,
+    P2=_BYP,
+    dnp=not add_bypass_cap,
+)
 
 # Enable control
 if enable_control and add_enable_pullup:

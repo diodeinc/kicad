@@ -138,12 +138,10 @@ if add_i2c_pullups:
         Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=_COM1, P2=VDDIO)
 
 # Reset pull-up
-if add_reset_pullup:
-    Resistor(name="R_RESET", value="10kohms", package="0402", P1=RESET, P2=VDDIO)
+Resistor(name="R_RESET", value="10kohms", package="0402", P1=RESET, P2=VDDIO, dnp=not add_reset_pullup)
 
 # Boot mode pull-up
-if add_boot_pullup:
-    Resistor(name="R_BOOT", value="10kohms", package="0402", P1=_BOOT_LOAD, P2=VDDIO)
+Resistor(name="R_BOOT", value="10kohms", package="0402", P1=_BOOT_LOAD, P2=VDDIO, dnp=not add_boot_pullup)
 
 # External crystal oscillator components
 if crystal_mode == CrystalMode("EXTERNAL"):

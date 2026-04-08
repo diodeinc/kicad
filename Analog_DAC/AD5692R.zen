@@ -144,34 +144,34 @@ if add_power_decoupling:
         P2=GND,
     )
 
-    if add_vlogic_supply:
-        Capacitor(
-            name="C_VLOGIC",
-            value="100nF",
-            package=passives_size,
-            P1=_VLOGIC,
-            P2=GND,
-        )
+    Capacitor(
+        name="C_VLOGIC",
+        value="100nF",
+        package=passives_size,
+        P1=_VLOGIC,
+        P2=GND,
+        dnp=not add_vlogic_supply,
+    )
 
 # Bulk capacitor
-if add_bulk_capacitor:
-    Capacitor(
-        name="C_BULK",
-        value="10uF",
-        package=bulk_cap_size,
-        P1=VDD,
-        P2=GND,
-    )
+Capacitor(
+    name="C_BULK",
+    value="10uF",
+    package=bulk_cap_size,
+    P1=VDD,
+    P2=GND,
+    dnp=not add_bulk_capacitor,
+)
 
 # Reference decoupling
-if add_reference_decoupling:
-    Capacitor(
-        name="C_REF",
-        value=reference_cap_value,
-        package=passives_size,
-        P1=_VREF,
-        P2=GND,
-    )
+Capacitor(
+    name="C_REF",
+    value=reference_cap_value,
+    package=passives_size,
+    P1=_VREF,
+    P2=GND,
+    dnp=not add_reference_decoupling,
+)
 
 # I2C pull-up resistors
 if add_i2c_pullups:

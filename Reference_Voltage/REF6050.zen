@@ -60,8 +60,7 @@ Component(
 )
 
 # Input Decoupling - Datasheet recommends minimum 0.1µF
-if add_input_cap:
-    Capacitor(name="C_IN", value="100nF", package="0402", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="100nF", package="0402", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Datasheet specifies 10µF to 47µF for stability
 if add_output_cap:
@@ -90,8 +89,7 @@ if add_output_cap:
     Capacitor(name="C_OUT", value="47uF", package="1206", P1=_ESR, P2=GND)
 
 # Filter Capacitor - Required ≥1µF for stability
-if add_filter_cap:
-    Capacitor(name="C_FILT", value="1uF", package="0603", P1=_FILT, P2=GND)
+Capacitor(name="C_FILT", value="1uF", package="0603", P1=_FILT, P2=GND, dnp=not add_filter_cap)
 
 # Short Circuit Current Limit Resistor
 if current_limit != CurrentLimit("Highest"):

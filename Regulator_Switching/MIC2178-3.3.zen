@@ -81,8 +81,7 @@ if add_input_cap:
     Capacitor(name="C_IN_HF", value="100nF", package="0603", P1=VIN, P2=GND)
 
 # Output Inductor - Required for buck converter operation
-if add_inductor:
-    Inductor(name="L_OUT", value=inductor_value.value, package="1210", P1=_SW, P2=VOUT)
+Inductor(name="L_OUT", value=inductor_value.value, package="1210", P1=_SW, P2=VOUT, dnp=not add_inductor)
 
 # Catch Diode - Schottky diode for inductor current path
 if add_catch_diode:
@@ -127,8 +126,7 @@ if enable_control:
     Resistor(name="R_EN", value="100kohms", package="0402", P1=EN_CTRL, P2=VIN)
 
 # SYNC Pin Pull-down - Connect to ground if not using external sync
-if add_sync_pulldown:
-    Resistor(name="R_SYNC", value="10kohms", package="0402", P1=SYNC_IN, P2=GND)
+Resistor(name="R_SYNC", value="10kohms", package="0402", P1=SYNC_IN, P2=GND, dnp=not add_sync_pulldown)
 
 # Power Good Pull-up
 Resistor(name="R_PWRGD", value="20kohms", package="0402", P1=PWRGD, P2=VOUT)

@@ -106,12 +106,10 @@ Component(
 )
 
 # Input Capacitor - Required for USB input
-if add_input_cap:
-    Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND)
+Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Required for PowerPath output stability
-if add_output_cap:
-    Capacitor(name="C_VOUT", value="10uF", package="0805", P1=VOUT, P2=GND)
+Capacitor(name="C_VOUT", value="10uF", package="0805", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Charge Current Programming Resistor
 charge_current_table = {

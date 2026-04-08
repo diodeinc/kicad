@@ -133,20 +133,17 @@ Capacitor(name="C_IN1", value="22uF", voltage="10V", package="1206", P1=VIN, P2=
 Capacitor(name="C_IN2", value="100nF", voltage="10V", package="0402", P1=VIN, P2=GND)
 
 # Bulk input capacitor (optional)
-if add_input_bulk_cap:
-    Capacitor(name="C_IN_BULK", value="47uF", voltage="10V", package="1210", P1=VIN, P2=GND)
+Capacitor(name="C_IN_BULK", value="47uF", voltage="10V", package="1210", P1=VIN, P2=GND, dnp=not add_input_bulk_cap)
 
 # BIAS capacitor (1µF recommended)
-if add_bias_cap:
-    Capacitor(name="C_BIAS", value="1uF", voltage="25V", package="0603", P1=VBIAS, P2=GND)
+Capacitor(name="C_BIAS", value="1uF", voltage="25V", package="0603", P1=VBIAS, P2=GND, dnp=not add_bias_cap)
 
 # Output capacitors (22µF ceramic required, place close to OUT pins)
 Capacitor(name="C_OUT1", value="22uF", voltage="10V", package="1206", P1=VOUT, P2=GND)
 Capacitor(name="C_OUT2", value="100nF", voltage="10V", package="0402", P1=VOUT, P2=GND)
 
 # Bulk output capacitor (optional)
-if add_output_bulk_cap:
-    Capacitor(name="C_OUT_BULK", value="47uF", voltage="10V", package="1210", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT_BULK", value="47uF", voltage="10V", package="1210", P1=VOUT, P2=GND, dnp=not add_output_bulk_cap)
 
 # Bypass capacitor (sets soft-start rate and noise filtering)
 Capacitor(name="C_BYP", value=bypass_cap_value, voltage="10V", package="0402", P1=VOUT, P2=_BYP)

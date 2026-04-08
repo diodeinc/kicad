@@ -101,8 +101,7 @@ if add_decoupling:
     Capacitor(name="C_VDD", value="100nF", voltage="10V", package="0603", P1=VDD, P2=GND)
 
 # Bulk capacitor for better noise immunity
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="1uF", voltage="10V", package="0805", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="1uF", voltage="10V", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 
 # pcb:sch C_BULK.C x=435.8800 y=3008.9000 rot=0

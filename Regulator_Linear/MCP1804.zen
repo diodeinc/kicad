@@ -52,16 +52,13 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends 0.1µF to 1.0µF ceramic
-if add_input_cap:
-    Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Datasheet recommends 0.1µF to 1.0µF ceramic
-if add_output_cap:
-    Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Shutdown Pull-up Resistor - SHDN pin must be connected to either VIN or GND
-if add_shutdown_pullup:
-    Resistor(name="R_SHDN", value="100kohms", package="0402", P1=SHDN, P2=VIN)
+Resistor(name="R_SHDN", value="100kohms", package="0402", P1=SHDN, P2=VIN, dnp=not add_shutdown_pullup)
 
 # pcb:sch MCP1804 x=139.7000 y=38.1000 rot=0
 # pcb:sch C_IN.C x=-12.7000 y=88.9000 rot=0

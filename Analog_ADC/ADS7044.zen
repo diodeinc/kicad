@@ -251,14 +251,14 @@ elif add_analog_filtering and filter_configuration == FilterConfiguration("AntiA
             )
 
 # SPI pull-up on CS line
-if add_spi_pullup:
-    Resistor(
-        name="R_CS_PULLUP",
-        value="10kohms",
-        package="0402",
-        P1=spi.CS,
-        P2=DVDD,
-    )
+Resistor(
+    name="R_CS_PULLUP",
+    value="10kohms",
+    package="0402",
+    P1=spi.CS,
+    P2=DVDD,
+    dnp=not add_spi_pullup,
+)
 
 # Test points for debugging
 if add_test_points:

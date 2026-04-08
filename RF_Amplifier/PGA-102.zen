@@ -81,8 +81,7 @@ else:
     _VDD_FILT = VDD
 
 # Bulk capacitor - use 0.1uF as per datasheet
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="100nF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND)
+Capacitor(name="C_BULK", value="100nF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
 
 # Decoupling capacitors
 if add_decoupling:

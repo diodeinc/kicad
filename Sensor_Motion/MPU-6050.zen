@@ -89,20 +89,16 @@ Component(
 )
 
 # Power Supply Decoupling - VDD bypass capacitor
-if add_decoupling:
-    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND, dnp=not add_decoupling)
 
 # VLOGIC Bypass Capacitor - Required for MPU-6050
-if add_vlogic_cap:
-    Capacitor(name="C_VLOGIC", value="10nF", package="0402", P1=VLOGIC, P2=GND)
+Capacitor(name="C_VLOGIC", value="10nF", package="0402", P1=VLOGIC, P2=GND, dnp=not add_vlogic_cap)
 
 # Regulator Filter Capacitor - Required on REGOUT pin
-if add_regout_cap:
-    Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND)
+Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
 
 # Charge Pump Capacitor - Required on CPOUT pin
-if add_cpout_cap:
-    Capacitor(name="C_CPOUT", value="2.2nF", package="0402", P1=_CPOUT, P2=GND)
+Capacitor(name="C_CPOUT", value="2.2nF", package="0402", P1=_CPOUT, P2=GND, dnp=not add_cpout_cap)
 
 # I2C Pull-up Resistors - Required for proper I2C operation
 if add_i2c_pullups:
@@ -111,8 +107,7 @@ if add_i2c_pullups:
     Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=_SCL, P2=VLOGIC)
 
 # Interrupt pull-up resistor (optional)
-if enable_interrupt:
-    Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VLOGIC)
+Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VLOGIC, dnp=not enable_interrupt)
 
 # pcb:sch C_CPOUT.C x=994.6800 y=341.9000 rot=0
 # pcb:sch C_REGOUT.C x=893.0800 y=341.9000 rot=0

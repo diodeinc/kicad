@@ -43,18 +43,15 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends 1μF ceramic
-if add_input_cap:
-    Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value="1uF", package="0603", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Datasheet specifies 1μF ceramic for stability
-if add_output_cap:
-    Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT", value="1uF", package="0603", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Enable Control
 if enable_control:
     # Optional pull-up resistor to ensure regulator is enabled by default
-    if add_enable_pullup:
-        Resistor(name="R_EN", value="100kohms", package="0402", P1=EN, P2=VIN)
+    Resistor(name="R_EN", value="100kohms", package="0402", P1=EN, P2=VIN, dnp=not add_enable_pullup)
 
 # pcb:sch MIC5317_3V3 x=-50.8000 y=-101.6000 rot=0
 # pcb:sch C_IN.C x=-203.2000 y=-63.5000 rot=0

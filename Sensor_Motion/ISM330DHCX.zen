@@ -131,8 +131,7 @@ Component(
 )
 
 # Bulk Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0603", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0603", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling
 if add_decoupling_caps:

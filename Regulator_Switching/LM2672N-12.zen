@@ -173,15 +173,15 @@ else:
 Capacitor(name="C_OUT_HF", value="100nF", voltage="25V", package="0603", P1=VOUT, P2=GND)
 
 # Additional output filtering
-if add_output_filtering:
-    Capacitor(
-        name="C_OUT2",
-        value="10uF",
-        voltage="25V",
-        package="1206",  # Ceramic
-        P1=VOUT,
-        P2=GND,
-    )
+Capacitor(
+    name="C_OUT2",
+    value="10uF",
+    voltage="25V",
+    package="1206",  # Ceramic
+    P1=VOUT,
+    P2=GND,
+    dnp=not add_output_filtering,
+)
 
 # Feedback connection is direct to VOUT (handled in component pins)
 

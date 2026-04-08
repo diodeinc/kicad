@@ -92,15 +92,15 @@ Component(
 )
 
 # Input bypass capacitor - required for transient response
-if add_input_cap:
-    Capacitor(
-        name="C_IN",
-        value=input_cap_value,
-        voltage="10V",
-        package="0805",  # Standard package for bypass caps
-        P1=_IN,
-        P2=_GND,
-    )
+Capacitor(
+    name="C_IN",
+    value=input_cap_value,
+    voltage="10V",
+    package="0805",  # Standard package for bypass caps
+    P1=_IN,
+    P2=_GND,
+    dnp=not add_input_cap,
+)
 
 # Output capacitor - required for USB applications (120μF min) and voltage undershoot control
 if add_output_cap:
@@ -180,15 +180,15 @@ if add_input_tvs:
     )
 
 # Optional output TVS diode for ESD protection
-if add_output_tvs:
-    Diode(
-        name="D_TVS_OUT",
-        variant="Zener",  # TVS diodes are similar to Zener
-        v_r="6.8V",  # Clamp voltage for output protection
-        package="SOD-323",
-        A=_GND,
-        K=_OUT,
-    )
+Diode(
+    name="D_TVS_OUT",
+    variant="Zener",  # TVS diodes are similar to Zener
+    v_r="6.8V",  # Clamp voltage for output protection
+    package="SOD-323",
+    A=_GND,
+    K=_OUT,
+    dnp=not add_output_tvs,
+)
 
 # pcb:sch TPS2065CDBV x=100.6000 y=-1.0000 rot=0
 # pcb:sch C_IN.C x=-161.0200 y=62.5000 rot=0

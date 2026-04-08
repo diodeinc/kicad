@@ -197,22 +197,22 @@ if add_adjust_cap:
 # Protection diodes
 if add_protection_diodes:
     # D1: Protects against C_OUT discharge through regulator
-    if add_output_cap:
-        Diode(
-            name="D1",
-            package="SOD-323",
-            A=_VO,
-            K=_VI,
-        )
+    Diode(
+        name="D1",
+        package="SOD-323",
+        A=_VO,
+        K=_VI,
+        dnp=not add_output_cap,
+    )
 
     # D2: Protects against C_ADJ discharge through regulator
-    if add_adjust_cap:
-        Diode(
-            name="D2",
-            package="SOD-323",
-            A=_ADJ,
-            K=_VO,
-        )
+    Diode(
+        name="D2",
+        package="SOD-323",
+        A=_ADJ,
+        K=_VO,
+        dnp=not add_adjust_cap,
+    )
 
 # Test points
 if add_test_points:

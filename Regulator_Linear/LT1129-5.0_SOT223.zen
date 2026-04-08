@@ -55,25 +55,25 @@ Component(
 
 # Input capacitor (recommended when device is more than 6 inches from main filter cap)
 # Datasheet recommends 1μF to 10μF
-if add_input_cap:
-    Capacitor(
-        name="C_IN",
-        value=input_cap_value,
-        package="0805",
-        P1=_VIN,
-        P2=GND,
-    )
+Capacitor(
+    name="C_IN",
+    value=input_cap_value,
+    package="0805",
+    P1=_VIN,
+    P2=GND,
+    dnp=not add_input_cap,
+)
 
 # Output capacitor (required for stability - minimum 3.3μF with ESR < 2Ω)
 # Datasheet shows 3.3μF tantalum in typical application
-if add_output_cap:
-    Capacitor(
-        name="C_OUT",
-        value=output_cap_value,
-        package="0805",
-        P1=_VOUT,
-        P2=GND,
-    )
+Capacitor(
+    name="C_OUT",
+    value=output_cap_value,
+    package="0805",
+    P1=_VOUT,
+    P2=GND,
+    dnp=not add_output_cap,
+)
 
 # Test points for debugging
 if add_test_points:

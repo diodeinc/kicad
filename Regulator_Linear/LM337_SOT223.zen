@@ -108,37 +108,37 @@ Resistor(
 )
 
 # Input capacitor (1uF tantalum or 10uF aluminum required if >4" from filter)
-if add_input_cap:
-    Capacitor(
-        name="C_IN",
-        value="10uF",
-        voltage="50V",
-        package="1206",
-        P1=_VI,
-        P2=GND,
-    )
+Capacitor(
+    name="C_IN",
+    value="10uF",
+    voltage="50V",
+    package="1206",
+    P1=_VI,
+    P2=GND,
+    dnp=not add_input_cap,
+)
 
 # Output capacitor (1uF tantalum improves transient response)
-if add_output_cap:
-    Capacitor(
-        name="C_OUT",
-        value="10uF",
-        voltage="35V",
-        package="1206",
-        P1=_VO,
-        P2=GND,
-    )
+Capacitor(
+    name="C_OUT",
+    value="10uF",
+    voltage="35V",
+    package="1206",
+    P1=_VO,
+    P2=GND,
+    dnp=not add_output_cap,
+)
 
 # ADJ bypass capacitor (improves ripple rejection)
-if add_bypass_cap:
-    Capacitor(
-        name="C_ADJ",
-        value=bypass_cap_value,
-        voltage="25V",
-        package="0805",
-        P1=_ADJ,
-        P2=GND,
-    )
+Capacitor(
+    name="C_ADJ",
+    value=bypass_cap_value,
+    voltage="25V",
+    package="0805",
+    P1=_ADJ,
+    P2=GND,
+    dnp=not add_bypass_cap,
+)
 
 # Protection diodes
 if add_protection_diodes != ProtectionDiodes("None"):

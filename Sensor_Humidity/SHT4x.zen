@@ -77,8 +77,9 @@ if add_bulk_cap:
     Capacitor(name="C_BULK", value="10uF", voltage="6.3V", package=bulk_size, P1=VDD, P2=GND)
 
 # Power Supply Decoupling Capacitor - close to sensor
-if add_decoupling_cap:
-    Capacitor(name="C_VDD", value="100nF", voltage="6.3V", package=passives_size, P1=VDD, P2=GND)
+Capacitor(
+    name="C_VDD", value="100nF", voltage="6.3V", package=passives_size, P1=VDD, P2=GND, dnp=not add_decoupling_cap
+)
 
 
 # I2C Pull-up Resistors

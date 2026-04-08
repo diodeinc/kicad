@@ -99,37 +99,37 @@ Mosfet(
 
 # Optional VDD decoupling capacitor (1µF ceramic)
 # Provides additional high-frequency decoupling for VDD pin
-if add_vdd_decoupling:
-    Capacitor(
-        name="C3",
-        value="1uF",
-        package="0603",
-        dielectric="X7R",
-        voltage="16V",
-        P1=_VCC,  # VDD pin of DW01A
-        P2=_GND,  # VSS pin of DW01A
-    )
+Capacitor(
+    name="C3",
+    value="1uF",
+    package="0603",
+    dielectric="X7R",
+    voltage="16V",
+    P1=_VCC,  # VDD pin of DW01A
+    P2=_GND,  # VSS pin of DW01A,
+    dnp=not add_vdd_decoupling,
+)
 
 # Optional output stabilization capacitor (10µF electrolytic)
 # Stabilizes the output voltage and reduces ripple
-if add_output_stabilization:
-    Capacitor(
-        name="C4",
-        value="10uF",
-        package="1206",
-        P1=BATT_INT,  # OUT pin (common MOSFET connection)
-        P2=_GND,  # GND
-    )
+Capacitor(
+    name="C4",
+    value="10uF",
+    package="1206",
+    P1=BATT_INT,  # OUT pin (common MOSFET connection)
+    P2=_GND,  # GND,
+    dnp=not add_output_stabilization,
+)
 
 # Optional CS pin filter capacitor (helps with noise immunity)
-if add_cs_filter:
-    Capacitor(
-        name="C2",
-        value="100nF",
-        package="0402",
-        P1=_CS,
-        P2=BATT_MINUS,  # Connected to BATT- for proper filtering
-    )
+Capacitor(
+    name="C2",
+    value="100nF",
+    package="0402",
+    P1=_CS,
+    P2=BATT_MINUS,  # Connected to BATT- for proper filtering,
+    dnp=not add_cs_filter,
+)
 
 # Optional test points for debugging
 if add_test_points:

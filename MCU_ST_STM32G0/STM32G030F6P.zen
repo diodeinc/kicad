@@ -120,12 +120,10 @@ Component(
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", package="0603", P1=VDD, P2=GND)
+Capacitor(name="C_BULK", value="10uF", package="0603", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling
-if add_power_decoupling:
-    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
+Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND, dnp=not add_power_decoupling)
 
 # Crystal Oscillator (if external crystal is used)
 if clock_source == ClockSource("Crystal"):
@@ -182,18 +180,18 @@ if add_boot0_control:
     )
 
 # SWD Header (4-pin)
-if add_swd_header:
-    PinHeader(
-        name="J_SWD",
-        pins=4,
-        rows=1,
-        pitch="2.54mm",
-        orientation="Vertical",
-        P1=VDD,  # VDD
-        P2=swd.SWDIO,  # SWDIO
-        P3=swd.SWCLK,  # SWCLK
-        P4=GND,  # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=4,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWDIO,  # SWDIO
+    P3=swd.SWCLK,  # SWCLK
+    P4=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # Status LED (if enabled)
 if add_status_led:

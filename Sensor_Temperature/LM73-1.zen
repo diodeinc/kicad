@@ -71,8 +71,7 @@ if add_pullups:
     Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=i2c.SCL, P2=VDD)
 
 # Alert Output Pull-up Resistor - Required for open-drain output
-if enable_alert:
-    Resistor(name="R_ALERT", value="10kohms", package="0402", P1=ALERT, P2=VDD)
+Resistor(name="R_ALERT", value="10kohms", package="0402", P1=ALERT, P2=VDD, dnp=not enable_alert)
 
 # Address pin configuration for float state
 if i2c_address == I2cAddress("0x4C"):

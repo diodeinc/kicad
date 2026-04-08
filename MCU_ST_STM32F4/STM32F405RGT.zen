@@ -341,8 +341,14 @@ if clock_source == ClockSource("Crystal"):
     Capacitor(name="C_HSE2", value=crystal_load_cap, package=passives_size.value, P1=crystal_out, P2=GND)
 
     # Series resistor for oscillator stability (if enabled)
-    if add_crystal_series_resistor:
-        Resistor(name="R_OSC", value=crystal_series_resistor, package=passives_size.value, P1=_R_OSC, P2=_PH1)
+    Resistor(
+        name="R_OSC",
+        value=crystal_series_resistor,
+        package=passives_size.value,
+        P1=_R_OSC,
+        P2=_PH1,
+        dnp=not add_crystal_series_resistor,
+    )
 
 # RTC Crystal (32.768kHz)
 if add_rtc:
@@ -402,20 +408,20 @@ if add_usb:
     Capacitor(name="C_VBUS", value="4.7uF", package=passives_size.value, P1=VBUS, P2=GND)
 
 # SWD Header (Cortex Debug Connector)
-if add_swd_header:
-    PinHeader(
-        name="J_SWD",
-        pins=6,
-        rows=1,
-        pitch="2.54mm",
-        orientation="Vertical",
-        P1=VDD,  # VDD
-        P2=swd.SWCLK,  # SWCLK
-        P3=GND,  # GND
-        P4=swd.SWDIO,  # SWDIO
-        P5=_NRST,  # RESET
-        P6=GND,  # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=6,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWCLK,  # SWCLK
+    P3=GND,  # GND
+    P4=swd.SWDIO,  # SWDIO
+    P5=_NRST,  # RESET
+    P6=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # VBAT supply for RTC and backup registers
 # Connect to VDD if no battery backup is used

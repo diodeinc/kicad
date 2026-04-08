@@ -134,8 +134,7 @@ else:
         # Add external pull-up for more defined logic levels
         Resistor(name="R_EN_PU", value="10kohms", package="0402", P1=EN, P2=VCCA)
 
-    if add_enable_testpoint:
-        TestPoint(name="TP_EN", variant="THTPad_D1.0mm_Drill0.5mm", P1=EN)
+    TestPoint(name="TP_EN", variant="THTPad_D1.0mm_Drill0.5mm", P1=EN, dnp=not add_enable_testpoint)
 
 # Test points for debugging
 if add_test_points:

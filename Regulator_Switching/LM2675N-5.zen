@@ -53,8 +53,7 @@ Component(
 )
 
 # Boost Capacitor - Required for high-side driver
-if add_boost_cap:
-    Capacitor(name="C_BOOST", value="10nF", package="0603", P1=_CB, P2=_VSW)
+Capacitor(name="C_BOOST", value="10nF", package="0603", P1=_CB, P2=_VSW, dnp=not add_boost_cap)
 
 # Input Capacitor - Datasheet recommends minimum 22µF
 if add_input_cap:
@@ -65,8 +64,7 @@ if add_input_cap:
     Capacitor(name="C_IN_HF", value="100nF", package="0603", P1=VIN, P2=GND)
 
 # Output Inductor - Required for buck converter operation
-if add_inductor:
-    Inductor(name="L_OUT", value=inductor_value.value, package="1210", P1=_VSW, P2=VOUT)
+Inductor(name="L_OUT", value=inductor_value.value, package="1210", P1=_VSW, P2=VOUT, dnp=not add_inductor)
 
 # Catch Diode - Required for inductor current return path
 if add_catch_diode:

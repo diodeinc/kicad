@@ -81,8 +81,7 @@ else:
     _VDD_FILT = VDD
 
 # Bulk capacitor - use 10uF for lower frequency operation
-if add_bulk_cap:
-    Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND)
+Capacitor(name="C_BULK", value="10uF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
 
 # Decoupling capacitors - optimized for 5-250 MHz
 if add_decoupling:

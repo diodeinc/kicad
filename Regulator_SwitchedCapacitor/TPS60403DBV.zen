@@ -60,16 +60,13 @@ Component(
 )
 
 # Input Capacitor - Datasheet recommends same value as flying capacitor
-if add_input_cap:
-    Capacitor(name="C_IN", value=input_cap_value.value, package="0805", P1=VIN, P2=GND)
+Capacitor(name="C_IN", value=input_cap_value.value, package="0805", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Flying Capacitor - Required for charge pump operation
-if add_flying_cap:
-    Capacitor(name="C_FLY", value=flying_cap_value.value, package="0805", P1=_CFLY_P, P2=_CFLY_N)
+Capacitor(name="C_FLY", value=flying_cap_value.value, package="0805", P1=_CFLY_P, P2=_CFLY_N, dnp=not add_flying_cap)
 
 # Output Capacitor - Required for filtering and stability
-if add_output_cap:
-    Capacitor(name="C_OUT", value=output_cap_value.value, package="0805", P1=VOUT, P2=GND)
+Capacitor(name="C_OUT", value=output_cap_value.value, package="0805", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Optional Output Filter
 if output_filter == FilterType("RC"):

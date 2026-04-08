@@ -181,8 +181,7 @@ Component(
 )
 
 # Power Supply Decoupling
-if add_decoupling:
-    Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND)
+Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND, dnp=not add_decoupling)
 
 # I2C Pull-up Resistors
 if add_pullups:
