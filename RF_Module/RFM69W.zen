@@ -27,7 +27,7 @@ add_bulk_caps = config("add_bulk_caps", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO
-VDD = io("VDD_3V3", Power, default=Power("VDD_3V3"))
+VDD = io("VDD_3V3", Power)
 GND = io("GND", Ground)
 
 # SPI Interface
@@ -67,7 +67,6 @@ Component(
         "MISO": spi.MISO,
         "MOSI": spi.MOSI,
         "NSS": spi.CS,
-        "NC": GND,  # NC pin should be connected to GND per datasheet
     },
 )
 
