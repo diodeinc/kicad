@@ -127,7 +127,6 @@ else:
 # Reserved pins - per datasheet requirements
 _RES1 = _VS  # Reserved pin 3 - connect to VS or leave open (we connect to VS)
 _RES2 = GND  # Reserved pin 11 - connect to GND or leave open (we connect to GND)
-_NC = NotConnected()  # Not internally connected
 
 # 3-Axis MEMS Accelerometer, 2/4/8/16g range, I2C/SPI, LGA-14
 Component(
@@ -142,7 +141,6 @@ Component(
         "~{CS}": _CS,
         "INT1": INT1,
         "INT2": INT2,
-        "NC": _NC,
         "SDO/ADDR": _SDO_ADDR,
         "SDA/SDI/SDIO": _SDA_SDI_SDIO,
         "SCL/SCLK": _SCL_SCLK,
