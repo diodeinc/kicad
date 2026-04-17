@@ -65,12 +65,15 @@ else:
 # nFGD control IO (specific to LM5050-2)
 if nfgd_control == NFGDControl("VLOGIC"):
     VLOGIC = io("VLOGIC", Power)
+    _FGD = Net("FGD")
 elif nfgd_control == NFGDControl("UserDefined"):
     FGD = io("FGD", Net)
+    _FGD = FGD
+else:
+    _FGD = Net("FGD")
 
 # Internal nets
 _GATE = Net("GATE")
-_FGD = Net("FGD")
 
 # High side OR-ing FET controller, 6V to 75V operation, TSOT-23-6
 Component(
@@ -99,9 +102,6 @@ elif off_control == OffControl("UserDefined"):
 if nfgd_control == NFGDControl("VLOGIC"):
     # Pull-up resistor to VLOGIC for FGD pin (active low output)
     Resistor(name="R_FGD", value="100kohms", package="0402", P1=_FGD, P2=VLOGIC)
-elif nfgd_control == NFGDControl("UserDefined"):
-    # FGD pin exposed for user-defined control
-    FGD = _FGD
 
 # Fixed MOSFET configuration
 
