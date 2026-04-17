@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tlv702.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -26,20 +26,19 @@ enable_control = config("enable_control", bool, default=True)
 add_enable_pullup = config("add_enable_pullup", bool, default=True)
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-EN_CTRL = io("EN", Net, default=Net("EN")) if enable_control else VIN
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+EN_CTRL = io("EN", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
 # Internal nets
-_NC = NotConnected()
 
 # 300mA Low Dropout Voltage Regulator, Fixed Output 2.8V, SOT-23-5
 Component(
     name="TLV70228_SOT23-5",
     symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="TLV70228_SOT23-5"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
-    pins={"IN": VIN, "EN": EN_CTRL, "GND": GND, "NC": _NC, "OUT": VOUT},
+    pins={"IN": VIN, "EN": EN_CTRL, "GND": GND, "OUT": VOUT},
 )
 
 # Input Capacitor - Datasheet recommends 1μF ceramic
