@@ -98,7 +98,7 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb_circuit:
-    usb = io("USB", Usb2, default=Usb2("USB"))
+    usb = io("USB", Usb2)
     VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 
 # JTAG IO (if enabled)
@@ -108,10 +108,10 @@ if add_jtag_header:
 # Internal nets
 _VDD3V3 = Net("VDD3V3")  # Filtered 3.3V for ESP32
 _VDD3P3 = _VDD3V3  # Connect VDD3P3 pins to filtered VDD3V3
-_VDDA = Net("VDDA") if add_vdda_filtering else VDD
-_VDD3P3_RTC = Net("VDD3P3_RTC") if add_rtc_filtering else VDD
+_VDDA = Power("VDDA") if add_vdda_filtering else VDD
+_VDD3P3_RTC = Power("VDD3P3_RTC") if add_rtc_filtering else VDD
 _VDD3P3_CPU = VDD  # Always connect VDD3P3_CPU directly to VDD
-_VDD_SPI = Net("VDD_SPI")
+_VDD_SPI = Power("VDD_SPI")
 _LNA_IN = Net("LNA_IN")  # Internal net for antenna connection
 
 # CHIP_PU (reset) - conditionally exposed based on reset configuration
@@ -151,11 +151,21 @@ _GPIO3 = Net("GPIO3")
 _GPIO45 = Net("GPIO45")
 _GPIO46 = Net("GPIO46")
 
-# JTAG pins - internal nets
-_MTCK = Net("MTCK")
-_MTDO = Net("MTDO")
-_MTDI = Net("MTDI")
-_MTMS = Net("MTMS")
+# JTAG pins - routed through a header, dedicated IOs, or left as internal nets.
+if add_jtag_header:
+    _MTCK = jtag.TCK
+    _MTDO = jtag.TDO
+    _MTDI = jtag.TDI
+    _MTMS = jtag.TMS
+else:
+    MTCK = io("MTCK", Net)
+    MTDO = io("MTDO", Net)
+    MTDI = io("MTDI", Net)
+    MTMS = io("MTMS", Net)
+    _MTCK = MTCK
+    _MTDO = MTDO
+    _MTDI = MTDI
+    _MTMS = MTMS
 
 # SPI Flash pins - conditionally exposed based on flash configuration
 if add_spi_flash:
@@ -248,23 +258,7 @@ Component(
     },
 )
 
-# JTAG Pin Handling
-if add_jtag_header:
-    # Connect internal JTAG nets to JTAG interface
-    _MTCK = jtag.TCK
-    _MTDO = jtag.TDO
-    _MTDI = jtag.TDI
-    _MTMS = jtag.TMS
-else:
-    # Expose JTAG pins as regular IOs
-    MTCK = io("MTCK", Net)
-    MTDO = io("MTDO", Net)
-    MTDI = io("MTDI", Net)
-    MTMS = io("MTMS", Net)
-    _MTCK = MTCK
-    _MTDO = MTDO
-    _MTDI = MTDI
-    _MTMS = MTMS
+# JTAG Pin Handling - resolved above alongside internal JTAG nets.
 
 # Bulk Capacitors
 if add_bulk_caps:
@@ -546,8 +540,7 @@ if add_spi_flash:
 if add_antenna:
     # Internal nets for antenna connection
     _ANT_PORT1 = _LNA_IN  # Port 1 - near the chip
-    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and capacitors
-    _ANT_PORT2 = Net("ANT_PORT2")  # Port 2 - near the antenna
+    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and C12 (port 2 of the π-match)
     _ANT_FEED = Net("ANT_FEED")  # Connection to antenna after series resistor
 
     # Pi-network matching circuit
@@ -560,11 +553,8 @@ if add_antenna:
     # Port 2 side - Shunt capacitor C12 (1.8-1.2pF recommended)
     Capacitor(name="C_ANT_PORT2", value=antenna_c12_value, package="0402", P1=_ANT_MATCH, P2=GND)
 
-    # Connection from matching network to antenna
-    _ANT_PORT2 = _ANT_MATCH
-
     # Series resistor to antenna (0ohms default for tuning/debugging)
-    Resistor(name="R_ANT", value=antenna_series_resistor_value, package="0402", P1=_ANT_PORT2, P2=_ANT_FEED)
+    Resistor(name="R_ANT", value=antenna_series_resistor_value, package="0402", P1=_ANT_MATCH, P2=_ANT_FEED)
 
     # Antenna component (2-pin chip antenna)
     # Pin 1: Feed, Pin 2: GND
