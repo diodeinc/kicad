@@ -62,10 +62,9 @@ else:
     _PWRGD = Net("PWRGD_INT")
 
 # Internal nets
-_SENSE = Net("SENSE")
 _CDELAY = Net("CDELAY")
 
-# Connect SENSE to VOUT for fixed voltage operation (required for proper regulation)
+# SENSE is tied to VOUT for fixed-voltage operation (required for proper regulation).
 _SENSE = VOUT
 
 # 1.5A, Low Voltage, Low Quiescent Current LDO Regulator, 2.3-6V Input, Fixed 2.5V Output, 330mV Dropout, SOIC-8
