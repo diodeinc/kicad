@@ -12,7 +12,7 @@ Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
 
 # Dependencies
@@ -39,8 +39,8 @@ else:
     GND_PIN = "ADJ"
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
 # Internal IO
