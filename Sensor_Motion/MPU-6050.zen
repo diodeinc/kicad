@@ -31,21 +31,24 @@ i2c_address = config("i2c_address", I2cAddress, default="0x68")
 enable_interrupt = config("enable_interrupt", bool, default=True)
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 VDD = io("VDD", Power)
-VLOGIC = io("VLOGIC", Net, default=VDD)
+VLOGIC = io("VLOGIC", Power, optional=True)
+_VLOGIC = VLOGIC if VLOGIC != None else VDD
 GND = io("GND", Ground)
-INT = io("INT", Net, default=Net("INT")) if enable_interrupt else None
+INT = io("INT", Net) if enable_interrupt else None
 
 # Optional external clock input
-CLKIN = io("CLKIN", Net, default=GND)
+CLKIN = io("CLKIN", Net, optional=True)
+_CLKIN = CLKIN if CLKIN != None else GND
 
 # Optional frame sync input
-FSYNC = io("FSYNC", Net, default=GND)
+FSYNC = io("FSYNC", Net, optional=True)
+_FSYNC = FSYNC if FSYNC != None else GND
 
 # Auxiliary I2C interface (optional)
-AUX_DA = io("AUX_DA", Net, default=Net("AUX_DA"), optional=True)
-AUX_CL = io("AUX_CL", Net, default=Net("AUX_CL"), optional=True)
+AUX_DA = io("AUX_DA", Net, optional=True)
+AUX_CL = io("AUX_CL", Net, optional=True)
 
 # Internal nets
 _AD0 = GND if i2c_address == I2cAddress("0x68") else VDD
@@ -53,7 +56,6 @@ _REGOUT = Net("REGOUT")
 _CPOUT = Net("CPOUT")
 
 # Reserved pins - must not be connected
-_RESV = Net("RESV")
 
 # Handle conditional nets
 _INT = INT if enable_interrupt else NotConnected()
@@ -73,13 +75,11 @@ Component(
         "SDA": _SDA,
         "SCL": _SCL,
         "AD0": _AD0,
-        "FSYNC": FSYNC,
-        "CLKIN": CLKIN,
-        "NC": NotConnected(),
-        "VLOGIC": VLOGIC,
+        "FSYNC": _FSYNC,
+        "CLKIN": _CLKIN,
+        "VLOGIC": _VLOGIC,
         "GND": GND,
         "VDD": VDD,
-        "RESV": _RESV,
         "INT": _INT,
         "AUX_DA": _AUX_DA,
         "AUX_CL": _AUX_CL,
@@ -92,7 +92,7 @@ Component(
 Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND, dnp=not add_decoupling)
 
 # VLOGIC Bypass Capacitor - Required for MPU-6050
-Capacitor(name="C_VLOGIC", value="10nF", package="0402", P1=VLOGIC, P2=GND, dnp=not add_vlogic_cap)
+Capacitor(name="C_VLOGIC", value="10nF", package="0402", P1=_VLOGIC, P2=GND, dnp=not add_vlogic_cap)
 
 # Regulator Filter Capacitor - Required on REGOUT pin
 Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
