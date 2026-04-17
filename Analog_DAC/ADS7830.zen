@@ -72,17 +72,17 @@ GND = io("GND", Ground)
 i2c = io("I2C", I2c)
 
 # Analog inputs
-CH0 = io("CH0", Net, default=Net("CH0"))
-CH1 = io("CH1", Net, default=Net("CH1"))
-CH2 = io("CH2", Net, default=Net("CH2"))
-CH3 = io("CH3", Net, default=Net("CH3"))
-CH4 = io("CH4", Net, default=Net("CH4"))
-CH5 = io("CH5", Net, default=Net("CH5"))
-CH6 = io("CH6", Net, default=Net("CH6"))
-CH7 = io("CH7", Net, default=Net("CH7"))
+CH0 = io("CH0", Net)
+CH1 = io("CH1", Net)
+CH2 = io("CH2", Net)
+CH3 = io("CH3", Net)
+CH4 = io("CH4", Net)
+CH5 = io("CH5", Net)
+CH6 = io("CH6", Net)
+CH7 = io("CH7", Net)
 
 # Common input for single-ended mode
-COM = io("COM", Net, default=Net("COM"))
+COM = io("COM", Net)
 
 # External reference input (if used)
 if reference_mode == ReferenceMode("External"):
