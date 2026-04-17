@@ -57,15 +57,14 @@ DE = io("DE", Net)
 DI = io("DI", Net)
 
 # Internal nets
-_RE_INT = Net("RE_INT") if re_pulldown else RE
-_DE_INT = Net("DE_INT") if de_pullup else DE
+# (External RE/DE are used directly; pull resistors attach to them.)
 
 # Main transceiver component
 Component(
     name="ISL3172E",
     symbol=Symbol(library="@kicad-symbols/Interface_UART.kicad_sym", name="ISL3172E"),
     footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_3.9x4.9mm_P1.27mm.kicad_mod"),
-    pins={"RO": RO, "~{RE}": _RE_INT, "DE": _DE_INT, "DI": DI, "VCC": VCC, "GND": GND, "A": RS485_A, "B": RS485_B},
+    pins={"RO": RO, "~{RE}": RE, "DE": DE, "DI": DI, "VCC": VCC, "GND": GND, "A": RS485_A, "B": RS485_B},
 )
 
 # Power supply decoupling - as per datasheet Figure 1
@@ -78,15 +77,11 @@ if add_decoupling_caps:
 # Control signal pull resistors
 if re_pulldown:
     # RE is active low - pull down for receive enable by default (1k to 3k per datasheet)
-    Resistor(name="R_RE_PD", value=re_pulldown_value, package="0402", P1=_RE_INT, P2=GND)
-    # Connect internal net to external
-    _RE_INT = RE
+    Resistor(name="R_RE_PD", value=re_pulldown_value, package="0402", P1=RE, P2=GND)
 
 if de_pullup:
     # DE is active high - pull up through resistor for transmit enable (1k to 3k per datasheet)
-    Resistor(name="R_DE_PU", value=de_pullup_value, package="0402", P1=_DE_INT, P2=VCC)
-    # Connect internal net to external
-    _DE_INT = DE
+    Resistor(name="R_DE_PU", value=de_pullup_value, package="0402", P1=DE, P2=VCC)
 
 # Bus termination
 Resistor(
