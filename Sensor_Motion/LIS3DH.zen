@@ -86,24 +86,24 @@ else:  # SPI modes
 
 # Interrupt pins
 if enable_interrupts:
-    INT1 = io("INT1", Net, default=Net("INT1"))
-    INT2 = io("INT2", Net, default=Net("INT2"))
+    INT1 = io("INT1", Net)
+    INT2 = io("INT2", Net)
 else:
     INT1 = NotConnected()
     INT2 = NotConnected()
 
 # ADC pins
 if enable_adc:
-    ADC1 = io("ADC1", Net, default=Net("ADC1"))
-    ADC2 = io("ADC2", Net, default=Net("ADC2"))
-    ADC3 = io("ADC3", Net, default=Net("ADC3"))
+    ADC1 = io("ADC1", Net)
+    ADC2 = io("ADC2", Net)
+    ADC3 = io("ADC3", Net)
 else:
     ADC1 = NotConnected()
     ADC2 = NotConnected()
     ADC3 = NotConnected()
 
 # Internal nets
-_RES = Net("RES")  # Reserved pin, must be connected to GND
+_RES = GND  # Reserved pin, must be connected to GND
 
 # Main component
 Component(
@@ -120,7 +120,6 @@ Component(
         "INT2": INT2,
         "VDD": VDD,
         "GND": GND,
-        "NC": NotConnected(),
         "ADC1": ADC1,
         "ADC2": ADC2,
         "ADC3": ADC3,
@@ -128,7 +127,6 @@ Component(
 )
 
 # Connect RES pin to GND (required)
-_RES = GND
 
 # Power supply decoupling
 if add_decoupling:

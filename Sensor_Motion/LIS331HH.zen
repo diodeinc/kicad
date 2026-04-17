@@ -89,8 +89,8 @@ else:  # SPI modes
 
 # Interrupt pins
 if enable_interrupts:
-    INT1 = io("INT1", Net, default=Net("INT1"))
-    INT2 = io("INT2", Net, default=Net("INT2"))
+    INT1 = io("INT1", Net)
+    INT2 = io("INT2", Net)
 else:
     INT1 = NotConnected()
     INT2 = NotConnected()
@@ -110,7 +110,6 @@ Component(
         "INT2": INT2,
         "Vdd": VDD,
         "GND": GND,
-        "NC": NotConnected(),
     },
 )
 
