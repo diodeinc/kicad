@@ -32,7 +32,7 @@ if add_output_filtering:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-AVDD = io("AVDD", Power, default=Power("AVDD"), checks=voltage_within("2V to 5.5V"))
+AVDD = io("AVDD", Power, checks=voltage_within("2V to 5.5V"))
 GND = io("GND", Ground)
 
 # SPI interface - Note: This is SPI-compatible but uses SYNC instead of CS
