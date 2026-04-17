@@ -44,7 +44,6 @@ Component(
     footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/DFN-6-1EP_2x2mm_P0.65mm_EP1.01x1.7mm.kicad_mod"),
     pins={
         "VI": VIN,
-        "NC": GND,  # NC (Not connected)
         "GND": GND,
         "VO": VOUT,
     },
