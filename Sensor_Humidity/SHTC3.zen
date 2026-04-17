@@ -1,10 +1,10 @@
 """SHTC3 - Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 1.62-3.6V, DFN-4
 
-The SHTC3 is a digital humidity and temperature sensor designed for battery-driven high-volume 
-consumer electronics applications. It features ultra-low power consumption with less than 1µJ per 
-measurement, wide supply voltage range of 1.62V to 3.6V, and high accuracy of ±2%RH and ±0.2°C. 
-The sensor uses Sensirion's CMOSens® technology and includes I2C interface supporting up to 1MHz 
-Fast Mode Plus. Available in a compact 2x2x0.75mm DFN-4 package, it covers 0-100%RH and 
+The SHTC3 is a digital humidity and temperature sensor designed for battery-driven high-volume
+consumer electronics applications. It features ultra-low power consumption with less than 1µJ per
+measurement, wide supply voltage range of 1.62V to 3.6V, and high accuracy of ±2%RH and ±0.2°C.
+The sensor uses Sensirion's CMOSens® technology and includes I2C interface supporting up to 1MHz
+Fast Mode Plus. Available in a compact 2x2x0.75mm DFN-4 package, it covers 0-100%RH and
 -40°C to +125°C measurement ranges.
 
 Author: @@anthropic/claude-opus-4
@@ -13,6 +13,8 @@ Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/D
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -24,22 +26,22 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration
 # I2C configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "10kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="10kohms")
 
 # Power supply configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_decoupling_cap = config("add_decoupling_cap", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_decoupling_cap = config("add_decoupling_cap", bool, default=True)
 
 # Test and debug configuration
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # Component size configuration
-passives_size = config("passives_size", str, default = "0402")
+passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.62V to 3.6V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -52,40 +54,27 @@ _SDA = i2c.SDA
 
 # Digital Humidity and Temperature Sensor, ±2%RH, ±0.2°C, I2C, 1.62-3.6V, DFN-4
 Component(
-    name = "SHTC3",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Humidity.kicad_sym", name = "SHTC3"),
-    footprint = File("@kicad-footprints/Sensor_Humidity.pretty/Sensirion_DFN-4-1EP_2x2mm_P1mm_EP0.7x1.6mm.kicad_mod"),
-    pins = {
+    name="SHTC3",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Humidity.kicad_sym", name="SHTC3"),
+    footprint=File("@kicad-footprints/Sensor_Humidity.pretty/Sensirion_DFN-4-1EP_2x2mm_P1mm_EP0.7x1.6mm.kicad_mod"),
+    pins={
         "SCL": _SCL,
         "SDA": _SDA,
         "VDD": VDD,
         "VSS": GND,
-        "NC": GND  # Center pad - internally connected to VSS, connect directly to ground
+        "NC": GND,  # Center pad - internally connected to VSS, connect directly to ground
     },
 )
 
 # Bulk Power Supply Capacitor
 if add_bulk_cap:
     bulk_size = "0805" if passives_size == "0402" else passives_size
-    Capacitor(
-        name = "C_BULK",
-        value = "10uF",
-        voltage = "6.3V",
-        package = bulk_size,
-        P1 = VDD,
-        P2 = GND
-    )
+    Capacitor(name="C_BULK", value="10uF", voltage="6.3V", package=bulk_size, P1=VDD, P2=GND)
 
 # Power Supply Decoupling Capacitor - close to sensor
-if add_decoupling_cap:
-    Capacitor(
-        name = "C_VDD",
-        value = "100nF",
-        voltage = "6.3V",
-        package = passives_size,
-        P1 = VDD,
-        P2 = GND
-    )
+Capacitor(
+    name="C_VDD", value="100nF", voltage="6.3V", package=passives_size, P1=VDD, P2=GND, dnp=not add_decoupling_cap
+)
 
 
 # I2C Pull-up Resistors
@@ -93,30 +82,17 @@ if add_i2c_pullups:
     # I2C pull-ups are required for proper communication
     # Value depends on bus capacitance and speed
     # Typical values: 2.2kΩ to 10kΩ
-    
-    Resistor(
-        name = "R_SCL",
-        value = i2c_pullup_value,
-        package = passives_size,
-        P1 = _SCL,
-        P2 = VDD
-    )
-    
-    Resistor(
-        name = "R_SDA",
-        value = i2c_pullup_value,
-        package = passives_size,
-        P1 = _SDA,
-        P2 = VDD
-    )
+
+    Resistor(name="R_SCL", value=i2c_pullup_value, package=passives_size, P1=_SCL, P2=VDD)
+
+    Resistor(name="R_SDA", value=i2c_pullup_value, package=passives_size, P1=_SDA, P2=VDD)
 
 # Test Points (optional)
 if add_test_points:
-    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VDD)
-    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
-    TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCL)
-    TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDA)
-
+    TestPoint(name="TP_VDD", variant="THTPad_D1.0mm_Drill0.5mm", P1=VDD)
+    TestPoint(name="TP_GND", variant="THTPad_D1.0mm_Drill0.5mm", P1=GND)
+    TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SCL)
+    TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SDA)
 
 
 # pcb:sch SHTC3 x=240.3000 y=595.9000 rot=0

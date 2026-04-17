@@ -46,7 +46,9 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps61165.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -63,33 +65,33 @@ LEDColor = enum("white", "red", "green", "blue", "yellow", "amber")
 CircuitMode = enum("Typical", "ExternalPWM", "SEPIC")
 
 # Configuration
-led_current = config("led_current", LEDCurrent, default = "350mA")
-add_bootstrap_cap = config("add_bootstrap_cap", bool, default = False)
-add_input_caps = config("add_input_caps", bool, default = True)
-add_output_caps = config("add_output_caps", bool, default = True)
-add_leds = config("add_leds", bool, default = True)
+led_current = config("led_current", LEDCurrent, default="350mA")
+add_bootstrap_cap = config("add_bootstrap_cap", bool, default=False)
+add_input_caps = config("add_input_caps", bool, default=True)
+add_output_caps = config("add_output_caps", bool, default=True)
+add_leds = config("add_leds", bool, default=True)
 
 if add_leds:
-    num_leds = config("num_leds", NumLEDs, default = "3")
-    led_package = config("led_package", LEDPackage, default = "0805")
-    led_color = config("led_color", LEDColor, default = "white")
+    num_leds = config("num_leds", NumLEDs, default="3")
+    led_package = config("led_package", LEDPackage, default="0805")
+    led_color = config("led_color", LEDColor, default="white")
 else:
     num_leds = None
 
-circuit_mode = config("circuit_mode", CircuitMode, default = "Typical")
+circuit_mode = config("circuit_mode", CircuitMode, default="Typical")
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("3V to 18V"))
 GND = io("GND", Ground)
-LED_ANODE = io("LED_ANODE", Net, default = Net("LED_ANODE"))
-LED_CATHODE = io("LED_CATHODE", Net, default = Net("LED_CATHODE"))
+LED_ANODE = io("LED_ANODE", Net, default=Net("LED_ANODE"))
+LED_CATHODE = io("LED_CATHODE", Net, default=Net("LED_CATHODE"))
 
 # Control input - external pin for user control
-CTRL = io("CTRL", Net, default = Net("CTRL"))
+CTRL = io("CTRL", Net, default=Net("CTRL"))
 
 # PWM input for external PWM dimming network
 if circuit_mode == CircuitMode("ExternalPWM"):
-    PWM_IN = io("PWM_IN", Net, default = Net("PWM_IN"))
+    PWM_IN = io("PWM_IN", Net, default=Net("PWM_IN"))
 
 # Internal nets
 _SW = Net("SW")
@@ -98,17 +100,10 @@ _FB = Net("FB")
 
 # Main component - High-Brightness White LED Driver
 Component(
-    name = "TPS61165DBV",
-    symbol = Symbol(library = "@kicad-symbols/Driver_LED.kicad_sym", name = "TPS61165DBV"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-    pins = {
-            "VIN": VDD,
-        "CTRL": CTRL,
-        "COMP": _COMP,
-        "GND": GND,
-        "SW": _SW,
-        "FB": _FB
-    },
+    name="TPS61165DBV",
+    symbol=Symbol(library="@kicad-symbols/Driver_LED.kicad_sym", name="TPS61165DBV"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins={"VIN": VDD, "CTRL": CTRL, "COMP": _COMP, "GND": GND, "SW": _SW, "FB": _FB},
 )
 
 # Current sense resistor calculation based on LED current
@@ -133,29 +128,29 @@ if circuit_mode == CircuitMode("ExternalPWM"):
     # External PWM dimming network with resistor divider
     # Create internal net for divider point
     _DIVIDER = Net("DIVIDER")
-    
+
     # Adjust RSET for external PWM dimming (typical value from datasheet)
     r_set_value = "0.64ohms"
-    
+
     # R1: 10kΩ from LED cathode to FB pin
-    Resistor(name = "R1_PWM", value = "10kohms", package = "0603", P1 = LED_CATHODE, P2 = _FB)
-    
+    Resistor(name="R1_PWM", value="10kohms", package="0603", P1=LED_CATHODE, P2=_FB)
+
     # R2: 80kΩ from FB pin to divider point (where cap connects)
-    Resistor(name = "R2_PWM", value = "80kohms", package = "0603", P1 = _FB, P2 = _DIVIDER)
-    
+    Resistor(name="R2_PWM", value="80kohms", package="0603", P1=_FB, P2=_DIVIDER)
+
     # R3: 100kΩ from PWM input to divider point
-    Resistor(name = "R3_PWM", value = "100kohms", package = "0603", P1 = PWM_IN, P2 = _DIVIDER)
-    
+    Resistor(name="R3_PWM", value="100kohms", package="0603", P1=PWM_IN, P2=_DIVIDER)
+
     # C1: 0.1µF capacitor from divider point to ground
-    Capacitor(name = "C_PWM", value = "0.1uF", voltage = "10V", package = "0603", P1 = _DIVIDER, P2 = GND)
-    
+    Capacitor(name="C_PWM", value="0.1uF", voltage="10V", package="0603", P1=_DIVIDER, P2=GND)
+
     # RSET connects between LED cathode and ground
-    Resistor(name = "R_SET", value = r_set_value, package = "0805", P1 = LED_CATHODE, P2 = GND)
+    Resistor(name="R_SET", value=r_set_value, package="0805", P1=LED_CATHODE, P2=GND)
 else:
     # Standard current sense configuration
     # Connect between FB (which connects to LED cathode) and GND
-    Resistor(name = "R_SET", value = r_set_value, package = "0805", P1 = _FB, P2 = GND)
-    
+    Resistor(name="R_SET", value=r_set_value, package="0805", P1=_FB, P2=GND)
+
     # Connect LED cathode to FB pin for current sensing
     LED_CATHODE = _FB
 
@@ -174,65 +169,54 @@ else:
 #                                             |-> L2 -> GND
 
 # Compensation capacitor (required for stability)
-Capacitor(name = "C_COMP", value = "220nF", voltage = "10V", package = "0402", P1 = _COMP, P2 = GND)
+Capacitor(name="C_COMP", value="220nF", voltage="10V", package="0402", P1=_COMP, P2=GND)
 
 # Input capacitors
 if add_input_caps:
     # Input capacitor C1 as shown in typical application
-    Capacitor(name = "C_IN", value = "4.7uF", voltage = "25V", package = "0805", P1 = VDD, P2 = GND)
+    Capacitor(name="C_IN", value="4.7uF", voltage="25V", package="0805", P1=VDD, P2=GND)
 
 # Power inductor and diode configuration depends on circuit mode
 if circuit_mode == CircuitMode("SEPIC"):
     # SEPIC topology components
     # L1: Primary inductor from VIN to SW
-    Inductor(name = "L1", value = "10uH", current = "1.5A", package = "1210", P1 = VDD, P2 = _SW)
-    
+    Inductor(name="L1", value="10uH", current="1.5A", package="1210", P1=VDD, P2=_SW)
+
     # Create internal net for SEPIC coupling node
     _SEPIC_NODE = Net("SEPIC_NODE")
-    
+
     # C_SEPIC: Coupling capacitor between SW and diode
-    Capacitor(name = "C_SEPIC", value = "1uF", voltage = "50V", package = "0805", P1 = _SW, P2 = _SEPIC_NODE)
-    
+    Capacitor(name="C_SEPIC", value="1uF", voltage="50V", package="0805", P1=_SW, P2=_SEPIC_NODE)
+
     # L2: Secondary inductor from coupling node to ground
-    Inductor(name = "L2", value = "10uH", current = "1.5A", package = "1210", P1 = _SEPIC_NODE, P2 = GND)
-    
+    Inductor(name="L2", value="10uH", current="1.5A", package="1210", P1=_SEPIC_NODE, P2=GND)
+
     # D1: Schottky diode from coupling node to LED_ANODE
     Diode(
-        name = "D1",
-        variant = "Schottky",
-        v_r = "40V",
-        i_f = "0.5A",
-        mpn = "MBR0540",
-        package = "SOD-123",
-        A = _SEPIC_NODE,
-        K = LED_ANODE
+        name="D1",
+        variant="Schottky",
+        v_r="40V",
+        i_f="0.5A",
+        mpn="MBR0540",
+        package="SOD-123",
+        A=_SEPIC_NODE,
+        K=LED_ANODE,
     )
 else:
     # Standard boost topology (for Typical and ExternalPWM modes)
     # L1: Inductor from VIN to SW
-    Inductor(name = "L1", value = "10uH", current = "1.5A", package = "1210", P1 = VDD, P2 = _SW)
-    
+    Inductor(name="L1", value="10uH", current="1.5A", package="1210", P1=VDD, P2=_SW)
+
     # D1: Schottky diode from SW to LED_ANODE
-    Diode(
-        name = "D1",
-        variant = "Schottky",
-        v_r = "40V",
-        i_f = "0.5A",
-        mpn = "MBR0540",
-        package = "SOD-123",
-        A = _SW,
-        K = LED_ANODE
-    )
+    Diode(name="D1", variant="Schottky", v_r="40V", i_f="0.5A", mpn="MBR0540", package="SOD-123", A=_SW, K=LED_ANODE)
 
 # Output capacitor - connects from LED_ANODE to GND (after diode, before LEDs)
 if add_output_caps:
     # Output capacitance for filtering - C2 in schematic
-    Capacitor(name = "C_OUT", value = "1uF", voltage = "50V", package = "0805", P1 = LED_ANODE, P2 = GND)
+    Capacitor(name="C_OUT", value="1uF", voltage="50V", package="0805", P1=LED_ANODE, P2=GND)
 
 # Optional bootstrap capacitor for improved efficiency at high duty cycles
-if add_bootstrap_cap:
-    Capacitor(name = "C_BST", value = "100nF", voltage = "50V", package = "0402", P1 = LED_ANODE, P2 = _SW)
-
+Capacitor(name="C_BST", value="100nF", voltage="50V", package="0402", P1=LED_ANODE, P2=_SW, dnp=not add_bootstrap_cap)
 
 
 # LED load - connect LEDs in series between LED_ANODE and LED_CATHODE
@@ -242,7 +226,7 @@ if add_leds:
     if int(num_leds.value) > 1:
         for i in range(int(num_leds.value) - 1):
             led_nets.append(Net("LED_NET_" + str(i + 1)))
-    
+
     # Create LED instances
     for i in range(int(num_leds.value)):
         # Determine connections
@@ -250,22 +234,16 @@ if add_leds:
             # First LED connects to LED_ANODE
             anode = LED_ANODE
         else:
-            anode = led_nets[i-1]
-        
+            anode = led_nets[i - 1]
+
         if i == int(num_leds.value) - 1:
             # Last LED connects to LED_CATHODE
             cathode = LED_CATHODE
         else:
             cathode = led_nets[i]
-        
+
         # Create LED instance
-        LED(
-            name = "LED" + str(i + 1),
-            package = led_package.value,
-            color = led_color.value,
-            A = anode,
-            K = cathode
-        )
+        LED(name="LED" + str(i + 1), package=led_package.value, color=led_color.value, A=anode, K=cathode)
 
 # pcb:sch TPS61165DBV x=24.4000 y=240.3000 rot=0
 # pcb:sch C_IN.C x=-199.1200 y=240.3000 rot=0

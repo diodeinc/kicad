@@ -1,16 +1,16 @@
 """ATtiny85-20S - 8-bit AVR Microcontroller with 8KB Flash, 512B SRAM, 512B EEPROM
 
-The ATtiny85 is a low-power CMOS 8-bit microcontroller based on the AVR enhanced RISC 
-architecture. By executing powerful instructions in a single clock cycle, the ATtiny85 
-achieves throughputs approaching 1 MIPS per MHz allowing the system designer to optimize 
-power consumption versus processing speed. Features include 8KB of In-System Programmable 
-Flash, 512 bytes EEPROM, 512 bytes SRAM, 6 general purpose I/O lines, 32 general purpose 
-working registers, one 8-bit Timer/Counter with compare modes, one 8-bit high speed 
-Timer/Counter, Universal Serial Interface, a 4-channel 10-bit ADC, a programmable Watchdog 
-Timer with internal Oscillator, and three software selectable power saving modes. This design 
+The ATtiny85 is a low-power CMOS 8-bit microcontroller based on the AVR enhanced RISC
+architecture. By executing powerful instructions in a single clock cycle, the ATtiny85
+achieves throughputs approaching 1 MIPS per MHz allowing the system designer to optimize
+power consumption versus processing speed. Features include 8KB of In-System Programmable
+Flash, 512 bytes EEPROM, 512 bytes SRAM, 6 general purpose I/O lines, 32 general purpose
+working registers, one 8-bit Timer/Counter with compare modes, one 8-bit high speed
+Timer/Counter, Universal Serial Interface, a 4-channel 10-bit ADC, a programmable Watchdog
+Timer with internal Oscillator, and three software selectable power saving modes. This design
 configuration uses the internal oscillator.
 
-The device supports power from USB with an integrated 3.3V LDO regulator option, and can 
+The device supports power from USB with an integrated 3.3V LDO regulator option, and can
 implement software USB (V-USB) using PB3 and PB4 pins for low-speed USB communication.
 
 Author: @anthropic/claude-opus-4
@@ -19,6 +19,7 @@ Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit
 """
 
 load("@stdlib/interfaces.zen", "Spi", "I2c", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -35,23 +36,23 @@ BootConfiguration = enum("None", "ISP", "ISPWithTestPoints")
 
 # Configuration
 # Power configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
 
 # Reset configuration
-add_reset_circuit = config("add_reset_circuit", ResetConfiguration, default = "Button")
+add_reset_circuit = config("add_reset_circuit", ResetConfiguration, default="Button")
 
 # LED configuration
-add_status_led = config("add_status_led", bool, default = True, optional = True)
-add_power_led = config("add_power_led", bool, default = True, optional = True)
+add_status_led = config("add_status_led", bool, default=True, optional=True)
+add_power_led = config("add_power_led", bool, default=True, optional=True)
 
 # Programming interface configuration
-programming_interface = config("programming_interface", BootConfiguration, default = "ISPWithTestPoints")
+programming_interface = config("programming_interface", BootConfiguration, default="ISPWithTestPoints")
 
 # USB configuration
-add_usb = config("add_usb", bool, default = True)
+add_usb = config("add_usb", bool, default=True)
 if add_usb:
-    power_from_usb = config("power_from_usb", bool, default = True)
+    power_from_usb = config("power_from_usb", bool, default=True)
 else:
     power_from_usb = False
 
@@ -61,7 +62,7 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VUSB = io("VUSB", Power)
+    VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 
 # GPIO pins - conditionally exposed based on configuration
 # PB0 - AREF/MOSI/SDA
@@ -106,10 +107,10 @@ if programming_interface != BootConfiguration("None"):
 
 # ATtiny85-20S - 20MHz, 8kB Flash, 512B SRAM, 512B EEPROM, SOIC-8
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/MCU_Microchip_ATtiny.kicad_sym", name = "ATtiny85-20S"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
-    pins = {
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/MCU_Microchip_ATtiny.kicad_sym", name="ATtiny85-20S"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod"),
+    pins={
         "VCC": VCC,
         "GND": GND,
         "AREF/PB0": PB0,
@@ -117,166 +118,164 @@ Component(
         "PB2": PB2,
         "XTAL1/PB3": _PB3,
         "XTAL2/PB4": _PB4,
-        "~{RESET}/PB5": _RESET
+        "~{RESET}/PB5": _RESET,
     },
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VCC, P2 = GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling
-if add_decoupling:
-    Capacitor(name = "C_VCC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND, dnp=not add_decoupling)
 
 # Reset Circuit
 if add_reset_circuit == ResetConfiguration("Pullup"):
     # Simple pull-up resistor
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VCC)
-    
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VCC)
+
 elif add_reset_circuit == ResetConfiguration("TestPoint"):
     # Pull-up resistor with test point
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VCC)
-    TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _RESET)
-    
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VCC)
+    TestPoint(name="TP_RESET", variant="THTPad_D1.5mm_Drill0.7mm", P1=_RESET)
+
 elif add_reset_circuit == ResetConfiguration("Button"):
     # Pull-up resistor, capacitor, and reset button
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VCC)
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _RESET, P2 = GND)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VCC)
+    Capacitor(name="C_RESET", value="100nF", package="0402", P1=_RESET, P2=GND)
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": _RESET,
             "2": GND,
-        }
+        },
     )
 
 # Status LED
 if add_status_led:
     _LED_K = Net("LED_K")
     Led(
-        name = "LED_STATUS",
-        color = "green",
-        package = "0603",
-        A = VCC,
-        K = _LED_K,
+        name="LED_STATUS",
+        color="green",
+        package="0603",
+        A=VCC,
+        K=_LED_K,
     )
-    Resistor(name = "R_LED", value = "1kohms", package = "0402", P1 = _LED_K, P2 = _PB1)
+    Resistor(name="R_LED", value="1kohms", package="0402", P1=_LED_K, P2=_PB1)
 
 # Power LED
 if add_power_led:
     _POWER_LED_K = Net("POWER_LED_K")
     Led(
-        name = "LED_POWER",
-        color = "green",
-        package = "0603",
-        A = VCC,
-        K = _POWER_LED_K,
+        name="LED_POWER",
+        color="green",
+        package="0603",
+        A=VCC,
+        K=_POWER_LED_K,
     )
-    Resistor(name = "R_POWER_LED", value = "1kohms", package = "0402", P1 = _POWER_LED_K, P2 = GND)
+    Resistor(name="R_POWER_LED", value="1kohms", package="0402", P1=_POWER_LED_K, P2=GND)
 
 # ISP Programming Header
 if programming_interface == BootConfiguration("ISP") or programming_interface == BootConfiguration("ISPWithTestPoints"):
     # 6-pin ISP header
     PinHeader(
-        name = "J_ISP",
-        pins = 3,
-        rows = 2,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = _MISO,     # MISO
-        P2 = VCC,       # VCC
-        P3 = _SCK,      # SCK
-        P4 = _MOSI,     # MOSI
-        P5 = _RESET,    # RESET
-        P6 = GND,       # GND
+        name="J_ISP",
+        pins=3,
+        rows=2,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=_MISO,  # MISO
+        P2=VCC,  # VCC
+        P3=_SCK,  # SCK
+        P4=_MOSI,  # MOSI
+        P5=_RESET,  # RESET
+        P6=GND,  # GND
     )
-    
+
     # Add test points for ISP signals if requested
     if programming_interface == BootConfiguration("ISPWithTestPoints"):
-        TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _RESET)
-        TestPoint(name = "TP_MISO", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _MISO)
-        TestPoint(name = "TP_MOSI", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _MOSI)
-        TestPoint(name = "TP_SCK", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _SCK)
+        TestPoint(name="TP_RESET", variant="THTPad_D1.5mm_Drill0.7mm", P1=_RESET)
+        TestPoint(name="TP_MISO", variant="THTPad_D1.5mm_Drill0.7mm", P1=_MISO)
+        TestPoint(name="TP_MOSI", variant="THTPad_D1.5mm_Drill0.7mm", P1=_MOSI)
+        TestPoint(name="TP_SCK", variant="THTPad_D1.5mm_Drill0.7mm", P1=_SCK)
 
 # USB Connector and Power Circuitry
 if add_usb:
     # Internal USB nets
-    _USB_DM_INT = Net("USB_DM_INT") 
+    _USB_DM_INT = Net("USB_DM_INT")
     _USB_DP_INT = Net("USB_DP_INT")
     _USB_CC1 = Net("USB_CC1")
     _USB_CC2 = Net("USB_CC2")
-    
+
     # USB-C connector with software USB support via PB3/PB4
     Component(
-        name = "J_USB",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
-        pins = {
-            "VBUS": VUSB,           # VBUS
-            "D-": _USB_DM_INT,      # D- 
-            "D+": _USB_DP_INT,      # D+
-            "CC1": _USB_CC1,        # Configuration Channel 1
-            "CC2": _USB_CC2,        # Configuration Channel 2
-            "SBU1": Net("USB_SBU1"), # Sideband Use 1 (not connected)
-            "SBU2": Net("USB_SBU2"), # Sideband Use 2 (not connected)
-            "GND": GND,             # GND
-            "SHIELD": GND,          # Shield
-        }
+        name="J_USB",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="USB_C_Receptacle_USB2.0_16P"),
+        footprint=File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins={
+            "VBUS": VUSB,  # VBUS
+            "D-": _USB_DM_INT,  # D-
+            "D+": _USB_DP_INT,  # D+
+            "CC1": _USB_CC1,  # Configuration Channel 1
+            "CC2": _USB_CC2,  # Configuration Channel 2
+            "SBU1": Net("USB_SBU1"),  # Sideband Use 1 (not connected)
+            "SBU2": Net("USB_SBU2"),  # Sideband Use 2 (not connected)
+            "GND": GND,  # GND
+            "SHIELD": GND,  # Shield
+        },
     )
-    
+
     # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
-    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
-    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
-    
+    Resistor(name="R_USB_CC1", value="5.1kohms", package="0402", P1=_USB_CC1, P2=GND)
+    Resistor(name="R_USB_CC2", value="5.1kohms", package="0402", P1=_USB_CC2, P2=GND)
+
     # USB data line series resistors and Zener diodes for software USB (V-USB)
     # Series resistors
-    Resistor(name = "R_USB_DM", value = "68ohms", package = "0402", P1 = _USB_DM_INT, P2 = _PB3)
-    Resistor(name = "R_USB_DP", value = "68ohms", package = "0402", P1 = _USB_DP_INT, P2 = _PB4)
-    
+    Resistor(name="R_USB_DM", value="68ohms", package="0402", P1=_USB_DM_INT, P2=_PB3)
+    Resistor(name="R_USB_DP", value="68ohms", package="0402", P1=_USB_DP_INT, P2=_PB4)
+
     # Zener diodes for voltage clamping (3.6V)
     Diode(
-        name = "D_USB_DM",
-        variant = "Zener",
-        package = "SOD-323",
-        v_r = "3.6V",  # Reverse voltage (Zener voltage)
-        K = _PB3,
-        A = GND
+        name="D_USB_DM",
+        variant="Zener",
+        package="SOD-323",
+        v_r="3.6V",  # Reverse voltage (Zener voltage)
+        K=_PB3,
+        A=GND,
     )
-    
+
     Diode(
-        name = "D_USB_DP",
-        variant = "Zener", 
-        package = "SOD-323",
-        v_r = "3.6V",  # Reverse voltage (Zener voltage)
-        K = _PB4,
-        A = GND
+        name="D_USB_DP",
+        variant="Zener",
+        package="SOD-323",
+        v_r="3.6V",  # Reverse voltage (Zener voltage)
+        K=_PB4,
+        A=GND,
     )
-    
+
     # Pull-up resistor on D- for USB device detection (1.5k)
-    Resistor(name = "R_USB_PULLUP", value = "1.5kohms", package = "0402", P1 = _PB3, P2 = VCC)
-    
+    Resistor(name="R_USB_PULLUP", value="1.5kohms", package="0402", P1=_PB3, P2=VCC)
+
     # VBUS decoupling
-    Capacitor(name = "C_VBUS", value = "4.7uF", package = "0805", P1 = VUSB, P2 = GND)
-    
+    Capacitor(name="C_VBUS", value="4.7uF", package="0805", P1=VUSB, P2=GND)
+
     # USB Power Regulation
     if power_from_usb:
         # 3.3V LDO regulator from USB 5V to VCC
         AP2112K_3_3(
-            name = "U_USB_REG",
-            VIN = Power(NET = VUSB),
-            VOUT = Power(NET = VCC),
-            GND = GND,
-            add_input_cap = True,
-            add_output_cap = True,
-            enable_control = "AlwaysOn",
+            name="U_USB_REG",
+            VIN=Power(NET=VUSB),
+            VOUT=Power(NET=VCC),
+            GND=GND,
+            add_input_cap=True,
+            add_output_cap=True,
+            enable_control="AlwaysOn",
         )
 
 # Test points
-TestPoint(name = "TP_VCC", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = VCC)
-TestPoint(name = "TP_GND", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = GND)
+TestPoint(name="TP_VCC", variant="THTPad_D1.5mm_Drill0.7mm", P1=VCC)
+TestPoint(name="TP_GND", variant="THTPad_D1.5mm_Drill0.7mm", P1=GND)
 
 # pcb:sch U1 x=507.0000 y=634.0000 rot=0
 # pcb:sch C_BULK.C x=346.9800 y=697.5000 rot=0

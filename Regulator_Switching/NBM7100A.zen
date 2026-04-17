@@ -1,11 +1,11 @@
 """NBM7100A - Coin Cell Battery Life Booster with Adaptive Power Optimization
 
-The NBM7100A is a battery energy management device designed to maximize usable capacity 
-from non-rechargeable, primary batteries when used in low-voltage, low-power applications 
-requiring burst current loads. It overcomes voltage drop and battery life limitations 
-associated with extracting high pulse currents from lithium primary batteries such as 
-3V lithium manganese dioxide (LiMnO2) coin cells. The device contains two stages of 
-high efficiency DC-DC conversion and an intelligent learning algorithm that optimizes 
+The NBM7100A is a battery energy management device designed to maximize usable capacity
+from non-rechargeable, primary batteries when used in low-voltage, low-power applications
+requiring burst current loads. It overcomes voltage drop and battery life limitations
+associated with extracting high pulse currents from lithium primary batteries such as
+3V lithium manganese dioxide (LiMnO2) coin cells. The device contains two stages of
+high efficiency DC-DC conversion and an intelligent learning algorithm that optimizes
 energy transfer to minimize residual charge in the storage capacitor.
 
 Author: @Anthropic/claude-4-opus-20250514
@@ -27,25 +27,25 @@ StorageCapacitance = enum("4.7uF", "10uF", "22uF", "47uF", "100uF", "220uF", "47
 I2cAddress = enum("0x2E", "0x2F")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_caps = config("add_output_caps", bool, default = True)
-add_storage_cap = config("add_storage_cap", bool, default = True)
-add_inductor = config("add_inductor", bool, default = True)
-enable_i2c_pullups = config("enable_i2c_pullups", bool, default = True)
-enable_start_pulldown = config("enable_start_pulldown", bool, default = True)
-charge_current = config("charge_current", ChargeCurrent, default = "8mA")
-output_voltage = config("output_voltage", OutputVoltage, default = "3.0V")
-storage_capacitance = config("storage_capacitance", StorageCapacitance, default = "10uF")
-i2c_address = config("i2c_address", I2cAddress, default = "0x2E")
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_caps = config("add_output_caps", bool, default=True)
+add_storage_cap = config("add_storage_cap", bool, default=True)
+add_inductor = config("add_inductor", bool, default=True)
+enable_i2c_pullups = config("enable_i2c_pullups", bool, default=True)
+enable_start_pulldown = config("enable_start_pulldown", bool, default=True)
+charge_current = config("charge_current", ChargeCurrent, default="8mA")
+output_voltage = config("output_voltage", OutputVoltage, default="3.0V")
+storage_capacitance = config("storage_capacitance", StorageCapacitance, default="10uF")
+i2c_address = config("i2c_address", I2cAddress, default="0x2E")
 
 # External IO
-i2c = io("I2C", I2c, default = I2c("I2C"))
-VBT = io("VBT", Net, default = Net("VBT"))
-VDH = io("VDH", Net, default = Net("VDH"))
-VDP = io("VDP", Net, default = Net("VDP"))
-RDY = io("RDY", Net, default = Net("RDY"))
-START = io("START", Net, default = Net("START"))
-ADR = io("ADR", Net, default = Net("ADR"))
+i2c = io("I2C", I2c, default=I2c("I2C"))
+VBT = io("VBT", Net, default=Net("VBT"))
+VDH = io("VDH", Net, default=Net("VDH"))
+VDP = io("VDP", Net, default=Net("VDP"))
+RDY = io("RDY", Net, default=Net("RDY"))
+START = io("START", Net, default=Net("START"))
+ADR = io("ADR", Net, default=Net("ADR"))
 GND = io("GND", Ground)
 
 # Internal nets
@@ -59,10 +59,10 @@ _VDHS = VDH  # Sense input connected to output
 
 # coin cell booster charge pump DHVQFN16 SOT763
 Component(
-    name = "NBM7100A",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "NBM7100A"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/DHVQFN-16-1EP_2.5x3.5mm_P0.5mm_EP1x2mm.kicad_mod"),
-    pins = {
+    name="NBM7100A",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Switching.kicad_sym", name="NBM7100A"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/DHVQFN-16-1EP_2.5x3.5mm_P0.5mm_EP1x2mm.kicad_mod"),
+    pins={
         "VBT": VBT,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
@@ -70,7 +70,7 @@ Component(
         "START": START,
         "ADR": ADR,
         "TST": GND,  # Factory test pin, tie to ground
-        "EP": GND,   # Exposed pad to ground
+        "EP": GND,  # Exposed pad to ground
         "VSS": GND,
         "VSSP": GND,
         "NC": NotConnected(),  # Not internally connected
@@ -79,43 +79,39 @@ Component(
         "VDP": VDP,
         "LX2": _LX2,
         "LX1": _LX1,
-        "CAP": _CAP
+        "CAP": _CAP,
     },
 )
 
 # Input Capacitor - Datasheet recommends 1-2µF ceramic
-if add_input_cap:
-    Capacitor(name = "C_VBT", value = "2.2uF", package = "0603", P1 = VBT, P2 = GND)
+Capacitor(name="C_VBT", value="2.2uF", package="0603", P1=VBT, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitors - Datasheet recommends minimum 22µF on VDH, 1-2µF on VDP
 if add_output_caps:
     # VDH output capacitor (main regulated output)
-    Capacitor(name = "C_VDH", value = "22uF", package = "0805", P1 = VDH, P2 = GND)
-    
+    Capacitor(name="C_VDH", value="22uF", package="0805", P1=VDH, P2=GND)
+
     # VDP permanent supply capacitor
-    Capacitor(name = "C_VDP", value = "2.2uF", package = "0603", P1 = VDP, P2 = GND)
+    Capacitor(name="C_VDP", value="2.2uF", package="0603", P1=VDP, P2=GND)
 
 # Storage Capacitor - Energy storage element
-if add_storage_cap:
-    Capacitor(name = "C_STORAGE", value = storage_capacitance.value, package = "1206", P1 = _CAP, P2 = GND)
+Capacitor(name="C_STORAGE", value=storage_capacitance.value, package="1206", P1=_CAP, P2=GND, dnp=not add_storage_cap)
 
 # Inductor - Required between LX1 and LX2, 15µH nominal with >1A saturation current
-if add_inductor:
-    Inductor(name = "L1", value = "15uH", package = "1210", P1 = _LX1, P2 = _LX2)
+Inductor(name="L1", value="15uH", package="1210", P1=_LX1, P2=_LX2, dnp=not add_inductor)
 
 # I2C Pull-up Resistors
 if enable_i2c_pullups:
-    Resistor(name = "R_SCL", value = "4.7kohms", package = "0402", P1 = i2c.SCL, P2 = VDP)
-    Resistor(name = "R_SDA", value = "4.7kohms", package = "0402", P1 = i2c.SDA, P2 = VDP)
+    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=i2c.SCL, P2=VDP)
+    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=i2c.SDA, P2=VDP)
 
 # START Pin Pull-down - Ensures device stays in standby when not actively driven
-if enable_start_pulldown:
-    Resistor(name = "R_START", value = "100kohms", package = "0402", P1 = START, P2 = GND)
+Resistor(name="R_START", value="100kohms", package="0402", P1=START, P2=GND, dnp=not enable_start_pulldown)
 
 # Address Configuration - ADR pin sets I2C address
 # ADR = 0 (GND) → I2C address 0x2E (010 1110 R/Wn)
 # ADR = 1 (VDP) → I2C address 0x2F (010 1111 R/Wn)
-Resistor(name = "R_ADR", value = "0ohms", package = "0402", P1 = ADR, P2 = _ADR_CONFIG)
+Resistor(name="R_ADR", value="0ohms", package="0402", P1=ADR, P2=_ADR_CONFIG)
 
 # pcb:sch C_STORAGE.C x=469.9000 y=749.3000 rot=0
 # pcb:sch C_VBT.C x=25.4000 y=660.4000 rot=0

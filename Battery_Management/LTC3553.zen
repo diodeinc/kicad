@@ -1,21 +1,23 @@
 """LTC3553 - Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Regulator
 
-The LTC3553 is a micropower, highly integrated power management and battery charger IC 
-for single-cell Li-Ion/Polymer battery applications. It includes a PowerPath manager 
-with automatic load prioritization, a battery charger, an ideal diode and numerous 
-internal protection features. Designed specifically for USB applications, the LTC3553 
-power manager automatically limits input current to a maximum of either 100mA or 500mA. 
-Battery charge current is automatically reduced such that the sum of the load current 
-and the charge current does not exceed the selected input current limit. The LTC3553 
-also includes a synchronous buck regulator, a low dropout linear regulator (LDO), and 
-a pushbutton controller. With all supplies enabled in standby mode, the quiescent 
+The LTC3553 is a micropower, highly integrated power management and battery charger IC
+for single-cell Li-Ion/Polymer battery applications. It includes a PowerPath manager
+with automatic load prioritization, a battery charger, an ideal diode and numerous
+internal protection features. Designed specifically for USB applications, the LTC3553
+power manager automatically limits input current to a maximum of either 100mA or 500mA.
+Battery charge current is automatically reduced such that the sum of the load current
+and the charge current does not exceed the selected input current limit. The LTC3553
+also includes a synchronous buck regulator, a low dropout linear regulator (LDO), and
+a pushbutton controller. With all supplies enabled in standby mode, the quiescent
 current drawn from the battery is only 12μA.
 
 Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Anand Kapadia
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3553fa.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,16 +34,16 @@ BuckVoltage = enum("1.2V", "1.8V", "2.5V", "3.3V")
 LdoVoltage = enum("1.2V", "1.8V", "2.5V", "3.3V")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-enable_ntc = config("enable_ntc", bool, default = True)
-charge_current = config("charge_current", ChargeCurrentMode, default = "400mA")
-power_mode = config("power_mode", PowerMode, default = "500mA")
-sequence_mode = config("sequence_mode", SequenceMode, default = "BuckFirst")
-enable_buck = config("enable_buck", bool, default = True)
-enable_ldo = config("enable_ldo", bool, default = True)
-buck_voltage = config("buck_voltage", BuckVoltage, default = BuckVoltage("1.2V"))
-ldo_voltage = config("ldo_voltage", LdoVoltage, default = LdoVoltage("3.3V"))
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+enable_ntc = config("enable_ntc", bool, default=True)
+charge_current = config("charge_current", ChargeCurrentMode, default="400mA")
+power_mode = config("power_mode", PowerMode, default="500mA")
+sequence_mode = config("sequence_mode", SequenceMode, default="BuckFirst")
+enable_buck = config("enable_buck", bool, default=True)
+enable_ldo = config("enable_ldo", bool, default=True)
+buck_voltage = config("buck_voltage", BuckVoltage, default=BuckVoltage("1.2V"))
+ldo_voltage = config("ldo_voltage", LdoVoltage, default=LdoVoltage("3.3V"))
 
 if not enable_buck and sequence_mode == SequenceMode("BuckFirst"):
     error("BuckFirst sequence mode requires buck to be enabled")
@@ -49,15 +51,15 @@ if not enable_ldo and sequence_mode == SequenceMode("LDOFirst"):
     error("LDOFirst sequence mode requires LDO to be enabled")
 
 # External IO
-VBUS = io("VBUS", Power)
-VOUT = io("VOUT", Net, default = Net("VOUT"))
-BAT = io("BAT", Net, default = Net("BAT"))
+VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
+BAT = io("BAT", Net, default=Net("BAT"))
 GND = io("GND", Ground)
-BUCK_OUT = io("BUCK_OUT", Net, default = Net("BUCK_OUT")) if enable_buck else None
-LDO_OUT = io("LDO_OUT", Net, default = Net("LDO_OUT")) if enable_ldo else None
-ON_BTN = io("ON_BTN", Net, default = Net("ON_BTN"))
-PBSTAT = io("PBSTAT", Net, default = Net("PBSTAT"))
-CHRG_STAT = io("CHRG_STAT", Net, default = Net("CHRG_STAT"))
+BUCK_OUT = io("BUCK_OUT", Net, default=Net("BUCK_OUT")) if enable_buck else None
+LDO_OUT = io("LDO_OUT", Net, default=Net("LDO_OUT")) if enable_ldo else None
+ON_BTN = io("ON_BTN", Net, default=Net("ON_BTN"))
+PBSTAT = io("PBSTAT", Net, default=Net("PBSTAT"))
+CHRG_STAT = io("CHRG_STAT", Net, default=Net("CHRG_STAT"))
 
 
 # Internal nets
@@ -75,10 +77,10 @@ _NTC = GND if not enable_ntc else Net("NTC")
 
 # Micropower USB Power Manager With Li-Ion Charger, LDO and Buck Regulator, 4.2V float, QFN-20
 Component(
-    name = "LTC3553",
-    symbol = Symbol(library = "@kicad-symbols/Battery_Management.kicad_sym", name = "LTC3553"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-20-1EP_3x3mm_P0.4mm_EP1.65x1.65mm.kicad_mod"),
-    pins = {
+    name="LTC3553",
+    symbol=Symbol(library="@kicad-symbols/Battery_Management.kicad_sym", name="LTC3553"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-20-1EP_3x3mm_P0.4mm_EP1.65x1.65mm.kicad_mod"),
+    pins={
         "HPWR": _HPWR,
         "SUSP": _SUSP,
         "LDO_ON": _LDO_ON,
@@ -99,17 +101,15 @@ Component(
         "LDO_FB": _LDO_FB if enable_ldo else NotConnected(),
         "BVIN": VOUT,
         "SW": _SW if enable_buck else NotConnected(),
-        "BUCK_FB": _BUCK_FB if enable_buck else NotConnected()
+        "BUCK_FB": _BUCK_FB if enable_buck else NotConnected(),
     },
 )
 
 # Input Capacitor - Required for USB input
-if add_input_cap:
-    Capacitor(name = "C_VBUS", value = "10uF", package = "0805", P1 = VBUS, P2 = GND)
+Capacitor(name="C_VBUS", value="10uF", package="0805", P1=VBUS, P2=GND, dnp=not add_input_cap)
 
 # Output Capacitor - Required for PowerPath output stability
-if add_output_cap:
-    Capacitor(name = "C_VOUT", value = "10uF", package = "0805", P1 = VOUT, P2 = GND)
+Capacitor(name="C_VOUT", value="10uF", package="0805", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # Charge Current Programming Resistor
 charge_current_table = {
@@ -120,30 +120,30 @@ charge_current_table = {
     ChargeCurrentMode("500mA"): "1.5kohms",
 }
 r_prog_value = charge_current_table.get(charge_current, "1.87kohms")
-Resistor(name = "R_PROG", value = r_prog_value, package = "0402", P1 = _PROG, P2 = GND)
+Resistor(name="R_PROG", value=r_prog_value, package="0402", P1=_PROG, P2=GND)
 
 # NTC Thermistor Circuit (if enabled)
 if enable_ntc:
     # Bias resistor from VBUS to NTC
-    Resistor(name = "R_NTC_BIAS", value = "100kohms 1%", package = "0402", P1 = VBUS, P2 = _NTC)
+    Resistor(name="R_NTC_BIAS", value="100kohms 1%", package="0402", P1=VBUS, P2=_NTC)
     # NTC thermistor placeholder (100k at 25°C)
     Thermistor(
-        name = "R_NTC", 
-        value = "100kohms", 
-        package = "0402", 
-        temperature_coefficient = "NTC",
-        P1 = _NTC, 
-        P2 = GND,
+        name="R_NTC",
+        value="100kohms",
+        package="0402",
+        temperature_coefficient="NTC",
+        P1=_NTC,
+        P2=GND,
     )
 
 # Buck Regulator Components
 if enable_buck:
     # Buck compensation capacitor
-    Capacitor(name = "C_BUCK_COMP", value = "10pF", package = "0402", P1 = BUCK_OUT, P2 = _BUCK_FB)
-    
+    Capacitor(name="C_BUCK_COMP", value="10pF", package="0402", P1=BUCK_OUT, P2=_BUCK_FB)
+
     # Buck output capacitor
-    Capacitor(name = "C_BUCK", value = "10uF", package = "0805", P1 = BUCK_OUT, P2 = GND)
-    
+    Capacitor(name="C_BUCK", value="10uF", package="0805", P1=BUCK_OUT, P2=GND)
+
     # Buck feedback resistors
     # VOUT = 0.8V * (1 + R1/R2)
     if buck_voltage == BuckVoltage("1.2V"):
@@ -166,21 +166,20 @@ if enable_buck:
         l_buck = "10uH"
         r1_buck = "332kohms"
         r2_buck = "649kohms"
-    
+
     # Buck inductor
-    Inductor(name = "L_BUCK", value = l_buck, package = "1210", P1 = _SW, P2 = BUCK_OUT)
+    Inductor(name="L_BUCK", value=l_buck, package="1210", P1=_SW, P2=BUCK_OUT)
 
-    Resistor(name = "R_BUCK_FB1", value = r1_buck, package = "0402", P1 = BUCK_OUT, P2 = _BUCK_FB)
-    Resistor(name = "R_BUCK_FB2", value = r2_buck, package = "0402", P1 = _BUCK_FB, P2 = GND)
+    Resistor(name="R_BUCK_FB1", value=r1_buck, package="0402", P1=BUCK_OUT, P2=_BUCK_FB)
+    Resistor(name="R_BUCK_FB2", value=r2_buck, package="0402", P1=_BUCK_FB, P2=GND)
 
-Capacitor(name = "C_VINLDO", value = "2.2uF", package = "0603", P1 = VOUT, P2 = GND)
+Capacitor(name="C_VINLDO", value="2.2uF", package="0603", P1=VOUT, P2=GND)
 
 # LDO Components
 if enable_ldo:
-
     # LDO output capacitor
-    Capacitor(name = "C_LDO", value = "4.7uF", package = "0603", P1 = LDO_OUT, P2 = GND)
-    
+    Capacitor(name="C_LDO", value="4.7uF", package="0603", P1=LDO_OUT, P2=GND)
+
     # LDO feedback resistors
     # VOUT = 0.8V * (1 + R1/R2)
     if ldo_voltage == LdoVoltage("1.2V"):
@@ -198,22 +197,22 @@ if enable_ldo:
     else:  # Default 3.3V
         r1_ldo = "2.05Mohms"
         r2_ldo = "649kohms"
-    
-    Resistor(name = "R_LDO_FB1", value = r1_ldo, package = "0402", P1 = LDO_OUT, P2 = _LDO_FB)
-    Resistor(name = "R_LDO_FB2", value = r2_ldo, package = "0402", P1 = _LDO_FB, P2 = GND)
+
+    Resistor(name="R_LDO_FB1", value=r1_ldo, package="0402", P1=LDO_OUT, P2=_LDO_FB)
+    Resistor(name="R_LDO_FB2", value=r2_ldo, package="0402", P1=_LDO_FB, P2=GND)
 
 # Standby Mode Control - Pull low for normal operation, high for standby
-Resistor(name = "R_STBY", value = "47kohms", package = "0402", P1 = _STBY, P2 = GND)
+Resistor(name="R_STBY", value="47kohms", package="0402", P1=_STBY, P2=GND)
 
 # Pushbutton Status Pull-up
-Resistor(name = "R_PBSTAT", value = "47kohms", package = "0402", P1 = PBSTAT, P2 = VOUT)
+Resistor(name="R_PBSTAT", value="47kohms", package="0402", P1=PBSTAT, P2=VOUT)
 
 # Charge Status LED Resistor
 _CHRG_LED = Net("_CHRG_LED")
-Resistor(name = "R_CHRG", value = "10kohms", package = "0402", P1 = CHRG_STAT, P2 = _CHRG_LED)
+Resistor(name="R_CHRG", value="10kohms", package="0402", P1=CHRG_STAT, P2=_CHRG_LED)
 
 # Charge Status LED
-Led(name = "LED_CHRG", package = "0603", A = _CHRG_LED, K = VOUT, color = "green")
+Led(name="LED_CHRG", package="0603", A=_CHRG_LED, K=VOUT, color="green")
 
 # pcb:sch C_BAT.C x=1375.6800 y=786.4000 rot=0
 # pcb:sch C_BUCK.C x=1286.7800 y=1040.4000 rot=0

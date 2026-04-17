@@ -1,11 +1,11 @@
 """CS2000 - Fractional-N Clock Synthesizer & Clock Multiplier
 
-The CS2000-CP is an extremely versatile system clocking device that utilizes a programmable 
-phase lock loop. It is based on a hybrid analog-digital PLL architecture comprised of a 
-Delta-Sigma Fractional-N Frequency Synthesizer and a Digital PLL. This architecture allows 
-for both frequency synthesis/clock generation from a stable reference clock as well as 
-generation of a low-jitter clock relative to an external noisy synchronization clock. 
-The device generates a low jitter 6-75 MHz clock from an 8-75 MHz reference clock and 
+The CS2000-CP is an extremely versatile system clocking device that utilizes a programmable
+phase lock loop. It is based on a hybrid analog-digital PLL architecture comprised of a
+Delta-Sigma Fractional-N Frequency Synthesizer and a Digital PLL. This architecture allows
+for both frequency synthesis/clock generation from a stable reference clock as well as
+generation of a low-jitter clock relative to an external noisy synchronization clock.
+The device generates a low jitter 6-75 MHz clock from an 8-75 MHz reference clock and
 supports both I²C and SPI for full software control.
 
 Author: @anthropic/claude-3-5-sonnet-20241022
@@ -14,6 +14,7 @@ Datasheet: https://www.cirrus.com/cn/pubs/proDatasheet/CS2000-CP_F3.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,21 +29,21 @@ CrystalFreq = enum("8MHz", "12MHz", "16MHz", "25MHz", "40MHz")
 I2cAddress = enum("0x4E", "0x4F")  # Based on AD0 pin
 
 # Configuration
-control_interface = config("control_interface", ControlInterface, default = "I2C")
-reference_source = config("reference_source", ReferenceSource, default = "Crystal")
+control_interface = config("control_interface", ControlInterface, default="I2C")
+reference_source = config("reference_source", ReferenceSource, default="Crystal")
 
 if reference_source == ReferenceSource("Crystal"):
-    crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
-    crystal_load_capacitance = config("crystal_load_capacitance", str, default = "40pF")
+    crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
+    crystal_load_capacitance = config("crystal_load_capacitance", Capacitance, default="40pF")
 
 if control_interface == ControlInterface("I2C"):
-    i2c_address = config("i2c_address", I2cAddress, default = "0x4E")
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    i2c_address = config("i2c_address", I2cAddress, default="0x4E")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 
-add_aux_output = config("add_aux_output", bool, default = True)
+add_aux_output = config("add_aux_output", bool, default=True)
 
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
-add_test_points = config("add_test_points", bool, default = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -69,12 +70,12 @@ if control_interface == ControlInterface("I2C"):
     if i2c_address == I2cAddress("0x4E"):
         _AD0_CS = GND  # AD0 = 0
     else:  # 0x4F
-        _AD0_CS = VDD   # AD0 = 1
+        _AD0_CS = VDD  # AD0 = 1
 else:  # SPI
     spi = io("SPI", Spi)
-    _SDA = spi.MOSI # SDA/CDIN in SPI mode
-    _SCL = spi.CLK   # SCL/CCLK in SPI mode
-    _AD0_CS = spi.CS # AD0/CS in SPI mode
+    _SDA = spi.MOSI  # SDA/CDIN in SPI mode
+    _SCL = spi.CLK  # SCL/CCLK in SPI mode
+    _AD0_CS = spi.CS  # AD0/CS in SPI mode
 
 # Reference clock configuration
 if reference_source == ReferenceSource("Crystal"):
@@ -87,10 +88,10 @@ else:  # External reference
 
 # Fractional-N Clock Synthesizer & Clock Multiplier, MSOP-10
 Component(
-    name = "CS2000",
-    symbol = Symbol(library = "@kicad-symbols/Timer_PLL.kicad_sym", name = "CS2000-CP"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="CS2000",
+    symbol=Symbol(library="@kicad-symbols/Timer_PLL.kicad_sym", name="CS2000-CP"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins={
         "VD": VDD,
         "GND": GND,
         "CLK_OUT": CLK_OUT,
@@ -100,7 +101,7 @@ Component(
         "XTI/REF_CLK": _XTI,
         "AD0/~{CS}": _AD0_CS,
         "SCL/CCLK": _SCL,
-        "SDA/CDIN": _SDA
+        "SDA/CDIN": _SDA,
     },
 )
 
@@ -112,49 +113,41 @@ if reference_source == ReferenceSource("Crystal"):
         CrystalFreq("12MHz"): "12MHz",
         CrystalFreq("16MHz"): "16MHz",
         CrystalFreq("25MHz"): "25MHz",
-        CrystalFreq("40MHz"): "40MHz"
+        CrystalFreq("40MHz"): "40MHz",
     }
-    
+
     # Crystal with load capacitors
-    Crystal(
-        name = "Y1",
-        frequency = freq_map[crystal_freq],
-        package = "3225_4Pin",
-        XIN = _XTI,
-        XOUT = _XTO,
-        GND = GND
-    )
-    
+    Crystal(name="Y1", frequency=freq_map[crystal_freq], package="3225_4Pin", XIN=_XTI, XOUT=_XTO, GND=GND)
+
     # Load capacitors
-    Capacitor(name = "C_XTAL1", value = crystal_load_capacitance, package = "0402", P1 = _XTI, P2 = GND)
-    Capacitor(name = "C_XTAL2", value = crystal_load_capacitance, package = "0402", P1 = _XTO, P2 = GND)
+    Capacitor(name="C_XTAL1", value=crystal_load_capacitance, package="0402", P1=_XTI, P2=GND)
+    Capacitor(name="C_XTAL2", value=crystal_load_capacitance, package="0402", P1=_XTO, P2=GND)
 else:
     # External reference - XTO should be left unconnected or pulled low through 47k resistor
-    Resistor(name = "R_XTO", value = "47kohms", package = "0402", P1 = _XTO, P2 = GND)
+    Resistor(name="R_XTO", value="47kohms", package="0402", P1=_XTO, P2=GND)
 
 # I2C pull-up resistors (if configured)
 if control_interface == ControlInterface("I2C") and add_i2c_pullups:
-    Resistor(name = "R_SDA", value = "2kohms", package = "0402", P1 = _SDA, P2 = VDD)
-    Resistor(name = "R_SCL", value = "2kohms", package = "0402", P1 = _SCL, P2 = VDD)
+    Resistor(name="R_SDA", value="2kohms", package="0402", P1=_SDA, P2=VDD)
+    Resistor(name="R_SCL", value="2kohms", package="0402", P1=_SCL, P2=VDD)
 
 # Power supply decoupling capacitors
 if add_decoupling_caps:
     # Bulk capacitor
-    Capacitor(name = "C_BULK", value = "1uF", package = "0603", P1 = VDD, P2 = GND)
-    
+    Capacitor(name="C_BULK", value="1uF", package="0603", P1=VDD, P2=GND)
+
     # High-frequency decoupling
-    Capacitor(name = "C_DECOUPLE", value = "0.1uF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name="C_DECOUPLE", value="0.1uF", package="0402", P1=VDD, P2=GND)
 
 # Test points (if configured)
 if add_test_points:
-    TestPoint(name = "TP_CLK_IN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_IN)
-    TestPoint(name = "TP_CLK_OUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = CLK_OUT)
-    
-    if add_aux_output:
-        TestPoint(name = "TP_AUX_OUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = AUX_OUT)
-    
+    TestPoint(name="TP_CLK_IN", variant="THTPad_D1.0mm_Drill0.5mm", P1=CLK_IN)
+    TestPoint(name="TP_CLK_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=CLK_OUT)
+
+    TestPoint(name="TP_AUX_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=AUX_OUT, dnp=not add_aux_output)
+
     if reference_source == ReferenceSource("External"):
-        TestPoint(name = "TP_REF_CLK", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = REF_CLK)
+        TestPoint(name="TP_REF_CLK", variant="THTPad_D1.0mm_Drill0.5mm", P1=REF_CLK)
 
 # pcb:sch CS2000 x=380.0000 y=430.8000 rot=0
 # pcb:sch C_BULK.C x=194.5800 y=507.0000 rot=0

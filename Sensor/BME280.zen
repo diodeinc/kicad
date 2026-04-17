@@ -1,9 +1,9 @@
 """BME280 - Combined humidity, pressure and temperature sensor with I²C/SPI interface
 
-The BME280 is a combined digital humidity, pressure and temperature sensor in an extremely 
-compact 2.5×2.5×0.93mm³ metal-lid LGA package. It features high accuracy sensing with 
-±3% RH humidity, ±1.0 hPa pressure, and ±0.5°C temperature accuracy. The sensor supports 
-both I²C (up to 3.4 MHz) and SPI (up to 10 MHz) interfaces and operates from 1.71V to 
+The BME280 is a combined digital humidity, pressure and temperature sensor in an extremely
+compact 2.5×2.5×0.93mm³ metal-lid LGA package. It features high accuracy sensing with
+±3% RH humidity, ±1.0 hPa pressure, and ±0.5°C temperature accuracy. The sensor supports
+both I²C (up to 3.4 MHz) and SPI (up to 10 MHz) interfaces and operates from 1.71V to
 3.6V supply with ultra-low power consumption down to 0.1μA in sleep mode.
 
 Key features:
@@ -20,6 +20,8 @@ Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datash
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Spi", "Ground")
+load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,24 +34,24 @@ I2cAddress = enum("0x76", "0x77")
 PowerMode = enum("UltraLowPower", "Standard", "HighPerformance")
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "I2C")
+interface_mode = config("interface_mode", InterfaceMode, default="I2C")
 if interface_mode == InterfaceMode("I2C"):
-    i2c_address = config("i2c_address", I2cAddress, default = "0x76")
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    i2c_address = config("i2c_address", I2cAddress, default="0x76")
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
-power_mode = config("power_mode", PowerMode, default = "Standard")
-add_vddio_separation = config("add_vddio_separation", bool, default = False)
-add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_test_points = config("add_test_points", bool, default = False)
+power_mode = config("power_mode", PowerMode, default="Standard")
+add_vddio_separation = config("add_vddio_separation", bool, default=False)
+add_power_decoupling = config("add_power_decoupling", bool, default=True)
+add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
 GND = io("GND", Ground)
 
 # VDDIO - can be same as VDD or separate
 if add_vddio_separation:
-    VDDIO = io("VDDIO", Power)
+    VDDIO = io("VDDIO", Power, checks=voltage_within("1.71V to 3.6V"))
 else:
     VDDIO = VDD
 
@@ -64,8 +66,8 @@ if interface_mode == InterfaceMode("I2C"):
     # I2C Mode Configuration
     _SCK = i2c.SCL
     _SDI = i2c.SDA  # SDI is bidirectional SDA in I2C mode
-    _SDO = GND if i2c_address == I2cAddress("0x76") else VDDIO.NET  # I2C address selection
-    _CSB = VDDIO.NET  # CSB must be tied to VDDIO for I2C mode
+    _SDO = GND if i2c_address == I2cAddress("0x76") else VDDIO  # I2C address selection
+    _CSB = VDDIO  # CSB must be tied to VDDIO for I2C mode
 elif interface_mode == InterfaceMode("SPI_4Wire"):
     # 4-Wire SPI Mode Configuration
     _SCK = spi.CLK
@@ -83,12 +85,14 @@ elif interface_mode == InterfaceMode("SPI_3Wire"):
 
 # Main BME280 Component
 Component(
-    name = "BME280",
-    symbol = Symbol(library = "@kicad-symbols/Sensor.kicad_sym", name = "BME280"),
-    footprint = File("@kicad-footprints/Package_LGA.pretty/Bosch_LGA-8_2.5x2.5mm_P0.65mm_ClockwisePinNumbering.kicad_mod"),
-    pins = {
-        "VDD": VDD.NET,
-        "VDDIO": VDDIO.NET,
+    name="BME280",
+    symbol=Symbol(library="@kicad-symbols/Sensor.kicad_sym", name="BME280"),
+    footprint=File(
+        "@kicad-footprints/Package_LGA.pretty/Bosch_LGA-8_2.5x2.5mm_P0.65mm_ClockwisePinNumbering.kicad_mod"
+    ),
+    pins={
+        "VDD": VDD,
+        "VDDIO": VDDIO,
         "GND": GND,
         "SCK": _SCK,
         "SDI": _SDI,
@@ -99,32 +103,31 @@ Component(
 
 # I2C pull-up resistors (required for I2C operation)
 if interface_mode == InterfaceMode("I2C") and add_i2c_pullups:
-    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDDIO.NET)
-    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDDIO.NET)
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VDDIO)
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VDDIO)
 
 # Power Supply Decoupling
 if add_power_decoupling:
     # VDD decoupling - place close to pin 8
-    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
 
     # VDDIO decoupling - place close to pin 6
-    if add_vddio_separation:
-        Capacitor(name = "C_VDDIO", value = "100nF", package = "0402", P1 = VDDIO.NET, P2 = GND)
+    Capacitor(name="C_VDDIO", value="100nF", package="0402", P1=VDDIO, P2=GND, dnp=not add_vddio_separation)
 
     # Additional bulk capacitor for better power supply filtering
     if power_mode == PowerMode("HighPerformance"):
-        Capacitor(name = "C_BULK", value = "10uF", package = "0603", P1 = VDD.NET, P2 = GND)
+        Capacitor(name="C_BULK", value="10uF", package="0603", P1=VDD, P2=GND)
 
 # Test Points (optional)
 if add_test_points:
     if interface_mode == InterfaceMode("I2C"):
-        TestPoint(name = "TP_SCL", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SCL)
-        TestPoint(name = "TP_SDA", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c.SDA)
+        TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SCL)
+        TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c.SDA)
     else:
-        TestPoint(name = "TP_SCK", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SCK)
-        TestPoint(name = "TP_SDI", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDI)
-        TestPoint(name = "TP_SDO", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SDO)
-        TestPoint(name = "TP_CSB", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _CSB)
+        TestPoint(name="TP_SCK", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SCK)
+        TestPoint(name="TP_SDI", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SDI)
+        TestPoint(name="TP_SDO", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SDO)
+        TestPoint(name="TP_CSB", variant="THTPad_D1.0mm_Drill0.5mm", P1=_CSB)
 
 # Layout recommendations comments
 # pcb:note Place C_VDD as close as possible to VDD pin (pin 8)

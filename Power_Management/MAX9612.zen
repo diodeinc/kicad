@@ -1,11 +1,11 @@
 """MAX9612 - High-Side Current-Sense Amplifier with 12-Bit ADC and Op Amp/Comparator
 
-The MAX9612 is a high-side current-sense amplifier with an integrated 12-bit ADC and a 
-gain block that can be configured either as an op amp or comparator. It operates over a 
-wide 0V to 60V input common-mode voltage range with programmable full-scale voltage 
-(440mV, 110mV, and 55mV). The device features an inverting input-to-output configuration, 
-I2C-compatible interface (1.8V and 3.3V logic), and operates from 2.7V to 5.5V supply. 
-The integrated ADC can measure sense voltage, common-mode voltage, output voltage, 
+The MAX9612 is a high-side current-sense amplifier with an integrated 12-bit ADC and a
+gain block that can be configured either as an op amp or comparator. It operates over a
+wide 0V to 60V input common-mode voltage range with programmable full-scale voltage
+(440mV, 110mV, and 55mV). The device features an inverting input-to-output configuration,
+I2C-compatible interface (1.8V and 3.3V logic), and operates from 2.7V to 5.5V supply.
+The integrated ADC can measure sense voltage, common-mode voltage, output voltage,
 reference voltage, and die temperature.
 
 Key features:
@@ -24,6 +24,8 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,46 +35,48 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Types
 # I2C addresses based on A1 and A0 pin connections (7-bit format)
-# A1=GND, A0=GND: 0x70 (0xE0/0xE1 in 8-bit write/read)  
+# A1=GND, A0=GND: 0x70 (0xE0/0xE1 in 8-bit write/read)
 # A1=GND, A0=VCC: 0x73 (0xE6/0xE7 in 8-bit write/read)
 # A1=VCC, A0=GND: 0x7C (0xF8/0xF9 in 8-bit write/read)
 # A1=VCC, A0=VCC: 0x7F (0xFE/0xFF in 8-bit write/read)
 
-I2cAddress = enum("0x70","0x73", "0x7C", "0x7F")
+I2cAddress = enum("0x70", "0x73", "0x7C", "0x7F")
 OutputConfig = enum("PullUp", "PullDown", "UserDefined")
 
 # Configuration
 # Power supply configuration
-add_bulk_capacitor = config("add_bulk_capacitor", bool, default = True)
+add_bulk_capacitor = config("add_bulk_capacitor", bool, default=True)
 
 # Current sense configuration
-add_sense_resistor = config("add_sense_resistor", bool, default = True)
+add_sense_resistor = config("add_sense_resistor", bool, default=True)
 if add_sense_resistor:
-    sense_resistor_value = config("sense_resistor_value", str, default = "0.1ohms", optional = True)
-    load_resistor_value = config("load_resistor_value", str, default = "100kohms", optional = True)
+    sense_resistor_value = config("sense_resistor_value", Resistance, default="0.1ohms", optional=True)
+    load_resistor_value = config("load_resistor_value", Resistance, default="100kohms", optional=True)
 
 # I2C configuration
-i2c_address = config("i2c_address", I2cAddress, default = "0x70")
-i2c_pullup_enable = config("i2c_pullup_enable", bool, default = True)
+i2c_address = config("i2c_address", I2cAddress, default="0x70")
+i2c_pullup_enable = config("i2c_pullup_enable", bool, default=True)
 if i2c_pullup_enable:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Output configuration
-output_config = config("output_config", OutputConfig, default = "PullUp")
+output_config = config("output_config", OutputConfig, default="PullUp")
 if output_config != OutputConfig("UserDefined"):
-    output_resistor_value = config("output_resistor_value", str, default = "10kohms")
+    output_resistor_value = config("output_resistor_value", Resistance, default="10kohms")
 
 # SET pin configuration
-add_set_divider = config("add_set_divider", bool, default = True)
+add_set_divider = config("add_set_divider", bool, default=True)
 if add_set_divider:
-    set_divider_r1 = config("set_divider_r1", str, default = "10kohms", optional = True)  # Top resistor (VCC to SET)
-    set_divider_r2 = config("set_divider_r2", str, default = "10kohms", optional = True)  # Bottom resistor (SET to GND)
+    set_divider_r1 = config("set_divider_r1", Resistance, default="10kohms", optional=True)  # Top resistor (VCC to SET)
+    set_divider_r2 = config(
+        "set_divider_r2", Resistance, default="10kohms", optional=True
+    )  # Bottom resistor (SET to GND)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
-VCC = io("VCC", Power)
+VCC = io("VCC", Power, checks=voltage_within("2.7V to 5.5V"))
 GND = io("GND", Ground)
 
 # Current sense inputs
@@ -80,13 +84,13 @@ if add_sense_resistor:
     # When using internal sense resistor, VDD_SENSE is the power being monitored
     VDD_SENSE = io("VDD_SENSE", Power)
     # RS+ connects directly to VDD_SENSE (high side)
-    RS_PLUS = VDD_SENSE
+    RS_P = VDD_SENSE
     # RS- is an internal net (low side)
-    RS_MINUS = Net("RS_MINUS_INT")
+    RS_N = Net("RS_MINUS_INT")
 else:
     # External sense resistor configuration
-    RS_PLUS = io("RS+", Net)
-    RS_MINUS = io("RS-", Net)
+    RS_P = io("RS+", Net)
+    RS_N = io("RS-", Net)
 
 # Reference voltage input
 SET = io("SET", Net)
@@ -123,68 +127,67 @@ else:  # 0x7F
 
 # Main component
 Component(
-    name = "MAX9612",
-    symbol = Symbol(library = "@kicad-symbols/Power_Management.kicad_sym", name = "MAX9612"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
-    pins = {
-        "OUT": OUT,        # Pin 1
-        "RS+": RS_PLUS,    # Pin 2
-        "RS-": RS_MINUS,   # Pin 3
-        "SET": SET,        # Pin 4
-        "GND": GND,        # Pin 5
-        "SCL": i2c.SCL,    # Pin 6
-        "SDA": i2c.SDA,    # Pin 7
-        "A1": _A1,         # Pin 8 - Address bit 1
-        "A0": _A0,         # Pin 9 - Address bit 0 (always GND)
-        "V_{CC}": VCC,     # Pin 10
+    name="MAX9612",
+    symbol=Symbol(library="@kicad-symbols/Power_Management.kicad_sym", name="MAX9612"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/MSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins={
+        "OUT": OUT,  # Pin 1
+        "RS+": RS_P,  # Pin 2
+        "RS-": RS_N,  # Pin 3
+        "SET": SET,  # Pin 4
+        "GND": GND,  # Pin 5
+        "SCL": i2c.SCL,  # Pin 6
+        "SDA": i2c.SDA,  # Pin 7
+        "A1": _A1,  # Pin 8 - Address bit 1
+        "A0": _A0,  # Pin 9 - Address bit 0 (always GND)
+        "V_{CC}": VCC,  # Pin 10
     },
 )
 
 # Power supply decoupling capacitors (close to pin 10)
 # From datasheet: 0.1μF and 4.7μF capacitors in parallel
-Capacitor(name = "C_VCC1", value = "0.1uF", package = "0402", P1 = VCC, P2 = GND)
-Capacitor(name = "C_VCC2", value = "4.7uF", package = "0603", P1 = VCC, P2 = GND)
+Capacitor(name="C_VCC1", value="0.1uF", package="0402", P1=VCC, P2=GND)
+Capacitor(name="C_VCC2", value="4.7uF", package="0603", P1=VCC, P2=GND)
 
 # Bulk capacitor (if enabled)
-if add_bulk_capacitor:
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VCC, P2 = GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_capacitor)
 
 # Sense resistor configuration (optional)
 if add_sense_resistor:
     # The MAX9612 measures voltage drop across R_SENSE
     # RS+ is already connected to VDD_SENSE (defined above)
     # Current flows: VDD_SENSE -> R_SENSE -> R_LOAD -> GND
-    
+
     # Sense resistor across RS+ and RS- (in parallel with MAX9612 sense inputs)
     Resistor(
-        name = "R_SENSE",
-        value = sense_resistor_value,
-        package = "2512",  # Larger package for power handling
-        P1 = RS_PLUS,   # Connected to VDD_SENSE
-        P2 = RS_MINUS,  # Connected to load side
+        name="R_SENSE",
+        value=sense_resistor_value,
+        package="2512",  # Larger package for power handling
+        P1=RS_P,  # Connected to VDD_SENSE
+        P2=RS_N,  # Connected to load side
     )
-    
+
     # Load resistor between RS- and GND
     Resistor(
-        name = "R_LOAD",
-        value = load_resistor_value,
-        package = "1206",  # Larger package for power handling
-        P1 = RS_MINUS,
-        P2 = GND,
+        name="R_LOAD",
+        value=load_resistor_value,
+        package="1206",  # Larger package for power handling
+        P1=RS_N,
+        P2=GND,
     )
 
 # I2C pull-up resistors
 if i2c_pullup_enable:
-    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VCC)
-    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VCC)
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VCC)
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VCC)
 
 # Address configuration is handled by conditional net assignment (no external resistors needed)
 
 # Output resistor configuration (MAX9612 has open-drain output)
 if output_config == OutputConfig("PullUp"):
-    Resistor(name = "R_OUT", value = output_resistor_value, package = "0402", P1 = OUT, P2 = VCC)
+    Resistor(name="R_OUT", value=output_resistor_value, package="0402", P1=OUT, P2=VCC)
 elif output_config == OutputConfig("PullDown"):
-    Resistor(name = "R_OUT", value = output_resistor_value, package = "0402", P1 = OUT, P2 = GND)
+    Resistor(name="R_OUT", value=output_resistor_value, package="0402", P1=OUT, P2=GND)
 # else UserDefined - no resistor, user handles externally
 
 # SET pin resistor divider and filtering
@@ -192,31 +195,31 @@ if add_set_divider:
     # Resistor divider to set reference voltage
     # V_SET = VCC * R2 / (R1 + R2)
     Resistor(
-        name = "R_SET1",
-        value = set_divider_r1,
-        package = "0402",
-        P1 = VCC,
-        P2 = SET,
+        name="R_SET1",
+        value=set_divider_r1,
+        package="0402",
+        P1=VCC,
+        P2=SET,
     )
-    
+
     Resistor(
-        name = "R_SET2",
-        value = set_divider_r2,
-        package = "0402",
-        P1 = SET,
-        P2 = GND,
+        name="R_SET2",
+        value=set_divider_r2,
+        package="0402",
+        P1=SET,
+        P2=GND,
     )
 
 # SET pin capacitor for filtering and stability
 # From datasheet: 1μF capacitor recommended
-Capacitor(name = "C_SET", value = "1uF", package = "0603", P1 = SET, P2 = GND)
+Capacitor(name="C_SET", value="1uF", package="0603", P1=SET, P2=GND)
 
 # Test points (optional)
 if add_test_points:
-    TestPoint(name = "TP_RS_PLUS", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = RS_PLUS)
-    TestPoint(name = "TP_RS_MINUS", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = RS_MINUS)
-    TestPoint(name = "TP_OUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = OUT)
-    TestPoint(name = "TP_SET", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = SET)
+    TestPoint(name="TP_RS_P", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_P)
+    TestPoint(name="TP_RS_N", variant="THTPad_D1.0mm_Drill0.5mm", P1=RS_N)
+    TestPoint(name="TP_OUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=OUT)
+    TestPoint(name="TP_SET", variant="THTPad_D1.0mm_Drill0.5mm", P1=SET)
 
 # pcb:sch MAX9612 x=100.6000 y=341.9000 rot=0
 # pcb:sch C_VCC1.C x=562.8800 y=443.5000 rot=0
@@ -234,6 +237,6 @@ if add_test_points:
 # pcb:sch R_SET2.R x=-23.8600 y=557.8000 rot=0
 # pcb:sch VDD_SENSE.1 x=67.5800 y=240.3000 rot=0
 # pcb:sch TP_OUT.TP x=308.8800 y=250.4600 rot=0
-# pcb:sch TP_RS_MINUS.TP x=-110.2200 y=428.2600 rot=270
-# pcb:sch TP_RS_PLUS.TP x=-110.2200 y=237.7600 rot=270
+# pcb:sch TP_RS_N.TP x=-110.2200 y=428.2600 rot=270
+# pcb:sch TP_RS_P.TP x=-110.2200 y=237.7600 rot=270
 # pcb:sch TP_SET.TP x=67.5800 y=491.7600 rot=0

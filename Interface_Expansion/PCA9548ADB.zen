@@ -1,13 +1,13 @@
 """PCA9548ADB - Low voltage 8-channel I2C switch with reset
 
-The PCA9548A is an 8-channel, bidirectional translating I2C switch. The master SCL/SDA 
-signal pair is directed to eight channels of slave devices, SC0/SD0-SC7/SD7. Any 
-individual downstream channel or combination of channels can be selected. The device 
-features 1-of-8 bidirectional translating switches, I2C bus and SMBus compatibility, 
-active-low reset input, three hardware address pins for up to eight PCA9548A devices 
+The PCA9548A is an 8-channel, bidirectional translating I2C switch. The master SCL/SDA
+signal pair is directed to eight channels of slave devices, SC0/SD0-SC7/SD7. Any
+individual downstream channel or combination of channels can be selected. The device
+features 1-of-8 bidirectional translating switches, I2C bus and SMBus compatibility,
+active-low reset input, three hardware address pins for up to eight PCA9548A devices
 on the same I2C bus, and operates from 2.3V to 5.5V with 5V tolerant inputs.
 
-This module supports configurable I2C pull-up resistor values for both upstream and 
+This module supports configurable I2C pull-up resistor values for both upstream and
 downstream channels. Default values are 4.7kΩ for both, suitable for Fast mode I2C.
 
 Author: @anthropic/claude-opus-4
@@ -16,6 +16,8 @@ Datasheet: https://www.ti.com/lit/ds/symlink/pca9548a.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -27,33 +29,33 @@ AddressConfig = enum("0x70", "0x71", "0x72", "0x73", "0x74", "0x75", "0x76", "0x
 ResetConfig = enum("None", "PullUp", "PullUpWithTestPoint")
 
 # Configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
-add_upstream_pullups = config("add_upstream_pullups", bool, default = True)
-add_downstream_pullups = config("add_downstream_pullups", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_upstream_pullups = config("add_upstream_pullups", bool, default=True)
+add_downstream_pullups = config("add_downstream_pullups", bool, default=True)
 
 # Pull-up resistor values - only used if pull-ups are enabled
 if add_upstream_pullups:
-    upstream_pullup_value = config("upstream_pullup_value", str, default = "4.7kohms", optional = True)
-    
+    upstream_pullup_value = config("upstream_pullup_value", Resistance, default="4.7kohms", optional=True)
+
 if add_downstream_pullups:
-    downstream_pullup_value = config("downstream_pullup_value", str, default = "4.7kohms", optional = True)
+    downstream_pullup_value = config("downstream_pullup_value", Resistance, default="4.7kohms", optional=True)
 
 # Address configuration
-address = config("address", AddressConfig, default = "0x70")
-expose_address_pins = config("expose_address_pins", bool, default = False)
+address = config("address", AddressConfig, default="0x70")
+expose_address_pins = config("expose_address_pins", bool, default=False)
 
 # Reset configuration
-reset_config = config("reset_config", ResetConfig, default = "PullUpWithTestPoint")
+reset_config = config("reset_config", ResetConfig, default="PullUpWithTestPoint")
 
 # Channel enable configuration
-enabled_channels = config("enabled_channels", list, default = [0, 1, 2, 3, 4, 5, 6, 7])
+enabled_channels = config("enabled_channels", list, default=[0, 1, 2, 3, 4, 5, 6, 7])
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VCC = io("VCC", Power)
+VCC = io("VCC", Power, checks=voltage_within("2.3V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C upstream interface
@@ -101,25 +103,25 @@ for idx, ch in enumerate(enabled_channels):
 # Expose disabled channels as individual IOs
 for ch in range(8):
     if ch not in enabled_channels:
-        io(f"SC{ch}", Net, default = _SC[ch])
-        io(f"SD{ch}", Net, default = _SD[ch])
+        io(f"SC{ch}", Net, default=_SC[ch])
+        io(f"SD{ch}", Net, default=_SD[ch])
 
 # Address configuration
 if not expose_address_pins:
     # Map address to pin states
     address_map = {
         AddressConfig("0x70"): (False, False, False),  # A2=L, A1=L, A0=L
-        AddressConfig("0x71"): (False, False, True),   # A2=L, A1=L, A0=H
-        AddressConfig("0x72"): (False, True, False),   # A2=L, A1=H, A0=L
-        AddressConfig("0x73"): (False, True, True),    # A2=L, A1=H, A0=H
-        AddressConfig("0x74"): (True, False, False),   # A2=H, A1=L, A0=L
-        AddressConfig("0x75"): (True, False, True),    # A2=H, A1=L, A0=H
-        AddressConfig("0x76"): (True, True, False),    # A2=H, A1=H, A0=L
-        AddressConfig("0x77"): (True, True, True),     # A2=H, A1=H, A0=H
+        AddressConfig("0x71"): (False, False, True),  # A2=L, A1=L, A0=H
+        AddressConfig("0x72"): (False, True, False),  # A2=L, A1=H, A0=L
+        AddressConfig("0x73"): (False, True, True),  # A2=L, A1=H, A0=H
+        AddressConfig("0x74"): (True, False, False),  # A2=H, A1=L, A0=L
+        AddressConfig("0x75"): (True, False, True),  # A2=H, A1=L, A0=H
+        AddressConfig("0x76"): (True, True, False),  # A2=H, A1=H, A0=L
+        AddressConfig("0x77"): (True, True, True),  # A2=H, A1=H, A0=H
     }
-    
+
     a2_high, a1_high, a0_high = address_map[address]
-    
+
     # Connect address pins
     _A0 = VCC if a0_high else GND
     _A1 = VCC if a1_high else GND
@@ -127,10 +129,10 @@ if not expose_address_pins:
 
 # Main component
 Component(
-    name = "PCA9548ADB",
-    symbol = Symbol(library = "@kicad-symbols/Interface_Expansion.kicad_sym", name = "PCA9548ADB"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SSOP-24_5.3x8.2mm_P0.65mm.kicad_mod"),
-    pins = {
+    name="PCA9548ADB",
+    symbol=Symbol(library="@kicad-symbols/Interface_Expansion.kicad_sym", name="PCA9548ADB"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SSOP-24_5.3x8.2mm_P0.65mm.kicad_mod"),
+    pins={
         "A0": _A0,
         "A1": _A1,
         "~{RESET}": _RESET,
@@ -159,46 +161,40 @@ Component(
 )
 
 # Power supply decoupling
-if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VCC, P2 = GND)
+Capacitor(name="C_BULK", value="10uF", package="0805", P1=VCC, P2=GND, dnp=not add_bulk_cap)
 
-if add_decoupling:
-    Capacitor(name = "C_VCC", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
+Capacitor(name="C_VCC", value="100nF", package="0402", P1=VCC, P2=GND, dnp=not add_decoupling)
 
 # Reset circuit
 if reset_config == ResetConfig("PullUp"):
     # Simple pull-up resistor
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VCC)
-    
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VCC)
+
 elif reset_config == ResetConfig("PullUpWithTestPoint"):
     # Pull-up with test point for debug access
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _RESET, P2 = VCC)
-    TestPoint(name = "TP_RESET", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _RESET)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_RESET, P2=VCC)
+    TestPoint(name="TP_RESET", variant="THTPad_D1.0mm_Drill0.5mm", P1=_RESET)
 
 # Upstream I2C pull-up resistors
 if add_upstream_pullups:
-    Resistor(name = "R_SCL_UP", value = upstream_pullup_value, package = "0402", 
-             P1 = i2c_upstream.SCL, P2 = VDPU_MASTER)
-    Resistor(name = "R_SDA_UP", value = upstream_pullup_value, package = "0402", 
-             P1 = i2c_upstream.SDA, P2 = VDPU_MASTER)
+    Resistor(name="R_SCL_UP", value=upstream_pullup_value, package="0402", P1=i2c_upstream.SCL, P2=VDPU_MASTER)
+    Resistor(name="R_SDA_UP", value=upstream_pullup_value, package="0402", P1=i2c_upstream.SDA, P2=VDPU_MASTER)
 
 # Downstream I2C pull-up resistors for enabled channels
 if add_downstream_pullups:
     for idx, ch in enumerate(enabled_channels):
-        Resistor(name = f"R_SCL_CH{ch}", value = downstream_pullup_value, package = "0402",
-                 P1 = _SC[ch], P2 = VDPU_CH[idx])
-        Resistor(name = f"R_SDA_CH{ch}", value = downstream_pullup_value, package = "0402",
-                 P1 = _SD[ch], P2 = VDPU_CH[idx])
+        Resistor(name=f"R_SCL_CH{ch}", value=downstream_pullup_value, package="0402", P1=_SC[ch], P2=VDPU_CH[idx])
+        Resistor(name=f"R_SDA_CH{ch}", value=downstream_pullup_value, package="0402", P1=_SD[ch], P2=VDPU_CH[idx])
 
 # Test points
 if add_test_points:
-    TestPoint(name = "TP_SCL_UP", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_upstream.SCL)
-    TestPoint(name = "TP_SDA_UP", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = i2c_upstream.SDA)
-    
+    TestPoint(name="TP_SCL_UP", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c_upstream.SCL)
+    TestPoint(name="TP_SDA_UP", variant="THTPad_D1.0mm_Drill0.5mm", P1=i2c_upstream.SDA)
+
     # Test points for enabled channels
     for ch in enabled_channels:
-        TestPoint(name = f"TP_SCL_CH{ch}", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SC[ch])
-        TestPoint(name = f"TP_SDA_CH{ch}", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _SD[ch])
+        TestPoint(name=f"TP_SCL_CH{ch}", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SC[ch])
+        TestPoint(name=f"TP_SDA_CH{ch}", variant="THTPad_D1.0mm_Drill0.5mm", P1=_SD[ch])
 
 # pcb:sch C_BULK.C x=499.3800 y=265.7000 rot=0
 # pcb:sch C_VCC.C x=613.6800 y=265.7000 rot=0

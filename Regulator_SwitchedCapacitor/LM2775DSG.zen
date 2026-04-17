@@ -1,16 +1,17 @@
 """LM2775DSG - Switched Capacitor 5V Boost Converter
 
-The LM2775 is a regulated switched-capacitor doubler that produces a low-noise 
-5V output voltage. It can supply up to 200mA of output current over a 3.1V to 
-5.5V input range, as well as up to 125mA when the input voltage is as low as 
-2.7V. The device features a 2MHz switching frequency, PFM mode for light load 
-efficiency, and output disconnect options. It includes current limiting and 
+The LM2775 is a regulated switched-capacitor doubler that produces a low-noise
+5V output voltage. It can supply up to 200mA of output current over a 3.1V to
+5.5V input range, as well as up to 125mA when the input voltage is as low as
+2.7V. The device features a 2MHz switching frequency, PFM mode for light load
+efficiency, and output disconnect options. It includes current limiting and
 thermal protection for robust operation.
 
 Author: @Anthropic/claude-4-opus-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2776.pdf
 """
+
 load("@stdlib/interfaces.zen", "Ground")
 
 # Dependencies
@@ -18,17 +19,17 @@ Resistor = Module("@stdlib/generics/Resistor.zen")
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-add_flying_cap = config("add_flying_cap", bool, default = True)
-enable_control = config("enable_control", bool, default = True)
-pfm_mode = config("pfm_mode", bool, default = True)
-output_discharge = config("output_discharge", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+add_flying_cap = config("add_flying_cap", bool, default=True)
+enable_control = config("enable_control", bool, default=True)
+pfm_mode = config("pfm_mode", bool, default=True)
+output_discharge = config("output_discharge", bool, default=True)
 
 # External IO
-VIN = io("VIN", Net, default = Net("VIN"))
-VOUT = io("VOUT", Net, default = Net("VOUT"))
-EN_CTRL = io("EN", Net, default = Net("EN")) if enable_control else VIN
+VIN = io("VIN", Net, default=Net("VIN"))
+VOUT = io("VOUT", Net, default=Net("VOUT"))
+EN_CTRL = io("EN", Net, default=Net("EN")) if enable_control else VIN
 GND = io("GND", Ground)
 
 # Internal nets
@@ -39,10 +40,10 @@ _C1_MINUS = Net("C1-")
 
 # 5V charge pump, 200mA, WSON-8
 Component(
-    name = "LM2775DSG",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_SwitchedCapacitor.kicad_sym", name = "LM2775DSG"),
-    footprint = File("@kicad-footprints/Package_SON.pretty/WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_ThermalVias.kicad_mod"),
-    pins = {
+    name="LM2775DSG",
+    symbol=Symbol(library="@kicad-symbols/Regulator_SwitchedCapacitor.kicad_sym", name="LM2775DSG"),
+    footprint=File("@kicad-footprints/Package_SON.pretty/WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_ThermalVias.kicad_mod"),
+    pins={
         "PFM": _PFM,
         "OUTDIS": _OUTDIS,
         "EN": EN_CTRL,
@@ -50,39 +51,38 @@ Component(
         "GND": GND,
         "VOUT": VOUT,
         "C1+": _C1_PLUS,
-        "C1-": _C1_MINUS
+        "C1-": _C1_MINUS,
     },
 )
 
 # Input Capacitor - Datasheet recommends 10µF ceramic
 if add_input_cap:
-    Capacitor(name = "C_IN", value = "10uF", package = "0805", P1 = VIN, P2 = GND)
-    
+    Capacitor(name="C_IN", value="10uF", package="0805", P1=VIN, P2=GND)
+
     # Additional high-frequency decoupling
-    Capacitor(name = "C_IN_HF", value = "100nF", package = "0402", P1 = VIN, P2 = GND)
+    Capacitor(name="C_IN_HF", value="100nF", package="0402", P1=VIN, P2=GND)
 
 # Output Capacitor - Datasheet recommends 10µF ceramic
 if add_output_cap:
-    Capacitor(name = "C_OUT", value = "10uF", package = "0805", P1 = VOUT, P2 = GND)
-    
+    Capacitor(name="C_OUT", value="10uF", package="0805", P1=VOUT, P2=GND)
+
     # Additional high-frequency decoupling
-    Capacitor(name = "C_OUT_HF", value = "100nF", package = "0402", P1 = VOUT, P2 = GND)
+    Capacitor(name="C_OUT_HF", value="100nF", package="0402", P1=VOUT, P2=GND)
 
 # Flying Capacitor - Required 1µF ceramic (non-polarized)
-if add_flying_cap:
-    Capacitor(name = "C_FLY", value = "1uF", package = "0603", P1 = _C1_PLUS, P2 = _C1_MINUS)
+Capacitor(name="C_FLY", value="1uF", package="0603", P1=_C1_PLUS, P2=_C1_MINUS, dnp=not add_flying_cap)
 
 # Enable Control Pull-up
 if enable_control:
     # Pull-up resistor to ensure device is enabled by default
-    Resistor(name = "R_EN", value = "100kohms", package = "0402", P1 = EN_CTRL, P2 = VIN)
+    Resistor(name="R_EN", value="100kohms", package="0402", P1=EN_CTRL, P2=VIN)
 
 # PFM Mode Control
 if not pfm_mode:
     # Add test point for PFM control if needed
     pass
 
-# Output Discharge Control  
+# Output Discharge Control
 if output_discharge:
     # Add test point for OUTDIS control if needed
     pass

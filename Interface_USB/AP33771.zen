@@ -9,6 +9,7 @@ Author: @Anthropic/claude-opus-4-20250514
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.diodes.com/assets/Datasheets/AP33771.pdf
 """
+
 load("@stdlib/interfaces.zen", "Ground", "NotConnected")
 
 # Dependencies
@@ -26,38 +27,38 @@ V3vdCapValue = enum("100nF", "220nF", "470nF", "1uF")
 VbusOutCapValue = enum("1uF", "2.2uF", "4.7uF", "10uF", "22uF")
 
 # Configuration
-voltage_selection = config("voltage_selection", VoltageSelection, default = "5V")
-power_capacity = config("power_capacity", PowerCapacity, default = "15W")
+voltage_selection = config("voltage_selection", VoltageSelection, default="5V")
+power_capacity = config("power_capacity", PowerCapacity, default="15W")
 
 # Individual decoupling capacitor controls
-add_vbus_in_cap = config("add_vbus_in_cap", bool, default = True)
+add_vbus_in_cap = config("add_vbus_in_cap", bool, default=True)
 if add_vbus_in_cap:
-    vbus_in_cap_value = config("vbus_in_cap_value", VbusInCapValue, default = "10uF")
+    vbus_in_cap_value = config("vbus_in_cap_value", VbusInCapValue, default="10uF")
 
-add_v5v_cap = config("add_v5v_cap", bool, default = True)
+add_v5v_cap = config("add_v5v_cap", bool, default=True)
 if add_v5v_cap:
-    v5v_cap_value = config("v5v_cap_value", V5vCapValue, default = "1uF")
+    v5v_cap_value = config("v5v_cap_value", V5vCapValue, default="1uF")
 
-add_v3vd_cap = config("add_v3vd_cap", bool, default = True)
+add_v3vd_cap = config("add_v3vd_cap", bool, default=True)
 if add_v3vd_cap:
-    v3vd_cap_value = config("v3vd_cap_value", V3vdCapValue, default = "100nF")
+    v3vd_cap_value = config("v3vd_cap_value", V3vdCapValue, default="100nF")
 
-add_vbus_out_cap = config("add_vbus_out_cap", bool, default = True)
+add_vbus_out_cap = config("add_vbus_out_cap", bool, default=True)
 if add_vbus_out_cap:
-    vbus_out_cap_value = config("vbus_out_cap_value", VbusOutCapValue, default = "1uF")
+    vbus_out_cap_value = config("vbus_out_cap_value", VbusOutCapValue, default="1uF")
 
-add_cc_protection = config("add_cc_protection", bool, default = True)
+add_cc_protection = config("add_cc_protection", bool, default=True)
 
-add_fault_led = config("add_fault_led", bool, default = True)
-add_power_led = config("add_power_led", bool, default = True)
+add_fault_led = config("add_fault_led", bool, default=True)
+add_power_led = config("add_power_led", bool, default=True)
 
 
 # External IO
-CC1 = io("CC1", Net, default = Net("CC1"))
-CC2 = io("CC2", Net, default = Net("CC2"))
-VBUS_IN = io("VBUS_IN", Net, default = Net("VBUS_IN"))
-VBUS_OUT = io("VBUS_OUT", Net, default = Net("VBUS_OUT"))
-PWR_EN = io("PWR_EN", Net, default = Net("PWR_EN"))
+CC1 = io("CC1", Net, default=Net("CC1"))
+CC2 = io("CC2", Net, default=Net("CC2"))
+VBUS_IN = io("VBUS_IN", Net, default=Net("VBUS_IN"))
+VBUS_OUT = io("VBUS_OUT", Net, default=Net("VBUS_OUT"))
+PWR_EN = io("PWR_EN", Net, default=Net("PWR_EN"))
 GND = io("GND", Ground)
 
 # Internal nets
@@ -72,7 +73,7 @@ _VFB = Net("VFB")
 _IFB = Net("IFB")
 _ISENP = VBUS_IN
 _GPIO1 = Net("GPIO1")
-_GPIO4 = Net("GPIO4")   
+_GPIO4 = Net("GPIO4")
 _NC = NotConnected()
 _VBUS = Net("VBUS")  # Internal VBUS net for chip
 
@@ -94,10 +95,10 @@ vsel_config = voltage_config.get(voltage_selection.value, (0, 0, 0))
 
 # USB Type-C PD Sink Controller, QFN-24
 Component(
-    name = "AP33771",
-    symbol = Symbol(library = "@kicad-symbols/Interface_USB.kicad_sym", name = "AP33771"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.kicad_mod"),
-    pins = {
+    name="AP33771",
+    symbol=Symbol(library="@kicad-symbols/Interface_USB.kicad_sym", name="AP33771"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.kicad_mod"),
+    pins={
         "ISENP": _ISENP,  # Direct connection for current sensing
         "CC1": CC1,
         "CC2": CC2,
@@ -115,31 +116,31 @@ Component(
         "VFB": _VFB,
         "IFB": _IFB,
         "GPIO1": _GPIO1,
-        "GPIO4": _GPIO4
+        "GPIO4": _GPIO4,
     },
 )
 
 # Power supply decoupling
 if add_vbus_in_cap:
     # VBUS_IN decoupling
-    Capacitor(name = "C_VBUS_IN", value = vbus_in_cap_value.value, package = "0805", P1 = VBUS_IN, P2 = GND)
-    
+    Capacitor(name="C_VBUS_IN", value=vbus_in_cap_value.value, package="0805", P1=VBUS_IN, P2=GND)
+
 if add_v5v_cap:
     # V5V LDO output decoupling (datasheet specifies 1µF)
-    Capacitor(name = "C_V5V", value = v5v_cap_value.value, package = "0603", P1 = _V5V, P2 = GND)
-    
+    Capacitor(name="C_V5V", value=v5v_cap_value.value, package="0603", P1=_V5V, P2=GND)
+
 if add_v3vd_cap:
     # V3VD LDO output decoupling (datasheet specifies 0.1µF)
-    Capacitor(name = "C_V3VD", value = v3vd_cap_value.value, package = "0402", P1 = _V3VD, P2 = GND)
-        
+    Capacitor(name="C_V3VD", value=v3vd_cap_value.value, package="0402", P1=_V3VD, P2=GND)
+
 if add_vbus_out_cap:
     # VBUS_OUT decoupling
-    Capacitor(name = "C_VBUS_OUT", value = vbus_out_cap_value.value, package = "0603", P1 = VBUS_OUT, P2 = GND)
+    Capacitor(name="C_VBUS_OUT", value=vbus_out_cap_value.value, package="0603", P1=VBUS_OUT, P2=GND)
 
 # CC line protection resistors
 if add_cc_protection:
-    Resistor(name = "R_CC1", value = "5.1kohms", package = "0402", P1 = CC1, P2 = GND)
-    Resistor(name = "R_CC2", value = "5.1kohms", package = "0402", P1 = CC2, P2 = GND)
+    Resistor(name="R_CC1", value="5.1kohms", package="0402", P1=CC1, P2=GND)
+    Resistor(name="R_CC2", value="5.1kohms", package="0402", P1=CC2, P2=GND)
 
 # Power selection resistor
 power_resistor_values = {
@@ -155,56 +156,56 @@ power_resistor_values = {
     "100W": "91kohms",
 }
 psel_value = power_resistor_values.get(power_capacity.value, "16kohms")
-Resistor(name = "R_PSEL", value = psel_value + " 1%", package = "0402", P1 = _PSEL, P2 = GND)
+Resistor(name="R_PSEL", value=psel_value + " 1%", package="0402", P1=_PSEL, P2=GND)
 
 # Current feedback capacitor (datasheet specifies 100nF to ground)
-Capacitor(name = "C_IFB", value = "100nF", package = "0402", P1 = _IFB, P2 = GND)
+Capacitor(name="C_IFB", value="100nF", package="0402", P1=_IFB, P2=GND)
 
 # Fault LED on GPIO4
 if add_fault_led:
     # LED on GPIO4 with current limiting resistor for fault indication
     _LED_A = Net("LED_A")
-    Resistor(name = "R_LED", value = "10kohms", package = "0402", P1 = _GPIO4, P2 = _LED_A)
-    
+    Resistor(name="R_LED", value="10kohms", package="0402", P1=_GPIO4, P2=_LED_A)
+
     # Fault LED (typically red for fault indication)
     Led(
-        name = "LED_FAULT",
-        color = "red",
-        package = "0603",
-        A = _LED_A,
-        K = GND,
+        name="LED_FAULT",
+        color="red",
+        package="0603",
+        A=_LED_A,
+        K=GND,
     )
 
 # VBUS_IN Power Indicator LED (optional)
 if add_power_led:
     # Power indicator LED to show when VBUS_IN is present
     _PWR_LED_A = Net("PWR_LED_A")
-    
+
     # Current limiting resistor for power LED (green LED ~2V forward voltage)
     # For 5V: (5V - 2V) / 1mA = 3kΩ
     # For higher voltages up to 20V: (20V - 2V) / 1mA = 18kΩ
     # Using 10kΩ for safe operation across all voltages
-    Resistor(name = "R_PWR_LED", value = "10kohms", package = "0402", P1 = VBUS_IN, P2 = _PWR_LED_A)
-    
+    Resistor(name="R_PWR_LED", value="10kohms", package="0402", P1=VBUS_IN, P2=_PWR_LED_A)
+
     # Power LED (typically green for power indication)
     Led(
-        name = "LED_PWR",
-        color = "green",
-        package = "0603",
-        A = _PWR_LED_A,
-        K = GND,
+        name="LED_PWR",
+        color="green",
+        package="0603",
+        A=_PWR_LED_A,
+        K=GND,
     )
 
 
-# Current sense connection 
+# Current sense connection
 # 10mΩ shunt resistor between VBUS_IN and VCC
-Resistor(name = "R_SENSE", value = "10mohms", package = "1206", P1 = VBUS_IN, P2 = _VCC)
+Resistor(name="R_SENSE", value="10mohms", package="1206", P1=VBUS_IN, P2=_VCC)
 
 # Power switch MOSFET circuit
 # NMOS VBUS Switch
 # PWR_EN drives external NMOS gate
 _NMOS_GATE = Net("NMOS_GATE")
-Resistor(name = "R_GATE", value = "100ohms", package = "0402", P1 = PWR_EN, P2 = _NMOS_GATE)
+Resistor(name="R_GATE", value="100ohms", package="0402", P1=PWR_EN, P2=_NMOS_GATE)
 
 # # Pull-down for PWR_EN when disabled
 # Resistor(name = "R_PWR_PD", value = "100kohms", package = "0402", P1 = PWR_EN, P2 = GND)
@@ -216,45 +217,45 @@ _MOSFET_SOURCE = Net("MOSFET_SOURCE")
 
 # Q1: Drain to VCC (chip power), Source to common point
 Mosfet(
-    name = "Q1",
-    channel = "N",
-    package = "SOT-23-3",
-    G = _NMOS_GATE,
-    D = _VCC,
-    S = _MOSFET_SOURCE,
+    name="Q1",
+    channel="N",
+    package="SOT-23-3",
+    G=_NMOS_GATE,
+    D=_VCC,
+    S=_MOSFET_SOURCE,
 )
 
 # Q2: Drain to VBUS_OUT, Source to common point
 Mosfet(
-    name = "Q2",
-    channel = "N", 
-    package = "SOT-23-3",
-    G = _NMOS_GATE,
-    D = VBUS_OUT,
-    S = _MOSFET_SOURCE,
+    name="Q2",
+    channel="N",
+    package="SOT-23-3",
+    G=_NMOS_GATE,
+    D=VBUS_OUT,
+    S=_MOSFET_SOURCE,
 )
 
 # Connect VBUS_OUT to chip's VBUS pin through 0 ohm resistor
-Resistor(name = "R_VBUS", value = "0ohms", package = "0402", P1 = VBUS_OUT, P2 = _VBUS)
+Resistor(name="R_VBUS", value="0ohms", package="0402", P1=VBUS_OUT, P2=_VBUS)
 
 # Configure VSEL pins with pull-up or pull-down resistors based on voltage selection
 # VSEL0
 if vsel_config[2]:  # Pull high to V3VD
-    Resistor(name = "R_VSEL0_PU", value = "100kohms", package = "0402", P1 = _VSEL0, P2 = _V3VD)
+    Resistor(name="R_VSEL0_PU", value="100kohms", package="0402", P1=_VSEL0, P2=_V3VD)
 else:  # Pull low to GND
-    Resistor(name = "R_VSEL0_PD", value = "100kohms", package = "0402", P1 = _VSEL0, P2 = GND)
+    Resistor(name="R_VSEL0_PD", value="100kohms", package="0402", P1=_VSEL0, P2=GND)
 
 # VSEL1
 if vsel_config[1]:  # Pull high to V3VD
-    Resistor(name = "R_VSEL1_PU", value = "100kohms", package = "0402", P1 = _VSEL1, P2 = _V3VD)
+    Resistor(name="R_VSEL1_PU", value="100kohms", package="0402", P1=_VSEL1, P2=_V3VD)
 else:  # Pull low to GND
-    Resistor(name = "R_VSEL1_PD", value = "100kohms", package = "0402", P1 = _VSEL1, P2 = GND)
+    Resistor(name="R_VSEL1_PD", value="100kohms", package="0402", P1=_VSEL1, P2=GND)
 
 # VSEL2
 if vsel_config[0]:  # Pull high to V3VD
-    Resistor(name = "R_VSEL2_PU", value = "100kohms", package = "0402", P1 = _VSEL2, P2 = _V3VD)
+    Resistor(name="R_VSEL2_PU", value="100kohms", package="0402", P1=_VSEL2, P2=_V3VD)
 else:  # Pull low to GND
-    Resistor(name = "R_VSEL2_PD", value = "100kohms", package = "0402", P1 = _VSEL2, P2 = GND)
+    Resistor(name="R_VSEL2_PD", value="100kohms", package="0402", P1=_VSEL2, P2=GND)
 
 # pcb:sch AP33771 x=240.3000 y=672.1000 rot=0
 # pcb:sch C_IFB.C x=626.3800 y=964.2000 rot=0

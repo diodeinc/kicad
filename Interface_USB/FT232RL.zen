@@ -16,6 +16,7 @@ Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
 """
 
 load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,11 +29,11 @@ VccioLevel = enum("VCC", "VOUT_3V3", "External")
 CommunicationMode = enum("RS232", "USART", "UART")
 
 # Configuration
-power_config = config("power_config", PowerConfig, default = "BusPowered")
-vccio_level = config("vccio_level", VccioLevel, default = VccioLevel("VCC"))
-add_decoupling = config("add_decoupling", bool, default = True)
-add_pullups = config("add_pullups", bool, default = True)
-communication_mode = config("communication_mode", CommunicationMode, default = "UART")
+power_config = config("power_config", PowerConfig, default="BusPowered")
+vccio_level = config("vccio_level", VccioLevel, default=VccioLevel("VCC"))
+add_decoupling = config("add_decoupling", bool, default=True)
+add_pullups = config("add_pullups", bool, default=True)
+communication_mode = config("communication_mode", CommunicationMode, default="UART")
 
 usb = io("USB", Usb2)
 
@@ -70,14 +71,14 @@ elif communication_mode == CommunicationMode("UART"):
 
 NRESET = io("NRESET", Net) if power_config == PowerConfig("BusPowered") else Net("RESET")
 
-VUSB = io("VUSB", Power)
+VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
 VOUT_3V3 = Net("VOUT_3V3")
 GND = io("GND", Ground)
 
 # VCC configuration
 if power_config == PowerConfig("BusPowered"):
     VCC = Net("VCC")
-    FerriteBead(name = "FB1", mpn = "MI0805K400R-10", package = "0805", P1 = VUSB, P2 = VCC)
+    FerriteBead(name="FB1", mpn="MI0805K400R-10", package="0805", P1=VUSB, P2=VCC)
 else:
     VCC = io("VCC", Power)
 
@@ -98,10 +99,10 @@ _CBUS4 = Net("_CBUS4")
 
 # USB to Serial Interface, SSOP-28
 Component(
-    name = "FT232RL",
-    symbol = Symbol(library = "@kicad-symbols/Interface_USB.kicad_sym", name = "FT232RL"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/SSOP-28_5.3x10.2mm_P0.65mm.kicad_mod"),
-    pins = {
+    name="FT232RL",
+    symbol=Symbol(library="@kicad-symbols/Interface_USB.kicad_sym", name="FT232RL"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/SSOP-28_5.3x10.2mm_P0.65mm.kicad_mod"),
+    pins={
         "3V3OUT": VOUT_3V3,
         "USBD+": usb.D.P,
         "USBD-": usb.D.N,
@@ -125,29 +126,29 @@ Component(
         "CBUS1": _CBUS1,  # Default: RXLED#
         "CBUS2": _CBUS2,  # Default: TXDEN
         "CBUS3": _CBUS3,  # Default: PWREN#
-        "CBUS4": _CBUS4   # Default: SLEEP#
+        "CBUS4": _CBUS4,  # Default: SLEEP#
     },
 )
 
 if add_decoupling:
-    Capacitor(name = "C_VOUT_3V3", value = "100nF", package = "0402", P1 = VOUT_3V3, P2 = GND)
-    Capacitor(name = "C_VCC_BYPASS", value = "100nF", package = "0402", P1 = VCC, P2 = GND)
-    Capacitor(name = "C_VCC_BULK", value = "4.7nF", package = "0603", P1 = VCC, P2 = GND)
-    Capacitor(name = "C_VCCIO", value = "100nF", package = "0402", P1 = _VCCIO_SUPPLY, P2 = GND)
+    Capacitor(name="C_VOUT_3V3", value="100nF", package="0402", P1=VOUT_3V3, P2=GND)
+    Capacitor(name="C_VCC_BYPASS", value="100nF", package="0402", P1=VCC, P2=GND)
+    Capacitor(name="C_VCC_BULK", value="4.7nF", package="0603", P1=VCC, P2=GND)
+    Capacitor(name="C_VCCIO", value="100nF", package="0402", P1=_VCCIO_SUPPLY, P2=GND)
     if power_config == PowerConfig("BusPowered"):
-        Capacitor(name = "C_VUSB", value = "10nF", package = "0402", P1 = VUSB, P2 = GND)
+        Capacitor(name="C_VUSB", value="10nF", package="0402", P1=VUSB, P2=GND)
 
 # Reset Configuration
 if add_pullups:
     if power_config == PowerConfig("SelfPowered"):
         # Bus-powered configuration - optional pull-up on RESET#
-        Resistor(name = "R_RESET1", value = "4.7kohms", package = "0402", P1 = VUSB, P2 = NRESET)
-        Resistor(name = "R_RESET2", value = "10kohms", package = "0402", P1 = NRESET, P2 = GND)
-    else: 
-        Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = NRESET, P2 = VCC)
-    
-    Resistor(name = "R_PWREN", value = "10kohms", package = "0402", P1 = _CBUS3, P2 = VCC)
-    
+        Resistor(name="R_RESET1", value="4.7kohms", package="0402", P1=VUSB, P2=NRESET)
+        Resistor(name="R_RESET2", value="10kohms", package="0402", P1=NRESET, P2=GND)
+    else:
+        Resistor(name="R_RESET", value="10kohms", package="0402", P1=NRESET, P2=VCC)
+
+    Resistor(name="R_PWREN", value="10kohms", package="0402", P1=_CBUS3, P2=VCC)
+
 # pcb:sch C_VUSB.C x=931.1800 y=-39.1000 rot=0
 # pcb:sch C_VCCIO.C x=321.5800 y=-51.8000 rot=0
 # pcb:sch C_VCC_BULK.C x=664.4800 y=-39.1000 rot=0

@@ -1,12 +1,12 @@
 """PGA-106-75+ - 50MHz to 1.5GHz High Dynamic Range CATV Amplifier
 
-The PGA-106-75+ is a high-performance wideband amplifier designed for CATV 
-applications, offering exceptional linearity with +37 dBm output IP3 and 
-17.4 dB gain at 500 MHz. Built using E-PHEMT technology, it provides low 
-noise figure (3.1 dB), high output power (+19.8 dBm P1dB), and excellent 
-CSO/CTB performance. The device operates from a single +5V supply at 116mA 
-typical current and is housed in a SOT-89 package for good thermal performance. 
-It's ideal for CATV, GPON, MOCA, and DBS applications requiring high dynamic 
+The PGA-106-75+ is a high-performance wideband amplifier designed for CATV
+applications, offering exceptional linearity with +37 dBm output IP3 and
+17.4 dB gain at 500 MHz. Built using E-PHEMT technology, it provides low
+noise figure (3.1 dB), high output power (+19.8 dBm P1dB), and excellent
+CSO/CTB performance. The device operates from a single +5V supply at 116mA
+typical current and is housed in a SOT-89 package for good thermal performance.
+It's ideal for CATV, GPON, MOCA, and DBS applications requiring high dynamic
 range from 50 MHz to 1.5 GHz.
 
 Key specifications:
@@ -23,6 +23,7 @@ Datasheet: https://www.minicircuits.com/pdfs/PGA-106-75+.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Inductance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -35,28 +36,27 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration
 # Power supply configuration
-add_ferrite_bead = config("add_ferrite_bead", bool, default = True)
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_decoupling = config("add_decoupling", bool, default = True)
+add_ferrite_bead = config("add_ferrite_bead", bool, default=True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_decoupling = config("add_decoupling", bool, default=True)
 
 # Bias configuration
-bias_inductor_value = config("bias_inductor_value", str, default = "100nH")
-bias_cap_value = config("bias_cap_value", str, default = "1.3pF")
+bias_inductor_value = config("bias_inductor_value", Inductance, default="100nH")
+bias_cap_value = config("bias_cap_value", Capacitance, default="1.3pF")
 
 # Coupling capacitor configuration
-dc_blocking_cap_value = config("dc_blocking_cap_value", str, default = "2.4nF")
-
+dc_blocking_cap_value = config("dc_blocking_cap_value", Capacitance, default="2.4nF")
 
 
 # Protection configuration
-add_input_protection = config("add_input_protection", bool, default = True)
-add_output_protection = config("add_output_protection", bool, default = True)
+add_input_protection = config("add_input_protection", bool, default=True)
+add_output_protection = config("add_output_protection", bool, default=True)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, default = Power("VDD"))
+VDD = io("VDD", Power, default=Power("VDD"))
 GND = io("GND", Ground)
 RFIN = io("RFIN", Net)
 RFOUT = io("RFOUT", Net)
@@ -70,110 +70,103 @@ _RFOUT_MATCHED = Net("RFOUT_MATCHED")  # Output before matching network
 
 # Power supply filtering
 if add_ferrite_bead:
-    FerriteBead(name = "FB1", package = "0805", P1 = VDD.NET, P2 = _VDD_FILT)
+    FerriteBead(name="FB1", package="0805", P1=VDD, P2=_VDD_FILT)
 else:
-    _VDD_FILT = VDD.NET
+    _VDD_FILT = VDD
 
 # Bulk capacitor
-if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "0.1uF", voltage = "10V", package = "0805", P1 = _VDD_FILT, P2 = GND)
+Capacitor(name="C_BULK", value="0.1uF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
 
 # Decoupling capacitors
 if add_decoupling:
-    Capacitor(name = "C_DEC1", value = "100nF", voltage = "10V", package = "0402", P1 = _VDD_FILT, P2 = GND)
-    Capacitor(name = "C_DEC2", value = "1nF", voltage = "10V", package = "0402", P1 = _VDD_FILT, P2 = GND)
-    Capacitor(name = "C_DEC3", value = "100pF", voltage = "10V", package = "0402", P1 = _VDD_FILT, P2 = GND)
+    Capacitor(name="C_DEC1", value="100nF", voltage="10V", package="0402", P1=_VDD_FILT, P2=GND)
+    Capacitor(name="C_DEC2", value="1nF", voltage="10V", package="0402", P1=_VDD_FILT, P2=GND)
+    Capacitor(name="C_DEC3", value="100pF", voltage="10V", package="0402", P1=_VDD_FILT, P2=GND)
 
 # Main component - corrected pin names
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/RF_Amplifier.kicad_sym", name = "PGA-106-75"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-3.kicad_mod"),
-    pins = {
-        "1": _RFIN_MATCHED,     # RF input
-        "GND": GND,             # Ground (center pin and exposed paddle)
-        "3": _BIAS_NODE         # RF output and DC bias
-    }
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/RF_Amplifier.kicad_sym", name="PGA-106-75"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-89-3.kicad_mod"),
+    pins={
+        "1": _RFIN_MATCHED,  # RF input
+        "GND": GND,  # Ground (center pin and exposed paddle)
+        "3": _BIAS_NODE,  # RF output and DC bias
+    },
 )
 
 # Input DC blocking capacitor
-Capacitor(name = "C_IN", value = dc_blocking_cap_value, voltage = "50V", package = "0603", P1 = RFIN, P2 = _RFIN_INT)
+Capacitor(name="C_IN", value=dc_blocking_cap_value, voltage="50V", package="0603", P1=RFIN, P2=_RFIN_INT)
 
 # Input matching network - Optimized based on eval board TB-670+
 # Define intermediate net
-_N_L1_L2 = Net("N_L1_L2")    # Net between L1 and L2
+_N_L1_L2 = Net("N_L1_L2")  # Net between L1 and L2
 
 # First shunt cap to ground after DC blocking
-Capacitor(name = "C_IN_SHUNT1", value = "0.5pF", voltage = "50V", package = "0402", P1 = _RFIN_INT, P2 = GND)
+Capacitor(name="C_IN_SHUNT1", value="0.5pF", voltage="50V", package="0402", P1=_RFIN_INT, P2=GND)
 
 # L1 inductor
-Inductor(name = "L1", value = "7.5nH", package = "0603", P1 = _RFIN_INT, P2 = _N_L1_L2)
+Inductor(name="L1", value="7.5nH", package="0603", P1=_RFIN_INT, P2=_N_L1_L2)
 
 # Second shunt cap to ground between L1 and L2
-Capacitor(name = "C_IN_SHUNT2", value = "1.3pF", voltage = "50V", package = "0402", P1 = _N_L1_L2, P2 = GND)
+Capacitor(name="C_IN_SHUNT2", value="1.3pF", voltage="50V", package="0402", P1=_N_L1_L2, P2=GND)
 
 # L2 inductor
-Inductor(name = "L2", value = "7.5nH", package = "0603", P1 = _N_L1_L2, P2 = _RFIN_MATCHED)
+Inductor(name="L2", value="7.5nH", package="0603", P1=_N_L1_L2, P2=_RFIN_MATCHED)
 
 # Bias circuit - RF choke for bias injection
-Inductor(name = "L_BIAS", value = bias_inductor_value, package = "0603", P1 = _VDD_FILT, P2 = _BIAS_NODE)
+Inductor(name="L_BIAS", value=bias_inductor_value, package="0603", P1=_VDD_FILT, P2=_BIAS_NODE)
 
 # Output matching network - Optimized based on eval board TB-670+
 # Define intermediate nets
-_N_C3_L3 = Net("N_C3_L3")      # Net between C3 and L3
-_N_L3_L4 = Net("N_L3_L4")      # Net between L3 and L4
+_N_C3_L3 = Net("N_C3_L3")  # Net between C3 and L3
+_N_L3_L4 = Net("N_L3_L4")  # Net between L3 and L4
 
 # DC blocking capacitor between bias node and L3
-Capacitor(name = "C_OUT_DC_BLOCK", value = bias_cap_value, voltage = "50V", package = "0402", P1 = _BIAS_NODE, P2 = _N_C3_L3)
+Capacitor(name="C_OUT_DC_BLOCK", value=bias_cap_value, voltage="50V", package="0402", P1=_BIAS_NODE, P2=_N_C3_L3)
 
 # L3 inductor (4.7nH)
-Inductor(name = "L3", value = "4.7nH", package = "0603", P1 = _N_C3_L3, P2 = _N_L3_L4)
+Inductor(name="L3", value="4.7nH", package="0603", P1=_N_C3_L3, P2=_N_L3_L4)
 
 # Shunt cap to ground between L3 and L4
-Capacitor(name = "C_OUT_SHUNT1", value = "1.2pF", voltage = "50V", package = "0402", P1 = _N_L3_L4, P2 = GND)
+Capacitor(name="C_OUT_SHUNT1", value="1.2pF", voltage="50V", package="0402", P1=_N_L3_L4, P2=GND)
 
 # L4 inductor (7.5nH)
-Inductor(name = "L4", value = "7.5nH", package = "0603", P1 = _N_L3_L4, P2 = _RFOUT_MATCHED)
+Inductor(name="L4", value="7.5nH", package="0603", P1=_N_L3_L4, P2=_RFOUT_MATCHED)
 
 # Final shunt cap to ground after L4
-Capacitor(name = "C_OUT_SHUNT2", value = "0.7pF", voltage = "50V", package = "0402", P1 = _RFOUT_MATCHED, P2 = GND)
+Capacitor(name="C_OUT_SHUNT2", value="0.7pF", voltage="50V", package="0402", P1=_RFOUT_MATCHED, P2=GND)
 
 # Output DC blocking capacitor - connects to external RFOUT
-Capacitor(name = "C_OUT", value = dc_blocking_cap_value, voltage = "50V", package = "0603", P1 = _RFOUT_MATCHED, P2 = RFOUT)
+Capacitor(name="C_OUT", value=dc_blocking_cap_value, voltage="50V", package="0603", P1=_RFOUT_MATCHED, P2=RFOUT)
 
 # Input protection (optional)
 if add_input_protection:
     # ESD protection diode for input
     Component(
-        name = "D_IN",
-        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "ESD9B5.0ST5G"),
-        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
-        pins = {
-            "A1": RFIN,
-            "A2": GND
-        }
+        name="D_IN",
+        symbol=Symbol(library="@kicad-symbols/Diode.kicad_sym", name="ESD9B5.0ST5G"),
+        footprint=File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
+        pins={"A1": RFIN, "A2": GND},
     )
 
 # Output protection (optional)
 if add_output_protection:
     # ESD protection diode for output
     Component(
-        name = "D_OUT",
-        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "ESD9B5.0ST5G"),
-        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
-        pins = {
-            "A1": RFOUT,
-            "A2": GND
-        }
+        name="D_OUT",
+        symbol=Symbol(library="@kicad-symbols/Diode.kicad_sym", name="ESD9B5.0ST5G"),
+        footprint=File("@kicad-footprints/Diode_SMD.pretty/D_0402_1005Metric.kicad_mod"),
+        pins={"A1": RFOUT, "A2": GND},
     )
 
 # Test points
 if add_test_points:
-    TestPoint(name = "TP_VDD", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _VDD_FILT)
-    TestPoint(name = "TP_BIAS", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _BIAS_NODE)
-    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
-    TestPoint(name = "TP_RFIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = RFIN)
-    TestPoint(name = "TP_RFOUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = RFOUT)
+    TestPoint(name="TP_VDD", variant="THTPad_D1.0mm_Drill0.5mm", P1=_VDD_FILT)
+    TestPoint(name="TP_BIAS", variant="THTPad_D1.0mm_Drill0.5mm", P1=_BIAS_NODE)
+    TestPoint(name="TP_GND", variant="THTPad_D1.0mm_Drill0.5mm", P1=GND)
+    TestPoint(name="TP_RFIN", variant="THTPad_D1.0mm_Drill0.5mm", P1=RFIN)
+    TestPoint(name="TP_RFOUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=RFOUT)
 
 # PCB placement hints
 # pcb:sch U1 x=494.3000 y=824.5000 rot=0

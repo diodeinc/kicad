@@ -1,8 +1,8 @@
 """STM32F103C8T - Medium-density performance line ARM Cortex-M3 MCU
 
-The STM32F103C8T is a 32-bit ARM Cortex-M3 microcontroller operating at up to 72 MHz 
-with 64KB Flash memory, 20KB SRAM, 12-bit ADCs, 4 timers, up to 9 communication 
-interfaces including USB, CAN, I2C, SPI, and USART. It features 37 GPIO pins, 
+The STM32F103C8T is a 32-bit ARM Cortex-M3 microcontroller operating at up to 72 MHz
+with 64KB Flash memory, 20KB SRAM, 12-bit ADCs, 4 timers, up to 9 communication
+interfaces including USB, CAN, I2C, SPI, and USART. It features 37 GPIO pins,
 dual 12-bit ADCs with 10 channels, and operates from 2.0V to 3.6V supply voltage.
 
 Author: @Anthropic/claude-opus-4-20250514
@@ -11,6 +11,8 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f103c8.pdf
 """
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,20 +34,20 @@ BootPull = enum("Pullup", "Pulldown")
 ResetConfiguration = enum("None", "Pullup", "TestPoint", "Button")
 
 # Configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_analog_decoupling = config("add_analog_decoupling", bool, default = True)
-add_vbatt_ferrite_bead = config("add_vbatt_ferrite_bead", bool, default = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_power_decoupling = config("add_power_decoupling", bool, default=True)
+add_analog_decoupling = config("add_analog_decoupling", bool, default=True)
+add_vbatt_ferrite_bead = config("add_vbatt_ferrite_bead", bool, default=True)
 
 # Reset configuration
 # None: NRST pin exposed to user, no reset components
 # Pullup: 10kΩ pull-up resistor only
 # TestPoint: Pull-up resistor + capacitor + through-hole test point
 # Button: Pull-up resistor + capacitor + reset button (default)
-reset_configuration = config("reset_configuration", ResetConfiguration, default = "Button")
+reset_configuration = config("reset_configuration", ResetConfiguration, default="Button")
 
-add_status_led = config("add_status_led", bool, default = True, optional = True)
-add_power_led = config("add_power_led", bool, default = True, optional = True)
+add_status_led = config("add_status_led", bool, default=True, optional=True)
+add_power_led = config("add_power_led", bool, default=True, optional=True)
 
 # Boot configuration
 # STM32F103 Boot Modes:
@@ -53,27 +55,27 @@ add_power_led = config("add_power_led", bool, default = True, optional = True)
 # BOOT1=0, BOOT0=1: Boot from system memory (bootloader)
 # BOOT1=1, BOOT0=0: Boot from embedded SRAM
 # BOOT1=1, BOOT0=1: Boot from embedded SRAM
-boot_configuration = config("boot_configuration", BootConfiguration, default = "Header")
+boot_configuration = config("boot_configuration", BootConfiguration, default="Header")
 if boot_configuration == BootConfiguration("Resistors"):
-    boot0_pull = config("boot0_pull", BootPull, default = "Pulldown")
-    boot1_pull = config("boot1_pull", BootPull, default = "Pulldown")
+    boot0_pull = config("boot0_pull", BootPull, default="Pulldown")
+    boot1_pull = config("boot1_pull", BootPull, default="Pulldown")
 
 # Clock configuration
-clock_source = config("clock_source", ClockSource, default = "Crystal")
+clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
-    crystal_freq = config("crystal_freq", CrystalFreq, default = "8MHz")
-    crystal_capacitor_value = config("crystal_capacitor_value", str, default = "20pF")
+    crystal_freq = config("crystal_freq", CrystalFreq, default="8MHz")
+    crystal_capacitor_value = config("crystal_capacitor_value", Capacitance, default="20pF")
 
-add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default = True)
-    
+add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
+
 # Interface configuration
-add_swd_header = config("add_swd_header", bool, default = True)
-add_usb = config("add_usb", bool, default = True, optional = True)
+add_swd_header = config("add_swd_header", bool, default=True)
+add_usb = config("add_usb", bool, default=True, optional=True)
 if add_usb:
-    power_from_usb = config("power_from_usb", bool, default = True, optional = True)
+    power_from_usb = config("power_from_usb", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
 GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
@@ -177,10 +179,10 @@ _BOOT0 = Net("BOOT0")
 
 # STMicroelectronics Arm Cortex-M3 MCU, 64KB flash, 20KB RAM, 72 MHz, 2.0-3.6V, 37 GPIO, LQFP48
 Component(
-    name = "STM32F103C8T",
-    symbol = Symbol(library = "@kicad-symbols/MCU_ST_STM32F1.kicad_sym", name = "STM32F103C8Tx"),
-    footprint = File("@kicad-footprints/Package_QFP.pretty/LQFP-48_7x7mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="STM32F103C8T",
+    symbol=Symbol(library="@kicad-symbols/MCU_ST_STM32F1.kicad_sym", name="STM32F103C8Tx"),
+    footprint=File("@kicad-footprints/Package_QFP.pretty/LQFP-48_7x7mm_P0.5mm.kicad_mod"),
+    pins={
         "NRST": _NRST,
         "BOOT0": _BOOT0,
         "PD0": _PD0,
@@ -224,28 +226,27 @@ Component(
         "PA12": PA12,
         "PA13": PA13,
         "PA14": PA14,
-        "PA15": PA15
+        "PA15": PA15,
     },
 )
 
 # Bulk Power Supply Capacitor
-if add_bulk_cap:
-    Capacitor(name = "C_BULK", value = "10uF", package = "0402", P1 = VDD, P2 = GND)
+Capacitor(name="C_BULK", value="10uF", package="0402", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power Supply Decoupling - One capacitor per VDD pin (3 total)
 if add_power_decoupling:
-    Capacitor(name = "C_VDD1", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    Capacitor(name = "C_VDD2", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
-    Capacitor(name = "C_VDD3", value = "100nF", package = "0402", P1 = VDD, P2 = GND)
+    Capacitor(name="C_VDD1", value="100nF", package="0402", P1=VDD, P2=GND)
+    Capacitor(name="C_VDD2", value="100nF", package="0402", P1=VDD, P2=GND)
+    Capacitor(name="C_VDD3", value="100nF", package="0402", P1=VDD, P2=GND)
 
 # Analog Power Supply Decoupling
 if add_analog_decoupling:
     # Connect VDDA to VDD through ferrite bead for noise filtering
-    FerriteBead(name = "FB_VDDA", package = "0402", P1 = VDD, P2 = _VDDA)
+    FerriteBead(name="FB_VDDA", package="0402", P1=VDD, P2=_VDDA)
     # Connect VSSA to GND using net tie
-    NetTie(name = "NT_VSSA", P1 = GND, P2 = _VSSA)
-    Capacitor(name = "C_VDDA", value = "100nF", package = "0402", P1 = _VDDA, P2 = _VSSA)
-    Capacitor(name = "C_VDDA2", value = "1uF", package = "0402", P1 = _VDDA, P2 = _VSSA)
+    NetTie(name="NT_VSSA", P1=GND, P2=_VSSA)
+    Capacitor(name="C_VDDA", value="100nF", package="0402", P1=_VDDA, P2=_VSSA)
+    Capacitor(name="C_VDDA2", value="1uF", package="0402", P1=_VDDA, P2=_VSSA)
 
 else:
     # If analog decoupling is disabled, always tie directly
@@ -255,9 +256,9 @@ else:
 # VBAT Connection
 if add_vbatt_ferrite_bead:
     # Connect to VDD through ferrite bead for noise filtering
-    FerriteBead(name = "FB_VBAT", package = "0402", P1 = VDD, P2 = _VBAT)
+    FerriteBead(name="FB_VBAT", package="0402", P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
-    Capacitor(name = "C_VBAT", value = "100nF", package = "0402", P1 = _VBAT, P2 = GND)
+    Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_VBAT, P2=GND)
 else:
     # Direct connection to VDD
     _VBAT = VDD
@@ -266,66 +267,66 @@ else:
 # Reset Configuration
 if reset_configuration == ResetConfiguration("Pullup"):
     # Pull-up resistor only
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_NRST, P2=VDD)
 
 elif reset_configuration == ResetConfiguration("TestPoint"):
     # Pull-up resistor, capacitor, and test point
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
-    TestPoint(name = "TP_RESET", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = _NRST)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_NRST, P2=VDD)
+    Capacitor(name="C_RESET", value="100nF", package="0402", P1=_NRST, P2=GND)
+    TestPoint(name="TP_RESET", variant="THTPad_D1.5mm_Drill0.7mm", P1=_NRST)
 
 elif reset_configuration == ResetConfiguration("Button"):
     # Pull-up resistor, capacitor, and reset button
-    Resistor(name = "R_RESET", value = "10kohms", package = "0402", P1 = _NRST, P2 = VDD)
-    Capacitor(name = "C_RESET", value = "100nF", package = "0402", P1 = _NRST, P2 = GND)
+    Resistor(name="R_RESET", value="10kohms", package="0402", P1=_NRST, P2=VDD)
+    Capacitor(name="C_RESET", value="100nF", package="0402", P1=_NRST, P2=GND)
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": GND,
             "2": _NRST,
-        }
+        },
     )
 
 # Boot Configuration
 if boot_configuration == BootConfiguration("Resistors"):
     # BOOT0 configuration
     if boot0_pull == BootPull("Pullup"):
-        Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = VDD)
+        Resistor(name="R_BOOT0", value="10kohms", package="0402", P1=_BOOT0, P2=VDD)
     else:  # Pulldown
-        Resistor(name = "R_BOOT0", value = "10kohms", package = "0402", P1 = _BOOT0, P2 = GND)
-    
+        Resistor(name="R_BOOT0", value="10kohms", package="0402", P1=_BOOT0, P2=GND)
+
     # BOOT1 configuration
     if boot1_pull == BootPull("Pullup"):
-        Resistor(name = "R_BOOT1", value = "10kohms", package = "0402", P1 = _PB2, P2 = VDD)
+        Resistor(name="R_BOOT1", value="10kohms", package="0402", P1=_PB2, P2=VDD)
     else:  # Pulldown
-        Resistor(name = "R_BOOT1", value = "10kohms", package = "0402", P1 = _PB2, P2 = GND)
+        Resistor(name="R_BOOT1", value="10kohms", package="0402", P1=_PB2, P2=GND)
 
 elif boot_configuration == BootConfiguration("Header"):
     # 3x2 header for boot configuration with series resistors
     # Series resistors for current limiting and protection
     _BOOT0_HEADER = Net("BOOT0_HEADER")
     _BOOT1_HEADER = Net("BOOT1_HEADER")
-    
-    Resistor(name = "R_BOOT0_SERIES", value = "100kohms", package = "0402", P1 = _BOOT0, P2 = _BOOT0_HEADER)
-    Resistor(name = "R_BOOT1_SERIES", value = "100kohms", package = "0402", P1 = _PB2, P2 = _BOOT1_HEADER)
-    
+
+    Resistor(name="R_BOOT0_SERIES", value="100kohms", package="0402", P1=_BOOT0, P2=_BOOT0_HEADER)
+    Resistor(name="R_BOOT1_SERIES", value="100kohms", package="0402", P1=_PB2, P2=_BOOT1_HEADER)
+
     # Pin layout (2 rows, 3 pins per row):
     # Row 1 (odd pins):  1=VDD, 3=BOOT0, 5=VDD
     # Row 2 (even pins): 2=GND, 4=BOOT1, 6=GND
     PinHeader(
-        name = "J_BOOT",
-        pins = 3,
-        rows = 2,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = VDD,            
-        P2 = VDD,          
-        P3 = _BOOT0_HEADER, 
-        P4 = _BOOT1_HEADER, 
-        P5 = GND,            
-        P6 = GND,          
+        name="J_BOOT",
+        pins=3,
+        rows=2,
+        pitch="2.54mm",
+        orientation="Vertical",
+        P1=VDD,
+        P2=VDD,
+        P3=_BOOT0_HEADER,
+        P4=_BOOT1_HEADER,
+        P5=GND,
+        P6=GND,
     )
 
 # Crystal Oscillator Circuit
@@ -333,120 +334,112 @@ if clock_source == ClockSource("Crystal"):
     # Crystal frequency selection
     freq_value = crystal_freq.value
     # Crystal with appropriate package
-    Crystal(
-        name = "Y1",
-        frequency = freq_value,
-        package = "3215_2Pin",
-        XIN = _PD0,
-        XOUT = _PD1,
-        GND = GND
-    )
-    
+    Crystal(name="Y1", frequency=freq_value, package="3215_2Pin", XIN=_PD0, XOUT=_PD1)
+
     # Load capacitors with configurable values
-    Capacitor(name = "C_OSC1", value = crystal_capacitor_value, package = "0402", P1 = _PD0, P2 = GND)
-    Capacitor(name = "C_OSC2", value = crystal_capacitor_value, package = "0402", P1 = _PD1, P2 = GND)
-    Resistor(name = "R_XTAL", value = "1Mohms", package = "0402", P1 = _PD1, P2 = _PD0)
+    Capacitor(name="C_OSC1", value=crystal_capacitor_value, package="0402", P1=_PD0, P2=GND)
+    Capacitor(name="C_OSC2", value=crystal_capacitor_value, package="0402", P1=_PD1, P2=GND)
+    Resistor(name="R_XTAL", value="1Mohms", package="0402", P1=_PD1, P2=_PD0)
 
 if add_low_speed_oscillator:
     Crystal(
-        name = "Y2",
-        frequency = "32.768kHz",
-        package = "3215_2Pin",
-        XIN = _PC14,
-        XOUT = _PC15,
-        GND = GND,
+        name="Y2",
+        frequency="32.768kHz",
+        package="3215_2Pin",
+        XIN=_PC14,
+        XOUT=_PC15,
     )
-    Capacitor(name = "C_OSC3", value = "20pF", voltage = "6.3V", package = "0402", P1 = _PC14, P2 = GND)
-    Capacitor(name = "C_OSC4", value = "20pF", voltage = "6.3V", package = "0402", P1 = _PC15, P2 = GND)
+    Capacitor(name="C_OSC3", value="20pF", voltage="6.3V", package="0402", P1=_PC14, P2=GND)
+    Capacitor(name="C_OSC4", value="20pF", voltage="6.3V", package="0402", P1=_PC15, P2=GND)
 
 # Status LED on PC13
 if add_status_led:
     _LED_K = Net("LED_K")
     Led(
-        name = "LED_STATUS",
-        color = "yellow",
-        package = "0402",
-        A = _PC13,
-        K = _LED_K,
+        name="LED_STATUS",
+        color="yellow",
+        package="0402",
+        A=_PC13,
+        K=_LED_K,
     )
-    Resistor(name = "R_LED", value = "510ohms", package = "0402", P1 = _LED_K, P2 = GND)
+    Resistor(name="R_LED", value="510ohms", package="0402", P1=_LED_K, P2=GND)
 
 # Power LED on VDD
 if add_power_led:
     _POWER_LED_K = Net("POWER_LED_K")
     Led(
-        name = "LED_POWER",
-        color = "green",
-        package = "0402",
-        A = VDD,
-        K = _POWER_LED_K,
+        name="LED_POWER",
+        color="green",
+        package="0402",
+        A=VDD,
+        K=_POWER_LED_K,
     )
-    Resistor(name = "R_POWER_LED", value = "510ohms", package = "0402", P1 = _POWER_LED_K, P2 = GND)
+    Resistor(name="R_POWER_LED", value="510ohms", package="0402", P1=_POWER_LED_K, P2=GND)
 
 # USB Connector and Circuitry
 if add_usb:
     # Internal USB data nets (before series resistors)
     _USB_DM_INT = Net("USB_DM_INT")
     _USB_DP_INT = Net("USB_DP_INT")
-    
+
     # USB-C Configuration Channel nets
     _USB_CC1 = Net("USB_CC1")
     _USB_CC2 = Net("USB_CC2")
-    
+
     # USB-C connector (USB 2.0 only)
     Component(
-        name = "J_USB",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
-        pins = {
-            "VBUS": VUSB,           # VBUS
-            "D-": _USB_DM_INT,      # D- (before series resistor)
-            "D+": _USB_DP_INT,      # D+ (before series resistor)
-            "CC1": _USB_CC1,        # Configuration Channel 1
-            "CC2": _USB_CC2,        # Configuration Channel 2
-            "SBU1": Net("USB_SBU1"), # Sideband Use 1 (not connected)
-            "SBU2": Net("USB_SBU2"), # Sideband Use 2 (not connected)
-            "GND": GND,             # GND
-            "SHIELD": GND,          # Shield
-        }
+        name="J_USB",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="USB_C_Receptacle_USB2.0_16P"),
+        footprint=File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins={
+            "VBUS": VUSB,  # VBUS
+            "D-": _USB_DM_INT,  # D- (before series resistor)
+            "D+": _USB_DP_INT,  # D+ (before series resistor)
+            "CC1": _USB_CC1,  # Configuration Channel 1
+            "CC2": _USB_CC2,  # Configuration Channel 2
+            "SBU1": Net("USB_SBU1"),  # Sideband Use 1 (not connected)
+            "SBU2": Net("USB_SBU2"),  # Sideband Use 2 (not connected)
+            "GND": GND,  # GND
+            "SHIELD": GND,  # Shield
+        },
     )
-    
+
     # USB-C CC (Configuration Channel) pull-down resistors (5.1k for device/sink)
-    Resistor(name = "R_USB_CC1", value = "5.1kohms", package = "0402", P1 = _USB_CC1, P2 = GND)
-    Resistor(name = "R_USB_CC2", value = "5.1kohms", package = "0402", P1 = _USB_CC2, P2 = GND)
-    
+    Resistor(name="R_USB_CC1", value="5.1kohms", package="0402", P1=_USB_CC1, P2=GND)
+    Resistor(name="R_USB_CC2", value="5.1kohms", package="0402", P1=_USB_CC2, P2=GND)
+
     # Series resistors on USB data lines (20 ohms)
-    Resistor(name = "R_USB_DM", value = "20ohms 1%", package = "0402", P1 = _USB_DM_INT, P2 = PA11)
-    Resistor(name = "R_USB_DP", value = "20ohms 1%", package = "0402", P1 = _USB_DP_INT, P2 = PA12)
-    Resistor(name = "R_USB_PULLUP", value = "4.7kohms 10%", package = "0402", P1 = PA12, P2 = VDD)
+    Resistor(name="R_USB_DM", value="20ohms 1%", package="0402", P1=_USB_DM_INT, P2=PA11)
+    Resistor(name="R_USB_DP", value="20ohms 1%", package="0402", P1=_USB_DP_INT, P2=PA12)
+    Resistor(name="R_USB_PULLUP", value="4.7kohms 10%", package="0402", P1=PA12, P2=VDD)
 
     # USB Power Regulation
     if power_from_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         TLV70033_SOT23_5(
-            name = "U_USB_REG",
-            VIN = VUSB,
-            VOUT = VDD,
-            GND = GND,
-            add_input_cap = True,
-            add_output_cap = True,
-            enable_control = False,
-            add_enable_pullup = False,
+            name="U_USB_REG",
+            VIN=VUSB,
+            VOUT=VDD,
+            GND=GND,
+            add_input_cap=True,
+            add_output_cap=True,
+            enable_control=False,
+            add_enable_pullup=False,
         )
 
 # SWD Header
-if add_swd_header:
-    PinHeader(
-        name = "J_SWD",
-        pins = 4,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = VDD,       # VDD
-        P2 = swd.SWDIO, # SWDIO
-        P3 = swd.SWCLK, # SWCLK
-        P4 = GND,       # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=4,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWDIO,  # SWDIO
+    P3=swd.SWCLK,  # SWCLK
+    P4=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # pcb:sch C_BULK.C x=943.8800 y=405.4000 rot=0
 # pcb:sch C_OSC1.C x=181.8800 y=786.4000 rot=90

@@ -1,10 +1,10 @@
 """INA228 - 85V, 20-Bit, Ultra-Precise Power/Energy/Charge Monitor With I2C Interface
 
-The INA228 is an ultra-precise digital power monitor with a 20-bit delta-sigma ADC 
-designed for current-sensing applications. It can measure shunt voltage, bus voltage, 
-and temperature while calculating current, power, energy, and charge. The device 
-supports a wide common-mode voltage range from -0.3V to +85V and operates from a 
-2.7V to 5.5V supply. Features include ±1µV offset voltage, 0.05% gain error, 
+The INA228 is an ultra-precise digital power monitor with a 20-bit delta-sigma ADC
+designed for current-sensing applications. It can measure shunt voltage, bus voltage,
+and temperature while calculating current, power, energy, and charge. The device
+supports a wide common-mode voltage range from -0.3V to +85V and operates from a
+2.7V to 5.5V supply. Features include ±1µV offset voltage, 0.05% gain error,
 integrated temperature sensor, and a high-speed I2C interface up to 2.94MHz.
 
 Author: @@anthropic/claude-opus-4
@@ -13,6 +13,8 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina228.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -20,26 +22,42 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Types
-I2cAddress = enum("0x40", "0x41", "0x42", "0x43", "0x44", "0x45", "0x46", "0x47", 
-                  "0x48", "0x49", "0x4A", "0x4B", "0x4C", "0x4D", "0x4E", "0x4F")
+I2cAddress = enum(
+    "0x40",
+    "0x41",
+    "0x42",
+    "0x43",
+    "0x44",
+    "0x45",
+    "0x46",
+    "0x47",
+    "0x48",
+    "0x49",
+    "0x4A",
+    "0x4B",
+    "0x4C",
+    "0x4D",
+    "0x4E",
+    "0x4F",
+)
 ShuntRange = enum("163.84mV", "40.96mV", "20.48mV", "10.24mV", "5.12mV", "2.56mV")
 AlertPullup = enum("1kohms", "2.2kohms", "4.7kohms", "10kohms")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_input_filtering = config("add_input_filtering", bool, default = True)
-add_overvoltage_protection = config("add_overvoltage_protection", bool, default = True)
-add_test_points = config("add_test_points", bool, default = False)
-add_bus_resistor = config("add_bus_resistor", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_input_filtering = config("add_input_filtering", bool, default=True)
+add_overvoltage_protection = config("add_overvoltage_protection", bool, default=True)
+add_test_points = config("add_test_points", bool, default=False)
+add_bus_resistor = config("add_bus_resistor", bool, default=True)
 
 # I2C configuration
-i2c_address = config("i2c_address", I2cAddress, default = "0x40")
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
-i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+i2c_address = config("i2c_address", I2cAddress, default="0x40")
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
+i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Alert configuration
-add_alert_pullup = config("add_alert_pullup", bool, default = True)
-alert_pullup_value = config("alert_pullup_value", AlertPullup, default = "10kohms")
+add_alert_pullup = config("add_alert_pullup", bool, default=True)
+alert_pullup_value = config("alert_pullup_value", AlertPullup, default="10kohms")
 
 # Determine address pin connections based on selected I2C address
 # Address mapping dictionary (INA228 uses same pattern as INA226/INA219)
@@ -66,27 +84,27 @@ address_map = {
 a1_conn, a0_conn = address_map[i2c_address]
 
 # Shunt resistor configuration
-shunt_resistance = config("shunt_resistance", str, default = "100mohms")
-shunt_range = config("shunt_range", ShuntRange, default = "163.84mV")
+shunt_resistance = config("shunt_resistance", Resistance, default="100mohms")
+shunt_range = config("shunt_range", ShuntRange, default="163.84mV")
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default = "10ohms")
-    input_filter_c = config("input_filter_c", str, default = "100nF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100nF")
 
 # Bus voltage divider configuration
 if add_bus_resistor:
-    bus_series_resistor = config("bus_series_resistor", str, default = "10ohms")
+    bus_series_resistor = config("bus_series_resistor", Resistance, default="10ohms")
 
 # External IO
-VS = io("VS", Power)  # Power supply (2.7-5.5V)
+VS = io("VS", Power, checks=voltage_within("2.7V to 5.5V"))  # Power supply (2.7-5.5V)
 GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)
 
 # Current sensing inputs
-VIN_PLUS = io("VIN+", Net)   # Connect to supply side of shunt resistor
+VIN_PLUS = io("VIN+", Net)  # Connect to supply side of shunt resistor
 VIN_MINUS = io("VIN-", Net)  # Connect to load side of shunt resistor
 
 # Bus voltage monitoring
@@ -102,7 +120,7 @@ _VBUS_FILT = Net("VBUS_FILT") if add_bus_resistor else VBUS
 
 # Address pin nets
 if a1_conn == "VS":
-    _A1 = VS.NET
+    _A1 = VS
 elif a1_conn == "SDA":
     _A1 = i2c.SDA
 elif a1_conn == "SCL":
@@ -111,7 +129,7 @@ else:  # GND
     _A1 = GND
 
 if a0_conn == "VS":
-    _A0 = VS.NET
+    _A0 = VS
 elif a0_conn == "SDA":
     _A0 = i2c.SDA
 elif a0_conn == "SCL":
@@ -121,123 +139,61 @@ else:  # GND
 
 # Main component
 Component(
-    name = "INA228",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Energy.kicad_sym", name = "INA228"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/VSSOP-10_3x3mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="INA228",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Energy.kicad_sym", name="INA228"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/VSSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins={
         "A1": _A1,
         "A0": _A0,
         "~{Alert}": ALERT,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
-        "VS": VS.NET,
+        "VS": VS,
         "GND": GND,
         "Vbus": _VBUS_FILT,
         "Vin-": _VIN_MINUS_FILT,
-        "Vin+": _VIN_PLUS_FILT
+        "Vin+": _VIN_PLUS_FILT,
     },
 )
 
 # Power supply decoupling
 if add_decoupling:
     # Local ceramic capacitor
-    Capacitor(
-        name = "C_VS",
-        value = "100nF",
-        voltage = "10V",
-        package = "0402",
-        P1 = VS.NET,
-        P2 = GND
-    )
-    
+    Capacitor(name="C_VS", value="100nF", voltage="10V", package="0402", P1=VS, P2=GND)
+
     # Bulk capacitor
-    Capacitor(
-        name = "C_BULK",
-        value = "1uF",
-        voltage = "10V",
-        package = "0603",
-        P1 = VS.NET,
-        P2 = GND
-    )
+    Capacitor(name="C_BULK", value="1uF", voltage="10V", package="0603", P1=VS, P2=GND)
 
 # Input filtering
 if add_input_filtering:
     # Series resistors for dV/dt protection
-    Resistor(
-        name = "R_IN_PLUS",
-        value = input_filter_r,
-        package = "0402",
-        P1 = VIN_PLUS,
-        P2 = _VIN_PLUS_FILT
-    )
-    
-    Resistor(
-        name = "R_IN_MINUS",
-        value = input_filter_r,
-        package = "0402",
-        P1 = VIN_MINUS,
-        P2 = _VIN_MINUS_FILT
-    )
-    
+    Resistor(name="R_IN_PLUS", value=input_filter_r, package="0402", P1=VIN_PLUS, P2=_VIN_PLUS_FILT)
+
+    Resistor(name="R_IN_MINUS", value=input_filter_r, package="0402", P1=VIN_MINUS, P2=_VIN_MINUS_FILT)
+
     # Filter capacitors
-    Capacitor(
-        name = "C_IN_PLUS",
-        value = input_filter_c,
-        voltage = "100V",
-        package = "0402",
-        P1 = _VIN_PLUS_FILT,
-        P2 = GND
-    )
-    
-    Capacitor(
-        name = "C_IN_MINUS",
-        value = input_filter_c,
-        voltage = "100V",
-        package = "0402",
-        P1 = _VIN_MINUS_FILT,
-        P2 = GND
-    )
+    Capacitor(name="C_IN_PLUS", value=input_filter_c, voltage="100V", package="0402", P1=_VIN_PLUS_FILT, P2=GND)
+
+    Capacitor(name="C_IN_MINUS", value=input_filter_c, voltage="100V", package="0402", P1=_VIN_MINUS_FILT, P2=GND)
 
 # Bus voltage protection resistor
-if add_bus_resistor:
-    Resistor(
-        name = "R_VBUS",
-        value = bus_series_resistor,
-        package = "0402",
-        P1 = VBUS,
-        P2 = _VBUS_FILT
-    )
+Resistor(name="R_VBUS", value=bus_series_resistor, package="0402", P1=VBUS, P2=_VBUS_FILT, dnp=not add_bus_resistor)
 
 # Overvoltage protection
 if add_overvoltage_protection:
     # TVS diode for bus voltage protection (85V abs max)
     Component(
-        name = "D_TVS",
-        symbol = Symbol(library = "@kicad-symbols/Diode.kicad_sym", name = "SMAJ75A"),
-        footprint = File("@kicad-footprints/Diode_SMD.pretty/D_SOD-123.kicad_mod"),
-        pins = {
-            "A1": VBUS,
-            "A2": GND
-        }
+        name="D_TVS",
+        symbol=Symbol(library="@kicad-symbols/Diode.kicad_sym", name="SMAJ75A"),
+        footprint=File("@kicad-footprints/Diode_SMD.pretty/D_SOD-123.kicad_mod"),
+        pins={"A1": VBUS, "A2": GND},
     )
 
 # I2C pull-up resistors
 if add_i2c_pullups:
-    Resistor(
-        name = "R_SDA",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SDA,
-        P2 = VS.NET
-    )
-    
-    Resistor(
-        name = "R_SCL",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SCL,
-        P2 = VS.NET
-    )
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VS)
+
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VS)
 
 # Alert pull-up
 if add_alert_pullup:
@@ -245,58 +201,32 @@ if add_alert_pullup:
         AlertPullup("1kohms"): "1kohms",
         AlertPullup("2.2kohms"): "2.2kohms",
         AlertPullup("4.7kohms"): "4.7kohms",
-        AlertPullup("10kohms"): "10kohms"
+        AlertPullup("10kohms"): "10kohms",
     }
-    
-    Resistor(
-        name = "R_ALERT",
-        value = alert_pullup_map[alert_pullup_value],
-        package = "0402",
-        P1 = ALERT,
-        P2 = VS.NET
-    )
+
+    Resistor(name="R_ALERT", value=alert_pullup_map[alert_pullup_value], package="0402", P1=ALERT, P2=VS)
 
 # External shunt resistor
 # Large power resistor for current sensing
 Resistor(
-    name = "R_SHUNT",
-    value = shunt_resistance,
-    package = "2512",  # Large SMD package for power handling
-    P1 = VIN_PLUS,
-    P2 = VIN_MINUS
+    name="R_SHUNT",
+    value=shunt_resistance,
+    package="2512",  # Large SMD package for power handling
+    P1=VIN_PLUS,
+    P2=VIN_MINUS,
 )
 
 # Test points
 if add_test_points:
-    TestPoint(
-        name = "TP_IN_PLUS",
-        variant = "Pad_D1.5mm",
-        P1 = VIN_PLUS
-    )
-    
-    TestPoint(
-        name = "TP_IN_MINUS",
-        variant = "Pad_D1.5mm",
-        P1 = VIN_MINUS
-    )
-    
-    TestPoint(
-        name = "TP_VBUS",
-        variant = "Pad_D1.5mm",
-        P1 = VBUS
-    )
-    
-    TestPoint(
-        name = "TP_ALERT",
-        variant = "Pad_D1.5mm",
-        P1 = ALERT
-    )
-    
-    TestPoint(
-        name = "TP_VS",
-        variant = "Pad_D1.5mm",
-        P1 = VS.NET
-    )
+    TestPoint(name="TP_IN_PLUS", variant="Pad_D1.5mm", P1=VIN_PLUS)
+
+    TestPoint(name="TP_IN_MINUS", variant="Pad_D1.5mm", P1=VIN_MINUS)
+
+    TestPoint(name="TP_VBUS", variant="Pad_D1.5mm", P1=VBUS)
+
+    TestPoint(name="TP_ALERT", variant="Pad_D1.5mm", P1=ALERT)
+
+    TestPoint(name="TP_VS", variant="Pad_D1.5mm", P1=VS)
 
 # Schematic Layout
 # pcb:sch INA228 x=100.6000 y=87.9000 rot=0

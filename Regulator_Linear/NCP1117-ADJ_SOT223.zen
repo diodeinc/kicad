@@ -1,18 +1,21 @@
 """NCP1117-ADJ - 1.0A Low-Dropout Positive Adjustable Voltage Regulator (SOT-223 Package)
 
-The NCP1117-ADJ is a low dropout positive voltage regulator capable of providing 
-an output current in excess of 1.0A with a maximum dropout voltage of 1.2V at 
-800mA. This adjustable output version can be programmed from 1.25V to 18.8V with 
-two external resistors. It features output current limiting, safe operating area 
-compensation, and thermal shutdown protection. The device can operate with up to 
-20V input and requires no minimum load for regulation. The SOT-223 package provides 
+The NCP1117-ADJ is a low dropout positive voltage regulator capable of providing
+an output current in excess of 1.0A with a maximum dropout voltage of 1.2V at
+800mA. This adjustable output version can be programmed from 1.25V to 18.8V with
+two external resistors. It features output current limiting, safe operating area
+compensation, and thermal shutdown protection. The device can operate with up to
+20V input and requires no minimum load for regulation. The SOT-223 package provides
 good thermal performance in a surface mount format.
 
 Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.onsemi.com/pdf/datasheet/ncp1117-d.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -25,22 +28,22 @@ OutputVoltage = enum("1.5V", "1.8V", "2.5V", "3.3V", "5.0V", "12V", "Custom")
 ProtectionDiodes = enum("None", "Input", "Output", "Full")
 
 # Configuration
-output_voltage = config("output_voltage", OutputVoltage, default = "3.3V")
+output_voltage = config("output_voltage", OutputVoltage, default="3.3V")
 if output_voltage == OutputVoltage("Custom"):
-    custom_r1 = config("custom_r1", str, default = "120ohm", optional = True)
-    custom_r2 = config("custom_r2", str, default = "196ohm", optional = True)
+    custom_r1 = config("custom_r1", Resistance, default="120ohm", optional=True)
+    custom_r2 = config("custom_r2", Resistance, default="196ohm", optional=True)
 
-add_input_cap = config("add_input_cap", bool, default = True)
-add_output_cap = config("add_output_cap", bool, default = True)
-add_bypass_cap = config("add_bypass_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
+add_output_cap = config("add_output_cap", bool, default=True)
+add_bypass_cap = config("add_bypass_cap", bool, default=True)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "10uF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="10uF")
 
-add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default = "Full")
-add_test_points = config("add_test_points", bool, default = True)
+add_protection_diodes = config("add_protection_diodes", ProtectionDiodes, default="Full")
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("1.25V to 18.8V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
@@ -49,14 +52,10 @@ _ADJ = Net("ADJ")
 
 # Main component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "NCP1117-ADJ_SOT223"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
-    pins = {
-        "VI": VIN,
-        "ADJ": _ADJ,
-        "VO": VOUT
-    },
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="NCP1117-ADJ_SOT223"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-223-3_TabPin2.kicad_mod"),
+    pins={"VI": VIN, "ADJ": _ADJ, "VO": VOUT},
 )
 
 # Calculate resistor values based on output voltage
@@ -87,107 +86,47 @@ else:  # Custom
 
 # Voltage setting resistors
 # R1 connects between VOUT and ADJ
-Resistor(
-    name = "R1",
-    value = r1_value,
-    package = "0603",
-    P1 = VOUT,
-    P2 = _ADJ
-)
+Resistor(name="R1", value=r1_value, package="0603", P1=VOUT, P2=_ADJ)
 
 # R2 connects between ADJ and GND
-Resistor(
-    name = "R2", 
-    value = r2_value,
-    package = "0603",
-    P1 = _ADJ,
-    P2 = GND
-)
+Resistor(name="R2", value=r2_value, package="0603", P1=_ADJ, P2=GND)
 
 # Input capacitor (10uF recommended if regulator is far from power source)
-if add_input_cap:
-    Capacitor(
-        name = "C_IN",
-        value = "10uF",
-        voltage = "25V",
-        package = "1206",
-        P1 = VIN,
-        P2 = GND
-    )
+Capacitor(name="C_IN", value="10uF", voltage="25V", package="1206", P1=VIN, P2=GND, dnp=not add_input_cap)
 
 # Output capacitor (required for stability, ESR must be between 33mΩ and 2.2Ω)
-if add_output_cap:
-    Capacitor(
-        name = "C_OUT",
-        value = "10uF",
-        voltage = "16V", 
-        package = "1206",
-        P1 = VOUT,
-        P2 = GND
-    )
+Capacitor(name="C_OUT", value="10uF", voltage="16V", package="1206", P1=VOUT, P2=GND, dnp=not add_output_cap)
 
 # ADJ bypass capacitor (improves ripple rejection)
-if add_bypass_cap:
-    Capacitor(
-        name = "C_ADJ",
-        value = bypass_cap_value,
-        voltage = "16V",
-        package = "0805",
-        P1 = _ADJ,
-        P2 = GND
-    )
+Capacitor(name="C_ADJ", value=bypass_cap_value, voltage="16V", package="0805", P1=_ADJ, P2=GND, dnp=not add_bypass_cap)
 
 # Protection diodes
 if add_protection_diodes != ProtectionDiodes("None"):
     # D1: Protects against input short when output cap > 50uF
     if add_protection_diodes == ProtectionDiodes("Input") or add_protection_diodes == ProtectionDiodes("Full"):
-        Diode(
-            name = "D1",
-            variant = "Standard",
-            package = "SMB",
-            v_r = "40V",
-            i_f = "1A",
-            A = VOUT,
-            K = VIN
-        )
-    
+        Diode(name="D1", variant="Standard", package="SMB", v_r="40V", i_f="1A", A=VOUT, K=VIN)
+
     # D2: Protects against output short when adjust cap > 1uF
     if add_protection_diodes == ProtectionDiodes("Output") or add_protection_diodes == ProtectionDiodes("Full"):
         Diode(
-            name = "D2",
-            variant = "Standard",
-            package = "SMB",
-            v_r = "40V",
-            i_f = "1A",
-            A = _ADJ,
-            K = VOUT,
+            name="D2",
+            variant="Standard",
+            package="SMB",
+            v_r="40V",
+            i_f="1A",
+            A=_ADJ,
+            K=VOUT,
         )
 
 # Test points
 if add_test_points:
-    TestPoint(
-        name = "TP_VIN",
-        variant = "Pad_1.0x1.0mm",
-        P1 = VIN
-    )
-    
-    TestPoint(
-        name = "TP_VOUT",
-        variant = "Pad_1.0x1.0mm",
-        P1 = VOUT
-    )
-    
-    TestPoint(
-        name = "TP_ADJ",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _ADJ
-    )
-    
-    TestPoint(
-        name = "TP_GND",
-        variant = "Pad_1.0x1.0mm",
-        P1 = GND
-    )
+    TestPoint(name="TP_VIN", variant="Pad_1.0x1.0mm", P1=VIN)
+
+    TestPoint(name="TP_VOUT", variant="Pad_1.0x1.0mm", P1=VOUT)
+
+    TestPoint(name="TP_ADJ", variant="Pad_1.0x1.0mm", P1=_ADJ)
+
+    TestPoint(name="TP_GND", variant="Pad_1.0x1.0mm", P1=GND)
 
 # PCB Layout hints (as comments for the designer)
 # pcb:sch U1 x=49.8000 y=-7.3500 rot=0

@@ -1,16 +1,16 @@
 """ADS7866 - 12-Bit, 200-kSPS, Micro-Power SAR ADC with SPI Interface
 
-The ADS7866 is a low power, miniature, 12-bit analog-to-digital converter (ADC) with a unipolar, 
-single-ended input. The device operates from a single 1.2V to 3.6V supply with up to 200-kSPS 
-throughput when VDD ≥ 1.6V, or 100-kSPS when VDD ≥ 1.2V. The converter features excellent 
-linearity (±1.5 LSB INL), low power consumption (1.39mW typ at 200kSPS, 3.6V), and automatic 
-power-down between conversions (8nA typ). The analog input range is 0V to VDD as the reference 
-is internally derived from the supply. The device interfaces through a high-speed SPI-compatible 
+The ADS7866 is a low power, miniature, 12-bit analog-to-digital converter (ADC) with a unipolar,
+single-ended input. The device operates from a single 1.2V to 3.6V supply with up to 200-kSPS
+throughput when VDD ≥ 1.6V, or 100-kSPS when VDD ≥ 1.2V. The converter features excellent
+linearity (±1.5 LSB INL), low power consumption (1.39mW typ at 200kSPS, 3.6V), and automatic
+power-down between conversions (8nA typ). The analog input range is 0V to VDD as the reference
+is internally derived from the supply. The device interfaces through a high-speed SPI-compatible
 serial interface and is available in a 6-pin SOT-23 package.
 
 Key features:
 - 12-bit resolution with no missing codes
-- 200kSPS at VDD ≥ 1.6V, 100kSPS at VDD ≥ 1.2V  
+- 200kSPS at VDD ≥ 1.6V, 100kSPS at VDD ≥ 1.2V
 - 71dB SNR, -83dB THD at fIN = 30kHz
 - Ultra-low power with auto power-down
 - 0V to VDD unipolar input range
@@ -24,6 +24,8 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7866.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -31,22 +33,22 @@ Capacitor = Module("@stdlib/generics/Capacitor.zen")
 TestPoint = Module("@stdlib/generics/TestPoint.zen")
 
 # Configuration options
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
-add_input_filtering = config("add_input_filtering", bool, default = True)
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
+add_input_filtering = config("add_input_filtering", bool, default=True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # Input filter configuration
 if add_input_filtering:
-    input_filter_r = config("input_filter_r", str, default = "100ohms")
-    input_filter_c = config("input_filter_c", str, default = "100pF")
+    input_filter_r = config("input_filter_r", Resistance, default="100ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="100pF")
 
 # Decoupling capacitor values
-decoupling_cap_value = config("decoupling_cap_value", str, default = "0.1uF")
+decoupling_cap_value = config("decoupling_cap_value", Capacitance, default="0.1uF")
 if add_decoupling_caps:
-    bulk_cap_value = config("bulk_cap_value", str, default = "10uF")
+    bulk_cap_value = config("bulk_cap_value", Capacitance, default="10uF")
 
 # External power supply
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("1.2V to 3.6V"))
 GND = io("GND", Ground)
 
 # SPI interface - using subset of standard SPI
@@ -63,97 +65,97 @@ else:
 
 # Main ADC component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS7866"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-    pins = {
-        "VDD": VDD.NET,        # Pin 1 - REF/VDD - Reference input and power supply 
-        "GND": GND,            # Pin 2 - GND - Ground
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Analog_ADC.kicad_sym", name="ADS7866"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+    pins={
+        "VDD": VDD,  # Pin 1 - REF/VDD - Reference input and power supply
+        "GND": GND,  # Pin 2 - GND - Ground
         "AIN": _AIN_FILTERED,  # Pin 3 - AIN - Analog signal input
-        "SCLK": spi.CLK,       # Pin 4 - SCLK - Serial clock input
-        "SDO": spi.MISO,       # Pin 5 - SDO - Serial data output (connects to MISO)
-        "~{CS}": spi.CS,       # Pin 6 - CS - Chip select (active low)
+        "SCLK": spi.CLK,  # Pin 4 - SCLK - Serial clock input
+        "SDO": spi.MISO,  # Pin 5 - SDO - Serial data output (connects to MISO)
+        "~{CS}": spi.CS,  # Pin 6 - CS - Chip select (active low)
     },
 )
 
 # Power supply decoupling - critical for ADC performance
 # Place 0.1µF ceramic capacitor as close as possible to VDD pin
 Capacitor(
-    name = "C_VDD",
-    value = decoupling_cap_value,
-    package = "0402",
-    dielectric = "X7R",
-    P1 = VDD.NET,
-    P2 = GND,
+    name="C_VDD",
+    value=decoupling_cap_value,
+    package="0402",
+    dielectric="X7R",
+    P1=VDD,
+    P2=GND,
 )
 
 # Additional bulk capacitance for power supply stability
-if add_decoupling_caps:
-    Capacitor(
-        name = "C_BULK",
-        value = bulk_cap_value,
-        package = "0805",
-        dielectric = "X5R",
-        P1 = VDD.NET,
-        P2 = GND,
-    )
+Capacitor(
+    name="C_BULK",
+    value=bulk_cap_value,
+    package="0805",
+    dielectric="X5R",
+    P1=VDD,
+    P2=GND,
+    dnp=not add_decoupling_caps,
+)
 
 # Input filter to reduce noise and limit bandwidth
 # RC filter helps meet the ADC's input capacitance charging requirements
 if add_input_filtering:
     Resistor(
-        name = "R_FILTER",
-        value = input_filter_r,
-        package = "0402",
-        P1 = AIN,
-        P2 = _AIN_FILTERED,
+        name="R_FILTER",
+        value=input_filter_r,
+        package="0402",
+        P1=AIN,
+        P2=_AIN_FILTERED,
     )
-    
+
     Capacitor(
-        name = "C_FILTER",
-        value = input_filter_c,
-        package = "0402",
-        dielectric = "C0G",  # C0G/NP0 for stability
-        P1 = _AIN_FILTERED,
-        P2 = GND,
+        name="C_FILTER",
+        value=input_filter_c,
+        package="0402",
+        dielectric="C0G",  # C0G/NP0 for stability
+        P1=_AIN_FILTERED,
+        P2=GND,
     )
 
 # Test points for debugging and measurement
 if add_test_points:
     TestPoint(
-        name = "TP_AIN",
-        variant = "Pad_D1.0mm",
-        P1 = _AIN_FILTERED,
-    )
-    
-    TestPoint(
-        name = "TP_VDD",
-        variant = "Pad_D1.0mm",
-        P1 = VDD.NET,
+        name="TP_AIN",
+        variant="Pad_D1.0mm",
+        P1=_AIN_FILTERED,
     )
 
     TestPoint(
-        name = "TP_GND",
-        variant = "Pad_D1.0mm",
-        P1 = GND,
+        name="TP_VDD",
+        variant="Pad_D1.0mm",
+        P1=VDD,
     )
 
     TestPoint(
-        name = "TP_SCLK",
-        variant = "Pad_D1.0mm",
-        P1 = spi.CLK,
+        name="TP_GND",
+        variant="Pad_D1.0mm",
+        P1=GND,
     )
 
     TestPoint(
-        name = "TP_SDO",
-        variant = "Pad_D1.0mm",
-        P1 = spi.MISO,
+        name="TP_SCLK",
+        variant="Pad_D1.0mm",
+        P1=spi.CLK,
     )
 
     TestPoint(
-        name = "TP_CS",
-        variant = "Pad_D1.0mm",
-        P1 = spi.CS,
+        name="TP_SDO",
+        variant="Pad_D1.0mm",
+        P1=spi.MISO,
+    )
+
+    TestPoint(
+        name="TP_CS",
+        variant="Pad_D1.0mm",
+        P1=spi.CS,
     )
 
 

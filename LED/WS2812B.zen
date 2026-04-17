@@ -1,10 +1,10 @@
 """WS2812B - Intelligent RGB LED with integrated controller
 
-The WS2812B is an intelligent control LED light source that integrates control circuit 
-and RGB chip in a single 5050 package. Each LED contains an intelligent digital port 
-data latch and signal reshaping amplification drive circuit, along with a precision 
-internal oscillator and programmable constant current control. The LED uses single-wire 
-NZR communication at 800 Kbps and can be cascaded with automatic signal reshaping. 
+The WS2812B is an intelligent control LED light source that integrates control circuit
+and RGB chip in a single 5050 package. Each LED contains an intelligent digital port
+data latch and signal reshaping amplification drive circuit, along with a precision
+internal oscillator and programmable constant current control. The LED uses single-wire
+NZR communication at 800 Kbps and can be cascaded with automatic signal reshaping.
 Each pixel provides 24-bit color (8 bits per channel) for 16.7 million colors total.
 
 Key features:
@@ -20,26 +20,23 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("4.5V to 5.5V"))
 GND = io("GND", Ground)
 DIN = io("DIN", Net)
 DOUT = io("DOUT", Net)
 
 # WS2812B LED Component
 Component(
-    name = "LED",
-    symbol = Symbol(library = "@kicad-symbols/LED.kicad_sym", name = "WS2812B"),
-    footprint = File("@kicad-footprints/LED_SMD.pretty/LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm.kicad_mod"),
-    pins = {
-        "DIN": DIN,
-        "DOUT": DOUT,
-        "VDD": VDD,
-        "VSS": GND
-    },
+    name="LED",
+    symbol=Symbol(library="@kicad-symbols/LED.kicad_sym", name="WS2812B"),
+    footprint=File("@kicad-footprints/LED_SMD.pretty/LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm.kicad_mod"),
+    pins={"DIN": DIN, "DOUT": DOUT, "VDD": VDD, "VSS": GND},
 )
 
 

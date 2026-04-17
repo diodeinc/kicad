@@ -1,11 +1,11 @@
 """Si5351B-B - I²C Programmable Any-Frequency CMOS Clock Generator with VCXO
 
-The Si5351B is an I²C configurable clock generator that can generate up to 8 
-non-integer-related frequencies from 2.5 kHz to 200 MHz. It features an internal 
-VCXO for generating voltage-controlled clocks and uses a low-cost 25 or 27 MHz 
-crystal as a reference. The device includes spread spectrum capability for EMI 
-reduction, programmable output drive strength, and operates from 2.5V or 3.3V 
-core supply with independent output voltage supplies (1.8V, 2.5V, or 3.3V) for 
+The Si5351B is an I²C configurable clock generator that can generate up to 8
+non-integer-related frequencies from 2.5 kHz to 200 MHz. It features an internal
+VCXO for generating voltage-controlled clocks and uses a low-cost 25 or 27 MHz
+crystal as a reference. The device includes spread spectrum capability for EMI
+reduction, programmable output drive strength, and operates from 2.5V or 3.3V
+core supply with independent output voltage supplies (1.8V, 2.5V, or 3.3V) for
 level translation.
 
 Author: @anthropic/claude-opus-4
@@ -14,6 +14,7 @@ Datasheet: https://www.skyworksinc.com/Products/Timing/CMOS-Clock-Generators
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -27,43 +28,43 @@ VcxoConfig = enum("None", "Basic", "Filtered")
 OutputBankConfig = enum("Disabled", "1.8V", "2.5V", "3.3V")
 
 # Configuration
-crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
-add_external_load_caps = config("add_external_load_caps", bool, default = False)
+crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
+add_external_load_caps = config("add_external_load_caps", bool, default=False)
 if add_external_load_caps:
-    crystal_load_cap = config("crystal_load_cap", str, default = "10pF")
+    crystal_load_cap = config("crystal_load_cap", Capacitance, default="10pF")
 else:
     crystal_load_cap = None
 
 # VCXO configuration
-vcxo_config = config("vcxo_config", VcxoConfig, default = "Filtered")
+vcxo_config = config("vcxo_config", VcxoConfig, default="Filtered")
 if vcxo_config != VcxoConfig("None"):
-    add_vcxo_test_point = config("add_vcxo_test_point", bool, default = True, optional = True)
+    add_vcxo_test_point = config("add_vcxo_test_point", bool, default=True, optional=True)
 else:
     add_vcxo_test_point = False
 
 # I2C configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 else:
     i2c_pullup_value = None
 
 # Decoupling configuration
-add_core_decoupling = config("add_core_decoupling", bool, default = True)
+add_core_decoupling = config("add_core_decoupling", bool, default=True)
 if add_core_decoupling:
-    add_bulk_cap = config("add_bulk_cap", bool, default = True, optional = True)
+    add_bulk_cap = config("add_bulk_cap", bool, default=True, optional=True)
 else:
     add_bulk_cap = False
 
 # Output bank configuration
-vddoa_config = config("vddoa_config", OutputBankConfig, default = "3.3V")
-vddob_config = config("vddob_config", OutputBankConfig, default = "3.3V")
-vddoc_config = config("vddoc_config", OutputBankConfig, default = "3.3V")
-vddod_config = config("vddod_config", OutputBankConfig, default = "3.3V")
+vddoa_config = config("vddoa_config", OutputBankConfig, default="3.3V")
+vddob_config = config("vddob_config", OutputBankConfig, default="3.3V")
+vddoc_config = config("vddoc_config", OutputBankConfig, default="3.3V")
+vddod_config = config("vddod_config", OutputBankConfig, default="3.3V")
 
 # Control pin configuration
-add_oeb_pullup = config("add_oeb_pullup", bool, default = True)
-add_ssen_pulldown = config("add_ssen_pulldown", bool, default = True)
+add_oeb_pullup = config("add_oeb_pullup", bool, default=True)
+add_ssen_pulldown = config("add_ssen_pulldown", bool, default=True)
 
 # External IO
 VDD = io("VDD", Power)
@@ -73,8 +74,8 @@ GND = io("GND", Ground)
 i2c = io("I2C", I2c)
 
 # Control pins
-OEB = io("OEB", Net, optional = True)  # Output Enable (active low)
-SSEN = io("SSEN", Net, optional = True)  # Spread Spectrum Enable
+OEB = io("OEB", Net, optional=True)  # Output Enable (active low)
+SSEN = io("SSEN", Net, optional=True)  # Spread Spectrum Enable
 
 # VCXO control voltage
 VC = io("VC", Net)
@@ -91,22 +92,22 @@ CLK7 = io("CLK7", Net)
 
 # Output voltage supplies (conditionally exposed)
 if vddoa_config != OutputBankConfig("Disabled"):
-    VDDOA = io("VDDOA", Power, optional = True)
+    VDDOA = io("VDDOA", Power, optional=True)
 else:
     VDDOA = None
 
 if vddob_config != OutputBankConfig("Disabled"):
-    VDDOB = io("VDDOB", Power, optional = True)
+    VDDOB = io("VDDOB", Power, optional=True)
 else:
     VDDOB = None
 
 if vddoc_config != OutputBankConfig("Disabled"):
-    VDDOC = io("VDDOC", Power, optional = True)
+    VDDOC = io("VDDOC", Power, optional=True)
 else:
     VDDOC = None
 
 if vddod_config != OutputBankConfig("Disabled"):
-    VDDOD = io("VDDOD", Power, optional = True)
+    VDDOD = io("VDDOD", Power, optional=True)
 else:
     VDDOD = None
 
@@ -116,12 +117,13 @@ _XB = Net("XB")
 _OEB = OEB if OEB else Net("OEB_INT")
 _SSEN = SSEN if SSEN else Net("SSEN_INT")
 
+
 # Handle output voltage supplies
 def get_vddo_net(config_value, io_power):
     if config_value == OutputBankConfig("Disabled"):
-        return VDD.NET  # Tie to VDD if disabled
+        return VDD  # Tie to VDD if disabled
     elif io_power:
-        return io_power.NET
+        return io_power
     else:
         # Create internal supply if not exposed
         if config_value == OutputBankConfig("1.8V"):
@@ -129,7 +131,8 @@ def get_vddo_net(config_value, io_power):
         elif config_value == OutputBankConfig("2.5V"):
             return Net("VDDO_2V5")
         else:  # 3.3V
-            return VDD.NET
+            return VDD
+
 
 _VDDOA = get_vddo_net(vddoa_config, VDDOA)
 _VDDOB = get_vddo_net(vddob_config, VDDOB)
@@ -138,10 +141,10 @@ _VDDOD = get_vddo_net(vddod_config, VDDOD)
 
 # I2C Programmable Any-Frequency CMOS Clock Generator + VCXO, QFN-20
 Component(
-    name = "Si5351B-B",
-    symbol = Symbol(library = "@kicad-symbols/Oscillator.kicad_sym", name = "Si5351B-B-GM"),
-    footprint = File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-20-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.kicad_mod"),
-    pins = {
+    name="Si5351B-B",
+    symbol=Symbol(library="@kicad-symbols/Oscillator.kicad_sym", name="Si5351B-B-GM"),
+    footprint=File("@kicad-footprints/Package_DFN_QFN.pretty/QFN-20-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.kicad_mod"),
+    pins={
         "XA": _XA,
         "XB": _XB,
         "VC": VC,
@@ -149,7 +152,7 @@ Component(
         "SCL": i2c.SCL,
         "SSEN": _SSEN,
         "OEB": _OEB,
-        "VDD": VDD.NET,
+        "VDD": VDD,
         "VDDOA": _VDDOA,
         "VDDOB": _VDDOB,
         "VDDOC": _VDDOC,
@@ -173,70 +176,69 @@ else:  # 27MHz
     freq_value = "27MHz"
 
 Crystal(
-    name = "Y1",
-    frequency = freq_value,
-    package = "3225_4Pin",
-    XIN = _XA,
-    XOUT = _XB,
-    GND = GND,
+    name="Y1",
+    frequency=freq_value,
+    package="3225_4Pin",
+    XIN=_XA,
+    XOUT=_XB,
+    GND=GND,
 )
 
 # Crystal load capacitors
 if add_external_load_caps:
-    Capacitor(name = "C_XTAL1", value = crystal_load_cap, package = "0402", P1 = _XA, P2 = GND)
-    Capacitor(name = "C_XTAL2", value = crystal_load_cap, package = "0402", P1 = _XB, P2 = GND)
+    Capacitor(name="C_XTAL1", value=crystal_load_cap, package="0402", P1=_XA, P2=GND)
+    Capacitor(name="C_XTAL2", value=crystal_load_cap, package="0402", P1=_XB, P2=GND)
 
 # Core power supply decoupling
 if add_core_decoupling:
-    Capacitor(name = "C_VDD", value = "100nF", package = "0402", P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
 
-    if add_bulk_cap:
-        Capacitor(name = "C_BULK", value = "10uF", package = "0805", P1 = VDD.NET, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package="0805", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Output bank decoupling capacitors
 if vddoa_config != OutputBankConfig("Disabled"):
-    Capacitor(name = "C_VDDOA", value = "100nF", package = "0402", P1 = _VDDOA, P2 = GND)
+    Capacitor(name="C_VDDOA", value="100nF", package="0402", P1=_VDDOA, P2=GND)
 
 if vddob_config != OutputBankConfig("Disabled"):
-    Capacitor(name = "C_VDDOB", value = "100nF", package = "0402", P1 = _VDDOB, P2 = GND)
+    Capacitor(name="C_VDDOB", value="100nF", package="0402", P1=_VDDOB, P2=GND)
 
 if vddoc_config != OutputBankConfig("Disabled"):
-    Capacitor(name = "C_VDDOC", value = "100nF", package = "0402", P1 = _VDDOC, P2 = GND)
+    Capacitor(name="C_VDDOC", value="100nF", package="0402", P1=_VDDOC, P2=GND)
 
 if vddod_config != OutputBankConfig("Disabled"):
-    Capacitor(name = "C_VDDOD", value = "100nF", package = "0402", P1 = _VDDOD, P2 = GND)
+    Capacitor(name="C_VDDOD", value="100nF", package="0402", P1=_VDDOD, P2=GND)
 
 # I2C pull-up resistors
 if add_i2c_pullups:
-    Resistor(name = "R_SCL", value = i2c_pullup_value, package = "0402", P1 = i2c.SCL, P2 = VDD.NET)
-    Resistor(name = "R_SDA", value = i2c_pullup_value, package = "0402", P1 = i2c.SDA, P2 = VDD.NET)
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=i2c.SCL, P2=VDD)
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=i2c.SDA, P2=VDD)
 
 # Control pin configuration
 if add_oeb_pullup and not OEB:
     # Pull-up on OEB to enable outputs by default (active low)
-    Resistor(name = "R_OEB", value = "10kohms", package = "0402", P1 = _OEB, P2 = VDD.NET)
+    Resistor(name="R_OEB", value="10kohms", package="0402", P1=_OEB, P2=VDD)
 
 if add_ssen_pulldown and not SSEN:
     # Pull-down on SSEN to disable spread spectrum by default
-    Resistor(name = "R_SSEN", value = "10kohms", package = "0402", P1 = _SSEN, P2 = GND)
+    Resistor(name="R_SSEN", value="10kohms", package="0402", P1=_SSEN, P2=GND)
 
 # VCXO control voltage circuit
 if vcxo_config == VcxoConfig("Basic"):
     # Basic VCXO input with decoupling
-    Capacitor(name = "C_VC", value = "100nF", package = "0402", P1 = VC, P2 = GND)
+    Capacitor(name="C_VC", value="100nF", package="0402", P1=VC, P2=GND)
 
 elif vcxo_config == VcxoConfig("Filtered"):
     # Filtered VCXO input for better noise performance
     _VC_FILT = Net("VC_FILT")
 
     # RC filter for VCXO control voltage
-    Resistor(name = "R_VC", value = "100ohms", package = "0402", P1 = VC, P2 = _VC_FILT)
-    Capacitor(name = "C_VC1", value = "100nF", package = "0402", P1 = _VC_FILT, P2 = GND)
-    Capacitor(name = "C_VC2", value = "10nF", package = "0402", P1 = _VC_FILT, P2 = GND)
+    Resistor(name="R_VC", value="100ohms", package="0402", P1=VC, P2=_VC_FILT)
+    Capacitor(name="C_VC1", value="100nF", package="0402", P1=_VC_FILT, P2=GND)
+    Capacitor(name="C_VC2", value="10nF", package="0402", P1=_VC_FILT, P2=GND)
 
 # VCXO test point
 if add_vcxo_test_point and vcxo_config != VcxoConfig("None"):
-    TestPoint(name = "TP_VC", variant = "THTPad_D1.5mm_Drill0.7mm", P1 = VC)
+    TestPoint(name="TP_VC", variant="THTPad_D1.5mm_Drill0.7mm", P1=VC)
 
 # PCB schematic positions
 # pcb:sch Si5351B-B x=583.2000 y=253.0000 rot=0

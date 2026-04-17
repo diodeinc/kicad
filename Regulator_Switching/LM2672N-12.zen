@@ -1,7 +1,7 @@
 """LM2672N-12 - SIMPLE SWITCHER® 12V, 1A Step-Down Voltage Regulator
 
 The LM2672N-12 is a monolithic integrated DC-DC converter providing a fixed 12V output
-with up to 1A load current capability. It features high efficiency (up to 96%), 260kHz 
+with up to 1A load current capability. It features high efficiency (up to 96%), 260kHz
 fixed frequency operation, and requires only 5 external components. The device includes
 internal frequency compensation, soft-start capability, frequency synchronization, and
 comprehensive protection features including thermal shutdown and current limiting.
@@ -12,7 +12,9 @@ Author: @anthropic/claude-opus-4
 Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2672.pdf
 """
+
 load("@stdlib/interfaces.zen", "Power", "Ground")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -27,27 +29,27 @@ SyncMode = enum("Internal", "External")
 
 # Configuration
 # Protection and filtering
-add_input_protection = config("add_input_protection", bool, default = True)
-add_output_filtering = config("add_output_filtering", bool, default = True)
-add_input_bulk_cap = config("add_input_bulk_cap", bool, default = True)
+add_input_protection = config("add_input_protection", bool, default=True)
+add_output_filtering = config("add_output_filtering", bool, default=True)
+add_input_bulk_cap = config("add_input_bulk_cap", bool, default=True)
 
 # Shutdown control
-shutdown_control = config("shutdown_control", ShutdownControl, default = "PullUp")
+shutdown_control = config("shutdown_control", ShutdownControl, default="PullUp")
 
 # Soft-start configuration
-soft_start_time = config("soft_start_time", SoftStartTime, default = "10ms")
+soft_start_time = config("soft_start_time", SoftStartTime, default="10ms")
 
 # Synchronization configuration
-sync_mode = config("sync_mode", SyncMode, default = "External")
+sync_mode = config("sync_mode", SyncMode, default="External")
 
 # Component optimization
-optimize_for_size = config("optimize_for_size", bool, default = False)
+optimize_for_size = config("optimize_for_size", bool, default=False)
 
 # Test points
-add_test_points = config("add_test_points", bool, default = True)
+add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power)
+VIN = io("VIN", Power, checks=voltage_within("15V to 40V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
@@ -66,9 +68,9 @@ else:
     _SYNC = Net("SYNC")
 
 # Internal nets
-_VSW = Net("VSW")       # Switch output
-_CB = Net("CB")         # Bootstrap capacitor
-_SS = Net("SS")         # Soft-start
+_VSW = Net("VSW")  # Switch output
+_CB = Net("CB")  # Bootstrap capacitor
+_SS = Net("SS")  # Soft-start
 
 # Set up internal VIN net (will be connected through fuse if protection is enabled)
 if add_input_protection:
@@ -78,10 +80,10 @@ else:
 
 # Main component - 12V, 1A Step-Down Voltage Regulator, DIP-8
 Component(
-    name = "LM2672N-12",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Switching.kicad_sym", name = "LM2672N-12"),
-    footprint = File("@kicad-footprints/Package_DIP.pretty/DIP-8_W7.62mm.kicad_mod"),
-    pins = {
+    name="LM2672N-12",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Switching.kicad_sym", name="LM2672N-12"),
+    footprint=File("@kicad-footprints/Package_DIP.pretty/DIP-8_W7.62mm.kicad_mod"),
+    pins={
         "VIN": _VIN_INT,  # Uses fused VIN if protection enabled
         "SS": _SS,
         "SYNC": _SYNC,
@@ -89,51 +91,36 @@ Component(
         "GND": GND,
         "FB": VOUT,  # Direct connection for fixed voltage version
         "CB": _CB,
-        "VSW": _VSW
+        "VSW": _VSW,
     },
 )
 
 # Bootstrap capacitor - Required for gate drive
-Capacitor(
-    name = "C_BOOST",
-    value = "10nF",
-    voltage = "50V",
-    package = "0603",
-    P1 = _CB,
-    P2 = _VSW
-)
+Capacitor(name="C_BOOST", value="10nF", voltage="50V", package="0603", P1=_CB, P2=_VSW)
 
 # Output inductor
 # Using custom component for high current handling (>1A)
 # Recommended value: 68uH for typical 20-30V input range
 Component(
-    name = "L_OUT",
-    symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "L"),
-    footprint = File("@kicad-footprints/Inductor_SMD.pretty/L_Bourns_SRR1260.kicad_mod"),  # 12.5x12.5mm, high current
-    pins = {
-        "1": _VSW,
-        "2": VOUT
-    },
-    properties = {
-        "Value": "68uH",
-        "Current": "1.5A",
-        "DCR": "0.15ohm",
-        "Part_Number": "SRR1260-680M"
-    }
+    name="L_OUT",
+    symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="L"),
+    footprint=File("@kicad-footprints/Inductor_SMD.pretty/L_Bourns_SRR1260.kicad_mod"),  # 12.5x12.5mm, high current
+    pins={"1": _VSW, "2": VOUT},
+    properties={"Value": "68uH", "Current": "1.5A", "DCR": "0.15ohm", "Part_Number": "SRR1260-680M"},
 )
 
 # Catch diode - IR 30WQ05F Schottky for efficiency
 # 50V, 3A Schottky diode with low forward voltage
 Diode(
-    name = "D_CATCH",
-    variant = "Schottky",
-    package = "SMC",
-    mpn = "IR 30WQ05F",
-    v_r = "50V",
-    i_f = "3A",
-    v_f = "0.55V",  # at 3A
-    A = GND,
-    K = _VSW
+    name="D_CATCH",
+    variant="Schottky",
+    package="SMC",
+    mpn="IR 30WQ05F",
+    v_r="50V",
+    i_f="3A",
+    v_f="0.55V",  # at 3A
+    A=GND,
+    K=_VSW,
 )
 
 # Input capacitor
@@ -141,28 +128,24 @@ Diode(
 if add_input_bulk_cap:
     # Using custom component for electrolytic capacitor
     Component(
-        name = "C_IN_BULK",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "C_Polarized"),
-        footprint = File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_10x10.5.kicad_mod"),
-        pins = {
+        name="C_IN_BULK",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="C_Polarized"),
+        footprint=File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_10x10.5.kicad_mod"),
+        pins={
             "1": _VIN_INT,  # Connect to internal VIN (after fuse if present)
-            "2": GND
+            "2": GND,
         },
-        properties = {
-            "Value": "100uF",
-            "Voltage": "50V",
-            "Dielectric": "Electrolytic"
-        }
+        properties={"Value": "100uF", "Voltage": "50V", "Dielectric": "Electrolytic"},
     )
 
 # High frequency input bypass
 Capacitor(
-    name = "C_IN_HF",
-    value = "1uF",
-    voltage = "50V",
-    package = "1206",  # Ceramic
-    P1 = _VIN_INT,  # Connect to internal VIN (after fuse if present)
-    P2 = GND
+    name="C_IN_HF",
+    value="1uF",
+    voltage="50V",
+    package="1206",  # Ceramic
+    P1=_VIN_INT,  # Connect to internal VIN (after fuse if present)
+    P2=GND,
 )
 
 # Output capacitors
@@ -170,57 +153,35 @@ Capacitor(
 if optimize_for_size:
     # Tantalum capacitor for smaller size
     Component(
-        name = "C_OUT1",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "C_Polarized"),
-        footprint = File("@kicad-footprints/Capacitor_Tantalum_SMD.pretty/CP_EIA-7343-31_Kemet-D.kicad_mod"),
-        pins = {
-            "1": VOUT,
-            "2": GND
-        },
-        properties = {
-            "Value": "47uF",
-            "Voltage": "25V",
-            "Dielectric": "Tantalum"
-        }
+        name="C_OUT1",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="C_Polarized"),
+        footprint=File("@kicad-footprints/Capacitor_Tantalum_SMD.pretty/CP_EIA-7343-31_Kemet-D.kicad_mod"),
+        pins={"1": VOUT, "2": GND},
+        properties={"Value": "47uF", "Voltage": "25V", "Dielectric": "Tantalum"},
     )
 else:
     # Low ESR electrolytic for better performance
     Component(
-        name = "C_OUT1",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "C_Polarized"),
-        footprint = File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_8x10.5.kicad_mod"),
-        pins = {
-            "1": VOUT,
-            "2": GND
-        },
-        properties = {
-            "Value": "100uF",
-            "Voltage": "25V",
-            "Dielectric": "Electrolytic",
-            "ESR": "Low"
-        }
+        name="C_OUT1",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="C_Polarized"),
+        footprint=File("@kicad-footprints/Capacitor_SMD.pretty/CP_Elec_8x10.5.kicad_mod"),
+        pins={"1": VOUT, "2": GND},
+        properties={"Value": "100uF", "Voltage": "25V", "Dielectric": "Electrolytic", "ESR": "Low"},
     )
 
 # High frequency output bypass
-Capacitor(
-    name = "C_OUT_HF",
-    value = "100nF",
-    voltage = "25V",
-    package = "0603",
-    P1 = VOUT,
-    P2 = GND
-)
+Capacitor(name="C_OUT_HF", value="100nF", voltage="25V", package="0603", P1=VOUT, P2=GND)
 
 # Additional output filtering
-if add_output_filtering:
-    Capacitor(
-        name = "C_OUT2",
-        value = "10uF",
-        voltage = "25V",
-        package = "1206",  # Ceramic
-        P1 = VOUT,
-        P2 = GND
-    )
+Capacitor(
+    name="C_OUT2",
+    value="10uF",
+    voltage="25V",
+    package="1206",  # Ceramic
+    P1=VOUT,
+    P2=GND,
+    dnp=not add_output_filtering,
+)
 
 # Feedback connection is direct to VOUT (handled in component pins)
 
@@ -235,93 +196,64 @@ if soft_start_time != SoftStartTime("None"):
         ss_cap_value = "22nF"
     else:  # 20ms
         ss_cap_value = "47nF"
-    
-    Capacitor(
-        name = "C_SS",
-        value = ss_cap_value,
-        voltage = "10V",
-        package = "0603",
-        P1 = _SS,
-        P2 = GND
-    )
+
+    Capacitor(name="C_SS", value=ss_cap_value, voltage="10V", package="0603", P1=_SS, P2=GND)
 
 # Shutdown control
 # The ON/OFF pin is active high (device is ON when pin is high)
 if shutdown_control == ShutdownControl("PullUp"):
     # Pull-up resistor for always-on operation
     Resistor(
-        name = "R_ONOFF",
-        value = "100kohms",
-        package = "0603",
-        P1 = _ON_OFF,
-        P2 = _VIN_INT  # Use internal VIN for proper power sequencing
+        name="R_ONOFF",
+        value="100kohms",
+        package="0603",
+        P1=_ON_OFF,
+        P2=_VIN_INT,  # Use internal VIN for proper power sequencing
     )
 elif shutdown_control == ShutdownControl("PullDown"):
     # Pull-down resistor for always-off operation (requires external signal to turn on)
-    Resistor(
-        name = "R_ONOFF",
-        value = "100kohms",
-        package = "0603",
-        P1 = _ON_OFF,
-        P2 = GND
-    )
+    Resistor(name="R_ONOFF", value="100kohms", package="0603", P1=_ON_OFF, P2=GND)
 # UserDefined: External control signal connected directly to ON_OFF pin
 
 # External sync circuit
 if sync_mode == SyncMode("External"):
     # AC coupling capacitor
-    Capacitor(
-        name = "C_SYNC",
-        value = "100pF",
-        voltage = "50V",
-        package = "0603",
-        P1 = SYNC,
-        P2 = _SYNC
-    )
-    
+    Capacitor(name="C_SYNC", value="100pF", voltage="50V", package="0603", P1=SYNC, P2=_SYNC)
+
     # Pull-down resistor
-    Resistor(
-        name = "R_SYNC",
-        value = "1kohms",
-        package = "0603",
-        P1 = _SYNC,
-        P2 = GND
-    )
+    Resistor(name="R_SYNC", value="1kohms", package="0603", P1=_SYNC, P2=GND)
 
 # Input protection
 if add_input_protection:
     # Input TVS diode for transient protection
     # Using Zener as TVS is not available in the generic
     Diode(
-        name = "D_TVS",
-        variant = "Zener",
-        package = "SMC",
-        v_r = "43V",  # For 40V max input
-        A = GND,
-        K = VIN
+        name="D_TVS",
+        variant="Zener",
+        package="SMC",
+        v_r="43V",  # For 40V max input
+        A=GND,
+        K=VIN,
     )
-    
+
     # Input fuse holder (optional)
     Component(
-        name = "F_IN",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Fuse"),
-        footprint = File("@kicad-footprints/Fuse.pretty/Fuse_1206_3216Metric.kicad_mod"),
-        pins = {
+        name="F_IN",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="Fuse"),
+        footprint=File("@kicad-footprints/Fuse.pretty/Fuse_1206_3216Metric.kicad_mod"),
+        pins={
             "1": VIN,  # External VIN input
-            "2": _VIN_INT  # Fused output to internal circuits
+            "2": _VIN_INT,  # Fused output to internal circuits
         },
-        properties = {
-            "Current": "2A",
-            "Type": "Fast"
-        }
+        properties={"Current": "2A", "Type": "Fast"},
     )
 
 # Test points
 if add_test_points:
-    TestPoint(name = "TP_VIN", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VIN)
-    TestPoint(name = "TP_VSW", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = _VSW)
-    TestPoint(name = "TP_VOUT", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = VOUT)
-    TestPoint(name = "TP_GND", variant = "THTPad_D1.0mm_Drill0.5mm", P1 = GND)
+    TestPoint(name="TP_VIN", variant="THTPad_D1.0mm_Drill0.5mm", P1=VIN)
+    TestPoint(name="TP_VSW", variant="THTPad_D1.0mm_Drill0.5mm", P1=_VSW)
+    TestPoint(name="TP_VOUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=VOUT)
+    TestPoint(name="TP_GND", variant="THTPad_D1.0mm_Drill0.5mm", P1=GND)
 
 # pcb:sch LM2672N-12 x=1269.0000 y=1269.0000 rot=0
 # pcb:sch C_BOOST.C x=1553.4800 y=1307.1000 rot=270

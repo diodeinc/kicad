@@ -1,10 +1,10 @@
 """AP2112K-3.3 - 600mA Low Dropout Linear Regulator with Enable
 
-The AP2112K-3.3 is a CMOS process low dropout linear regulator with enable function, 
-delivering a guaranteed 600mA (min.) continuous load current. It features a fixed 3.3V 
-output with ±1.5% accuracy, low dropout voltage of 250mV typical at 600mA, and excellent 
-line/load regulation. The device includes auto-discharge functionality, connecting the 
-output to ground via 60Ω when disabled. It operates from 2.5V to 6.0V input with low 
+The AP2112K-3.3 is a CMOS process low dropout linear regulator with enable function,
+delivering a guaranteed 600mA (min.) continuous load current. It features a fixed 3.3V
+output with ±1.5% accuracy, low dropout voltage of 250mV typical at 600mA, and excellent
+line/load regulation. The device includes auto-discharge functionality, connecting the
+output to ground via 60Ω when disabled. It operates from 2.5V to 6.0V input with low
 quiescent current of 55µA typical and ultra-low standby current of 0.01µA typical.
 
 Author: @anthropic/claude-opus-4
@@ -13,6 +13,8 @@ Datasheet: https://www.diodes.com/assets/Datasheets/AP2112.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -27,52 +29,52 @@ EnableControl = enum("AlwaysOn", "PullUp", "PullDown", "None")
 InputFilterType = enum("None", "RC", "LC", "FerriteBead")
 
 # Configuration
-add_input_cap = config("add_input_cap", bool, default = True)
+add_input_cap = config("add_input_cap", bool, default=True)
 if add_input_cap:
-    input_cap_value = config("input_cap_value", str, default = "10uF")
-    
-add_output_cap = config("add_output_cap", bool, default = True)
+    input_cap_value = config("input_cap_value", Capacitance, default="10uF")
+
+add_output_cap = config("add_output_cap", bool, default=True)
 # Output capacitor configuration - only if output cap is enabled
 if add_output_cap:
-    output_cap_value = config("output_cap_value", str, default = "10uF")
+    output_cap_value = config("output_cap_value", Capacitance, default="10uF")
 
 
-add_bypass_cap = config("add_bypass_cap", bool, default = False)
+add_bypass_cap = config("add_bypass_cap", bool, default=False)
 if add_bypass_cap:
-    bypass_cap_value = config("bypass_cap_value", str, default = "100nF")
+    bypass_cap_value = config("bypass_cap_value", Capacitance, default="100nF")
 
 # Enable pin configuration
-enable_control = config("enable_control", EnableControl, default = "AlwaysOn")
+enable_control = config("enable_control", EnableControl, default="AlwaysOn")
 if enable_control == EnableControl("PullUp"):
-    enable_pullup_value = config("enable_pullup_value", str, default = "10kohms")
+    enable_pullup_value = config("enable_pullup_value", Resistance, default="10kohms")
 elif enable_control == EnableControl("PullDown"):
-    enable_pulldown_value = config("enable_pulldown_value", str, default = "10kohms")
+    enable_pulldown_value = config("enable_pulldown_value", Resistance, default="10kohms")
 
 # Input filtering
-input_filter_type = config("input_filter_type", InputFilterType, default = "None")
+input_filter_type = config("input_filter_type", InputFilterType, default="None")
 if input_filter_type == InputFilterType("RC"):
-    input_filter_r = config("input_filter_r", str, default = "10ohms")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    input_filter_r = config("input_filter_r", Resistance, default="10ohms")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 elif input_filter_type == InputFilterType("LC"):
-    input_filter_l = config("input_filter_l", str, default = "4.7uH")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    input_filter_l = config("input_filter_l", Inductance, default="4.7uH")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 elif input_filter_type == InputFilterType("FerriteBead"):
-    ferrite_bead_impedance = config("ferrite_bead_impedance", str, default = "600ohms@100MHz")
-    input_filter_c = config("input_filter_c", str, default = "10uF")
+    ferrite_bead_impedance = config("ferrite_bead_impedance", Resistance, default="600ohms@100MHz")
+    input_filter_c = config("input_filter_c", Capacitance, default="10uF")
 
-    
+
 # Additional bulk capacitor configuration
-add_output_bulk_cap = config("add_output_bulk_cap", bool, default = False, optional = True)
+add_output_bulk_cap = config("add_output_bulk_cap", bool, default=False, optional=True)
 if add_output_bulk_cap:
-    output_bulk_cap_value = config("output_bulk_cap_value", str, default = "10uF")
+    output_bulk_cap_value = config("output_bulk_cap_value", Capacitance, default="10uF")
 
 # Additional features
-add_power_good_led = config("add_power_good_led", bool, default = False, optional = True)
-add_test_points = config("add_test_points", bool, default = False, optional = True)
+add_power_good_led = config("add_power_good_led", bool, default=False, optional=True)
+add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IO
-VIN = io("VIN", Power, default = Power("VIN"))
-VOUT = io("VOUT", Power, default = Power("VOUT"))
+VIN = io("VIN", Power, default=Power("VIN"), checks=voltage_within("2.5V to 6V"))
+VOUT = io("VOUT", Power, default=Power("VOUT"))
 GND = io("GND", Ground)
 
 # Enable pin handling based on configuration
@@ -82,66 +84,66 @@ if enable_control != EnableControl("AlwaysOn"):
     _EN = EN
 
 # Internal nets
-_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN.NET
+_VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN
 _NC = NotConnected()  # No connect pin
 
 # Main regulator component
 Component(
-    name = "U1",
-    symbol = Symbol(library = "@kicad-symbols/Regulator_Linear.kicad_sym", name = "AP2112K-3.3"),
-    footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
-    pins = {
+    name="U1",
+    symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="AP2112K-3.3"),
+    footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
+    pins={
         "VIN": _VIN_FILT,
         "EN": _VIN_FILT if enable_control == EnableControl("AlwaysOn") else _EN,
         "GND": GND,
         "NC": _NC,
-        "VOUT": VOUT.NET
+        "VOUT": VOUT,
     },
 )
 
 # Input filtering
 if input_filter_type == InputFilterType("RC"):
-    Resistor(name = "R_FILT", value = input_filter_r, package = "0603", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
-    
+    Resistor(name="R_FILT", value=input_filter_r, package="0603", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
+
 elif input_filter_type == InputFilterType("LC"):
-    Inductor(name = "L_FILT", value = input_filter_l, package = "1210", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
-    
+    Inductor(name="L_FILT", value=input_filter_l, package="1210", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
+
 elif input_filter_type == InputFilterType("FerriteBead"):
-    FerriteBead(name = "FB_IN", package = "0805", P1 = VIN.NET, P2 = _VIN_FILT)
-    Capacitor(name = "C_FILT", value = input_filter_c, package = "0805", P1 = _VIN_FILT, P2 = GND)
+    FerriteBead(name="FB_IN", package="0805", P1=VIN, P2=_VIN_FILT)
+    Capacitor(name="C_FILT", value=input_filter_c, package="0805", P1=_VIN_FILT, P2=GND)
 
 # Input capacitor (recommended minimum 1uF ceramic)
 if add_input_cap:
-    Capacitor(name = "C_IN", value = input_cap_value, package = "0603", P1 = _VIN_FILT, P2 = GND)
-    
+    Capacitor(name="C_IN", value=input_cap_value, package="0603", P1=_VIN_FILT, P2=GND)
+
 # Bypass capacitor for improved noise performance
 if add_bypass_cap:
-    Capacitor(name = "C_BYP", value = bypass_cap_value, package = "0402", P1 = _VIN_FILT, P2 = GND)
+    Capacitor(name="C_BYP", value=bypass_cap_value, package="0402", P1=_VIN_FILT, P2=GND)
 
 # Output capacitor (minimum 1uF, stable with ceramic capacitors)
 if add_output_cap:
     # Use X7R or X5R dielectric ceramic as recommended
-    Capacitor(name = "C_OUT", value = output_cap_value, package = "0603", P1 = VOUT.NET, P2 = GND)
+    Capacitor(name="C_OUT", value=output_cap_value, package="0603", P1=VOUT, P2=GND)
 
 # Additional bulk output capacitor
 if add_output_bulk_cap:
-    Capacitor(name = "C_BULK", value = output_bulk_cap_value, package = "0805", P1 = VOUT.NET, P2 = GND)
+    Capacitor(name="C_BULK", value=output_bulk_cap_value, package="0805", P1=VOUT, P2=GND)
 
 # Enable pin configuration
 if enable_control == EnableControl("AlwaysOn"):
     # Already tied to VIN through _VIN_FILT in component definition
     pass
-    
+
 elif enable_control == EnableControl("PullUp"):
     # Pull-up resistor to VIN for default on state
-    Resistor(name = "R_EN_PU", value = enable_pullup_value, package = "0402", P1 = _EN, P2 = VIN.NET)
-    
+    Resistor(name="R_EN_PU", value=enable_pullup_value, package="0402", P1=_EN, P2=VIN)
+
 elif enable_control == EnableControl("PullDown"):
     # Pull-down resistor for default off state
-    Resistor(name = "R_EN_PD", value = enable_pulldown_value, package = "0402", P1 = _EN, P2 = GND)
-    
+    Resistor(name="R_EN_PD", value=enable_pulldown_value, package="0402", P1=_EN, P2=GND)
+
 elif enable_control == EnableControl("None"):
     # No pull-up or pull-down, enable pin is left floating
     pass
@@ -150,21 +152,21 @@ elif enable_control == EnableControl("None"):
 if add_power_good_led:
     _LED_K = Net("LED_K")
     Led(
-        name = "LED_PWR",
-        color = "green",
-        package = "0603",
-        A = VOUT.NET,
-        K = _LED_K,
+        name="LED_PWR",
+        color="green",
+        package="0603",
+        A=VOUT,
+        K=_LED_K,
     )
     # LED current limiting resistor for 3.3V
     # Assuming 2V LED forward voltage, 5mA current: R = (3.3-2)/0.005 = 260Ω
-    Resistor(name = "R_LED", value = "270ohms", package = "0402", P1 = _LED_K, P2 = GND)
+    Resistor(name="R_LED", value="270ohms", package="0402", P1=_LED_K, P2=GND)
 
 # Test points for debugging
 if add_test_points:
-    TestPoint(name = "TP_VIN", variant = "Pad_D2.0mm", P1 = VIN.NET)
-    TestPoint(name = "TP_VOUT", variant = "Pad_D2.0mm", P1 = VOUT.NET)
-    TestPoint(name = "TP_GND", variant = "Pad_D2.0mm", P1 = GND)
+    TestPoint(name="TP_VIN", variant="Pad_D2.0mm", P1=VIN)
+    TestPoint(name="TP_VOUT", variant="Pad_D2.0mm", P1=VOUT)
+    TestPoint(name="TP_GND", variant="Pad_D2.0mm", P1=GND)
 
 # pcb:sch C_BYP.C x=-21.3200 y=341.9000 rot=0
 # pcb:sch C_IN.C x=-110.2200 y=341.9000 rot=0

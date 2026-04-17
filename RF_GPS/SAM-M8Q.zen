@@ -1,12 +1,12 @@
 """SAM-M8Q - Easy-to-use u-blox M8 GNSS antenna module
 
-The SAM-M8Q is a concurrent GNSS patch antenna module featuring the exceptional 
-u-blox M8 multi-GNSS engine. It provides concurrent reception of up to three GNSS 
-systems (GPS, Galileo, GLONASS) in a compact 15.5x15.5x6.3mm form factor with an 
-integrated patch antenna. The module includes a front-end SAW filter, LNA, and 
-TCXO for optimal performance. It supports various augmentation systems (SBAS, QZSS, 
-GAGAN, IMES), AssistNow services, and features like geofencing, spoofing detection, 
-and message integrity protection. The module operates from 2.7V to 3.6V and provides 
+The SAM-M8Q is a concurrent GNSS patch antenna module featuring the exceptional
+u-blox M8 multi-GNSS engine. It provides concurrent reception of up to three GNSS
+systems (GPS, Galileo, GLONASS) in a compact 15.5x15.5x6.3mm form factor with an
+integrated patch antenna. The module includes a front-end SAW filter, LNA, and
+TCXO for optimal performance. It supports various augmentation systems (SBAS, QZSS,
+GAGAN, IMES), AssistNow services, and features like geofencing, spoofing detection,
+and message integrity protection. The module operates from 2.7V to 3.6V and provides
 UART and I2C interfaces.
 
 Author: @anthropic/claude-opus-4
@@ -15,6 +15,7 @@ Datasheet: https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground", "NotConnected")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -26,26 +27,26 @@ TestPoint = Module("@stdlib/generics/TestPoint.zen")
 InterfaceMode = enum("UART", "I2C", "Both")
 
 # Configuration
-interface_mode = config("interface_mode", InterfaceMode, default = "Both")
-add_backup_battery = config("add_backup_battery", bool, default = False)
-add_pulse_led = config("add_pulse_led", bool, default = True)
+interface_mode = config("interface_mode", InterfaceMode, default="Both")
+add_backup_battery = config("add_backup_battery", bool, default=False)
+add_pulse_led = config("add_pulse_led", bool, default=True)
 
 if interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("Both"):
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 else:
-    add_i2c_pullups = config("add_i2c_pullups", bool, default = False)
+    add_i2c_pullups = config("add_i2c_pullups", bool, default=False)
 
 if interface_mode == InterfaceMode("UART") or interface_mode == InterfaceMode("Both"):
-    add_uart_esd = config("add_uart_esd", bool, default = True)
+    add_uart_esd = config("add_uart_esd", bool, default=True)
 else:
-    add_uart_esd = config("add_uart_esd", bool, default = False)
-    
-add_decoupling = config("add_decoupling", bool, default = True)
-enable_safeboot_pins = config("enable_safeboot_pins", bool, default = True)
+    add_uart_esd = config("add_uart_esd", bool, default=False)
+
+add_decoupling = config("add_decoupling", bool, default=True)
+enable_safeboot_pins = config("enable_safeboot_pins", bool, default=True)
 
 # External IO
-VCC = io("VCC", Power)
-VCC_IO = io("VCC_IO", Net, default = VCC.NET)
+VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
+VCC_IO = io("VCC_IO", Net, default=VCC)
 GND = io("GND", Ground)
 
 # Interface IO
@@ -56,8 +57,8 @@ if interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("Bo
     i2c = io("i2c", I2c)
 
 # Optional outputs
-TIMEPULSE = io("TIMEPULSE", Net, optional = True)
-EXTINT = io("EXTINT", Net, optional = True)
+TIMEPULSE = io("TIMEPULSE", Net, optional=True)
+EXTINT = io("EXTINT", Net, optional=True)
 
 # Internal nets
 _V_BCKP = io("V_BCKP", Net) if add_backup_battery else VCC_IO
@@ -83,10 +84,10 @@ else:  # Both
 
 # Main component
 Component(
-    name = "SAM_M8Q",
-    symbol = Symbol(library = "@kicad-symbols/RF_GPS.kicad_sym", name = "SAM-M8Q"),
-    footprint = File("@kicad-footprints/RF_GPS.pretty/ublox_SAM-M8Q.kicad_mod"),
-    pins = {
+    name="SAM_M8Q",
+    symbol=Symbol(library="@kicad-symbols/RF_GPS.kicad_sym", name="SAM-M8Q"),
+    footprint=File("@kicad-footprints/RF_GPS.pretty/ublox_SAM-M8Q.kicad_mod"),
+    pins={
         "GND": GND,
         "VCC_IO": VCC_IO,
         "V_BCKP": _V_BCKP,
@@ -99,28 +100,15 @@ Component(
         "VCC": VCC,
         "~{RESET}": _RESET_N,
         "EXTINT": EXTINT if EXTINT else NotConnected(),
-    }
+    },
 )
 
 # Backup battery circuit
 if add_backup_battery:
     # Connect backup to VCC_IO through resistor
-    Resistor(
-        name = "R_BACKUP",
-        value = "10ohms",
-        package = "0603",
-        P1 = VCC_IO,
-        P2 = _V_BCKP
-    )
+    Resistor(name="R_BACKUP", value="10ohms", package="0603", P1=VCC_IO, P2=_V_BCKP)
     # Backup capacitor
-    Capacitor(
-        name = "C_BACKUP",
-        value = "1uF",
-        voltage = "6.3V",
-        package = "0603",
-        P1 = _V_BCKP,
-        P2 = GND
-    )
+    Capacitor(name="C_BACKUP", value="1uF", voltage="6.3V", package="0603", P1=_V_BCKP, P2=GND)
 else:
     # Connect V_BCKP directly to VCC_IO
     _V_BCKP = VCC_IO
@@ -128,142 +116,49 @@ else:
 # Pulse LED on TIMEPULSE
 if add_pulse_led and TIMEPULSE:
     _LED_A = Net("LED_A")
-    Led(
-        name = "LED_PULSE",
-        color = "green",
-        package = "0603",
-        A = _LED_A,
-        K = GND
-    )
-    Resistor(
-        name = "R_LED",
-        value = "1kohms",
-        package = "0603",
-        P1 = _LED_A,
-        P2 = TIMEPULSE
-    )
+    Led(name="LED_PULSE", color="green", package="0603", A=_LED_A, K=GND)
+    Resistor(name="R_LED", value="1kohms", package="0603", P1=_LED_A, P2=TIMEPULSE)
 
 # I2C pull-ups
 if add_i2c_pullups and (interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("Both")):
-    Resistor(
-        name = "R_SDA",
-        value = "4.7kohms",
-        package = "0603",
-        P1 = _SDA,
-        P2 = VCC_IO
-    )
-    
-    Resistor(
-        name = "R_SCL",
-        value = "4.7kohms",
-        package = "0603",
-        P1 = _SCL,
-        P2 = VCC_IO
-    )
+    Resistor(name="R_SDA", value="4.7kohms", package="0603", P1=_SDA, P2=VCC_IO)
+
+    Resistor(name="R_SCL", value="4.7kohms", package="0603", P1=_SCL, P2=VCC_IO)
 
 # UART ESD protection
 if add_uart_esd and (interface_mode == InterfaceMode("UART") or interface_mode == InterfaceMode("Both")):
     _ESD_TX = Net("ESD_TX")
     _ESD_RX = Net("ESD_RX")
-    Resistor(
-        name = "R_ESD_TX",
-        value = "480ohms",
-        package = "0603",
-        P1 = _ESD_TX,
-        P2 = _TXD
-    )
-    Resistor(
-        name = "R_ESD_RX",
-        value = "480ohms",
-        package = "0603",
-        P1 = _ESD_RX,
-        P2 = _RXD
-    )
+    Resistor(name="R_ESD_TX", value="480ohms", package="0603", P1=_ESD_TX, P2=_TXD)
+    Resistor(name="R_ESD_RX", value="480ohms", package="0603", P1=_ESD_RX, P2=_RXD)
 # Decoupling capacitors
 if add_decoupling:
     # VCC bulk capacitor
-    Capacitor(
-        name = "C_VCC_BULK",
-        value = "10uF",
-        voltage = "6.3V",
-        package = "0805",
-        P1 = VCC,
-        P2 = GND
-    )
-    
+    Capacitor(name="C_VCC_BULK", value="10uF", voltage="6.3V", package="0805", P1=VCC, P2=GND)
+
     # VCC decoupling
-    Capacitor(
-        name = "C_VCC",
-        value = "100nF",
-        voltage = "6.3V",
-        package = "0603",
-        P1 = VCC,
-        P2 = GND
-    )
-    
+    Capacitor(name="C_VCC", value="100nF", voltage="6.3V", package="0603", P1=VCC, P2=GND)
+
     # VCC_IO decoupling
-    Capacitor(
-        name = "C_VCC_IO",
-        value = "100nF",
-        voltage = "6.3V",
-        package = "0603",
-        P1 = VCC_IO,
-        P2 = GND
-    )
+    Capacitor(name="C_VCC_IO", value="100nF", voltage="6.3V", package="0603", P1=VCC_IO, P2=GND)
 
 # Enable safeboot pins with test points
 if enable_safeboot_pins:
     # RESET pull-up and test point
-    Resistor(
-        name = "R_RESET",
-        value = "10kohms",
-        package = "0603",
-        P1 = _RESET_N,
-        P2 = VCC_IO
-    )
-    TestPoint(
-        name = "TP_RESET",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _RESET_N
-    )
-    
+    Resistor(name="R_RESET", value="10kohms", package="0603", P1=_RESET_N, P2=VCC_IO)
+    TestPoint(name="TP_RESET", variant="Pad_1.0x1.0mm", P1=_RESET_N)
+
     # SAFEBOOT pull-up and test point
-    Resistor(
-        name = "R_SAFEBOOT",
-        value = "10kohms",
-        package = "0603",
-        P1 = _SAFEBOOT_N,
-        P2 = VCC_IO
-    )
-    TestPoint(
-        name = "TP_SAFEBOOT",
-        variant = "Pad_1.0x1.0mm",
-        P1 = _SAFEBOOT_N
-    )
-    
+    Resistor(name="R_SAFEBOOT", value="10kohms", package="0603", P1=_SAFEBOOT_N, P2=VCC_IO)
+    TestPoint(name="TP_SAFEBOOT", variant="Pad_1.0x1.0mm", P1=_SAFEBOOT_N)
+
     # EXTINT test point if used
     if EXTINT:
-        TestPoint(
-            name = "TP_EXTINT",
-            variant = "Pad_1.0x1.0mm",
-            P1 = EXTINT
-        )
+        TestPoint(name="TP_EXTINT", variant="Pad_1.0x1.0mm", P1=EXTINT)
 else:
     # Just pull-ups without test points
-    Resistor(
-        name = "R_RESET",
-        value = "10kohms",
-        package = "0603",
-        P1 = _RESET_N,
-        P2 = VCC_IO
-    )
-    Resistor(
-        name = "R_SAFEBOOT",
-        value = "10kohms",
-        package = "0603",
-        P1 = _SAFEBOOT_N,
-        P2 = VCC_IO
-    )
+    Resistor(name="R_RESET", value="10kohms", package="0603", P1=_RESET_N, P2=VCC_IO)
+    Resistor(name="R_SAFEBOOT", value="10kohms", package="0603", P1=_SAFEBOOT_N, P2=VCC_IO)
 
 # pcb:sch C_VCC.C x=-224.5200 y=621.3000 rot=0
 # pcb:sch C_VCC_BULK.C x=-351.5200 y=621.3000 rot=0

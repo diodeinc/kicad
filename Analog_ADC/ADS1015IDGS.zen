@@ -1,12 +1,12 @@
 """ADS1015 - Ultra-Small, Low-Power, 12-Bit, 3.3kSPS ADC with I2C Interface
 
-The ADS1015 is a precision, low-power, 12-bit, I2C-compatible analog-to-digital converter (ADC) 
-offered in an ultra-small leadless X2QFN-10 package (1.5mm × 2mm), SOT-10 (2.9mm × 2.8mm), 
-and VSSOP-10 (3mm × 4.9mm). The device incorporates a low-drift voltage reference and an 
-oscillator. The ADS1015 also incorporates a programmable gain amplifier (PGA) and a digital 
-comparator. It features 4 single-ended or 2 differential input channels with a programmable 
+The ADS1015 is a precision, low-power, 12-bit, I2C-compatible analog-to-digital converter (ADC)
+offered in an ultra-small leadless X2QFN-10 package (1.5mm × 2mm), SOT-10 (2.9mm × 2.8mm),
+and VSSOP-10 (3mm × 4.9mm). The device incorporates a low-drift voltage reference and an
+oscillator. The ADS1015 also incorporates a programmable gain amplifier (PGA) and a digital
+comparator. It features 4 single-ended or 2 differential input channels with a programmable
 data rate from 128 to 3300 samples per second. The PGA offers input ranges from ±256mV to ±6.144V.
-Key features include 12-bit resolution with no missing codes, ultra-low power consumption 
+Key features include 12-bit resolution with no missing codes, ultra-low power consumption
 (150µA continuous mode), wide supply range (2.0V to 5.5V), and internal oscillator.
 
 The I2C address is pin-selectable with 4 options:
@@ -21,6 +21,8 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads1015.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,7 +36,7 @@ AlertMode = enum("Disabled", "Comparator", "ConversionReady")
 # I2C address mapping - maps I2C address to ADDR pin connection
 # According to datasheet Table 7-2:
 # GND -> 0x48 (1001000b)
-# VDD -> 0x49 (1001001b) 
+# VDD -> 0x49 (1001001b)
 # SDA -> 0x4A (1001010b)
 # SCL -> 0x4B (1001011b)
 address_map = {
@@ -45,30 +47,30 @@ address_map = {
 }
 
 # Configuration
-add_bulk_caps = config("add_bulk_caps", bool, default = True)
-add_decoupling_caps = config("add_decoupling_caps", bool, default = True)
-add_analog_filtering = config("add_analog_filtering", bool, default = True)
-add_test_points = config("add_test_points", bool, default = True, optional = True)
+add_bulk_caps = config("add_bulk_caps", bool, default=True)
+add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
+add_analog_filtering = config("add_analog_filtering", bool, default=True)
+add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # I2C address configuration
-i2c_address = config("i2c_address", I2cAddress, default = I2cAddress("0x48"))
+i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x48"))
 
 # Alert/Ready pin configuration
-alert_mode = config("alert_mode", AlertMode, default = "Comparator")
-add_alert_pullup = config("add_alert_pullup", bool, default = True)
+alert_mode = config("alert_mode", AlertMode, default="Comparator")
+add_alert_pullup = config("add_alert_pullup", bool, default=True)
 
 # I2C interface configuration
-add_i2c_pullups = config("add_i2c_pullups", bool, default = True)
+add_i2c_pullups = config("add_i2c_pullups", bool, default=True)
 if add_i2c_pullups:
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "4.7kohms")
+    i2c_pullup_value = config("i2c_pullup_value", Resistance, default="4.7kohms")
 
 # Filter configuration for analog inputs
 if add_analog_filtering:
-    filter_r_value = config("filter_r_value", str, default = "100ohms")
-    filter_c_value = config("filter_c_value", str, default = "100pF")
+    filter_r_value = config("filter_r_value", Resistance, default="100ohms")
+    filter_c_value = config("filter_c_value", Capacitance, default="100pF")
 
 # External power supply
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -101,7 +103,7 @@ _addr_pin_connection = address_map[i2c_address]
 if _addr_pin_connection == "GND":
     _ADDR_NET = GND
 elif _addr_pin_connection == "VDD":
-    _ADDR_NET = VDD.NET
+    _ADDR_NET = VDD
 elif _addr_pin_connection == "SDA":
     _ADDR_NET = i2c.SDA
 else:  # SCL
@@ -109,15 +111,15 @@ else:  # SCL
 
 # Main component
 Component(
-    name = "ADS1015",
-    symbol = Symbol(library = "@kicad-symbols/Analog_ADC.kicad_sym", name = "ADS1015IDGS"),
-    footprint = File("@kicad-footprints/Package_SO.pretty/TSSOP-10_3x3mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="ADS1015",
+    symbol=Symbol(library="@kicad-symbols/Analog_ADC.kicad_sym", name="ADS1015IDGS"),
+    footprint=File("@kicad-footprints/Package_SO.pretty/TSSOP-10_3x3mm_P0.5mm.kicad_mod"),
+    pins={
         "AIN0": _AIN0_FILTERED,
         "AIN1": _AIN1_FILTERED,
         "AIN2": _AIN2_FILTERED,
         "AIN3": _AIN3_FILTERED,
-        "VDD": VDD.NET,
+        "VDD": VDD,
         "GND": GND,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
@@ -129,181 +131,189 @@ Component(
 # Power supply decoupling - as per datasheet recommendation
 # 0.1µF decoupling capacitor close to VDD pin
 Capacitor(
-    name = "C_VDD",
-    value = "0.1uF",
-    package = "0402",
-    P1 = VDD.NET,
-    P2 = GND,
+    name="C_VDD",
+    value="0.1uF",
+    package="0402",
+    P1=VDD,
+    P2=GND,
 )
 
 if add_decoupling_caps:
     # Additional high-frequency decoupling
     Capacitor(
-        name = "C_VDD_HF",
-        value = "1nF",
-        package = "0402",
-        P1 = VDD.NET,
-        P2 = GND,
+        name="C_VDD_HF",
+        value="1nF",
+        package="0402",
+        P1=VDD,
+        P2=GND,
     )
 
 # Additional bulk capacitance for better power stability
-if add_bulk_caps:
-    Capacitor(
-        name = "C_VDD_BULK",
-        value = "10uF",
-        package = "0805",
-        P1 = VDD.NET,
-        P2 = GND,
-    )
+Capacitor(
+    name="C_VDD_BULK",
+    value="10uF",
+    package="0805",
+    P1=VDD,
+    P2=GND,
+    dnp=not add_bulk_caps,
+)
 
 # I2C pull-up resistors
 if add_i2c_pullups:
     Resistor(
-        name = "R_SCL_PULLUP",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SCL,
-        P2 = VDD.NET,
+        name="R_SCL_PULLUP",
+        value=i2c_pullup_value,
+        package="0402",
+        P1=i2c.SCL,
+        P2=VDD,
     )
-    
+
     Resistor(
-        name = "R_SDA_PULLUP",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = i2c.SDA,
-        P2 = VDD.NET,
+        name="R_SDA_PULLUP",
+        value=i2c_pullup_value,
+        package="0402",
+        P1=i2c.SDA,
+        P2=VDD,
     )
 
 # Alert/Ready pin pull-up
 if alert_mode != AlertMode("Disabled") and add_alert_pullup:
     Resistor(
-        name = "R_ALERT_PULLUP",
-        value = "10kohms",
-        package = "0402",
-        P1 = ALERT_RDY,
-        P2 = VDD.NET,
+        name="R_ALERT_PULLUP",
+        value="10kohms",
+        package="0402",
+        P1=ALERT_RDY,
+        P2=VDD,
     )
 
 # Input filtering for all analog inputs
 if add_analog_filtering:
     # AIN0 filter
     Resistor(
-        name = "R_FILTER_0",
-        value = filter_r_value,
-        package = "0402",
-        P1 = AIN0,
-        P2 = _AIN0_FILTERED,
+        name="R_FILTER_0",
+        value=filter_r_value,
+        package="0402",
+        P1=AIN0,
+        P2=_AIN0_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_0",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _AIN0_FILTERED,
-        P2 = GND,
+        name="C_FILTER_0",
+        value=filter_c_value,
+        package="0402",
+        P1=_AIN0_FILTERED,
+        P2=GND,
         # C0G/NPO dielectric recommended for stability
     )
-    
+
     # AIN1 filter
     Resistor(
-        name = "R_FILTER_1",
-        value = filter_r_value,
-        package = "0402",
-        P1 = AIN1,
-        P2 = _AIN1_FILTERED,
+        name="R_FILTER_1",
+        value=filter_r_value,
+        package="0402",
+        P1=AIN1,
+        P2=_AIN1_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_1",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _AIN1_FILTERED,
-        P2 = GND,
+        name="C_FILTER_1",
+        value=filter_c_value,
+        package="0402",
+        P1=_AIN1_FILTERED,
+        P2=GND,
         # C0G/NPO dielectric recommended for stability
     )
-    
+
     # AIN2 filter
     Resistor(
-        name = "R_FILTER_2",
-        value = filter_r_value,
-        package = "0402",
-        P1 = AIN2,
-        P2 = _AIN2_FILTERED,
+        name="R_FILTER_2",
+        value=filter_r_value,
+        package="0402",
+        P1=AIN2,
+        P2=_AIN2_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_2",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _AIN2_FILTERED,
-        P2 = GND,
+        name="C_FILTER_2",
+        value=filter_c_value,
+        package="0402",
+        P1=_AIN2_FILTERED,
+        P2=GND,
         # C0G/NPO dielectric recommended for stability
     )
-    
+
     # AIN3 filter
     Resistor(
-        name = "R_FILTER_3",
-        value = filter_r_value,
-        package = "0402",
-        P1 = AIN3,
-        P2 = _AIN3_FILTERED,
+        name="R_FILTER_3",
+        value=filter_r_value,
+        package="0402",
+        P1=AIN3,
+        P2=_AIN3_FILTERED,
     )
     Capacitor(
-        name = "C_FILTER_3",
-        value = filter_c_value,
-        package = "0402",
-        P1 = _AIN3_FILTERED,
-        P2 = GND,
+        name="C_FILTER_3",
+        value=filter_c_value,
+        package="0402",
+        P1=_AIN3_FILTERED,
+        P2=GND,
         # C0G/NPO dielectric recommended for stability
     )
 
 # Test points for debugging
 if add_test_points:
     TestPoint(
-        name = "TP_AIN0",
-        variant = "Pad_D1.0mm",
-        P1 = _AIN0_FILTERED,
+        name="TP_AIN0",
+        variant="Pad_D1.0mm",
+        P1=_AIN0_FILTERED,
     )
     TestPoint(
-        name = "TP_AIN1",
-        variant = "Pad_D1.0mm",
-        P1 = _AIN1_FILTERED,
+        name="TP_AIN1",
+        variant="Pad_D1.0mm",
+        P1=_AIN1_FILTERED,
     )
     TestPoint(
-        name = "TP_AIN2",
-        variant = "Pad_D1.0mm",
-        P1 = _AIN2_FILTERED,
+        name="TP_AIN2",
+        variant="Pad_D1.0mm",
+        P1=_AIN2_FILTERED,
     )
     TestPoint(
-        name = "TP_AIN3",
-        variant = "Pad_D1.0mm",
-        P1 = _AIN3_FILTERED,
+        name="TP_AIN3",
+        variant="Pad_D1.0mm",
+        P1=_AIN3_FILTERED,
     )
-    
+
     if alert_mode != AlertMode("Disabled"):
         TestPoint(
-            name = "TP_ALERT",
-            variant = "Pad_D1.0mm",
-            P1 = ALERT_RDY,
+            name="TP_ALERT",
+            variant="Pad_D1.0mm",
+            P1=ALERT_RDY,
         )
 
 # pcb:sch ADS1015 x=176.8000 y=684.8000 rot=0
+# pcb:sch AIN0.0 x=-273.6003 y=780.2880 rot=0
+# pcb:sch AIN1.0 x=-184.7003 y=805.6880 rot=0
+# pcb:sch AIN2.0 x=-95.8003 y=831.0880 rot=0
+# pcb:sch AIN3.0 x=-6.9003 y=856.4880 rot=0
+# pcb:sch ALERT_RDY.0 x=734.5378 y=754.8880 rot=-180
 # pcb:sch C_FILTER_0.C x=-122.9200 y=608.6000 rot=180
 # pcb:sch C_FILTER_1.C x=-34.0200 y=608.6000 rot=180
 # pcb:sch C_FILTER_2.C x=54.8800 y=608.6000 rot=180
 # pcb:sch C_FILTER_3.C x=143.7800 y=608.6000 rot=180
-# pcb:sch C_VDD.C x=664.4800 y=761.0000 rot=0
-# pcb:sch C_VDD_BULK.C x=766.0800 y=761.0000 rot=0
-# pcb:sch C_VDD_HF.C x=854.9800 y=761.0000 rot=0
+# pcb:sch C_VDD.C x=664.4800 y=507.0000 rot=0
+# pcb:sch C_VDD_BULK.C x=766.0800 y=507.0000 rot=0
+# pcb:sch C_VDD_HF.C x=854.9800 y=507.0000 rot=0
+# pcb:sch GND.0 x=773.7000 y=621.3000 rot=0
+# pcb:sch GND.1 x=265.7000 y=951.5000 rot=0
+# pcb:sch GND.2 x=11.7000 y=545.1000 rot=0
+# pcb:sch I2C_SCL.0 x=763.5663 y=805.6880 rot=-180
+# pcb:sch I2C_SDA.0 x=762.9616 y=831.0880 rot=-180
+# pcb:sch R_ALERT_PULLUP.R x=433.3400 y=595.9000 rot=180
 # pcb:sch R_FILTER_0.R x=-163.5600 y=748.3000 rot=270
 # pcb:sch R_FILTER_1.R x=-74.6600 y=773.7000 rot=270
 # pcb:sch R_FILTER_2.R x=14.2400 y=799.1000 rot=270
 # pcb:sch R_FILTER_3.R x=103.1400 y=824.5000 rot=270
-# pcb:sch R_SCL_PULLUP.R x=496.8400 y=672.1000 rot=180
-# pcb:sch R_SDA_PULLUP.R x=560.3400 y=672.1000 rot=180
-# pcb:sch GND.1 x=265.7000 y=951.5000 rot=0
-# pcb:sch GND.2 x=11.7000 y=545.1000 rot=0
-# pcb:sch VDD.1 x=270.7800 y=621.3000 rot=0
+# pcb:sch R_SCL_PULLUP.R x=509.5400 y=595.9000 rot=180
+# pcb:sch R_SDA_PULLUP.R x=585.7400 y=595.9000 rot=180
 # pcb:sch TP_AIN0.TP x=-148.3200 y=694.9600 rot=270
 # pcb:sch TP_AIN1.TP x=-46.7200 y=694.9600 rot=270
 # pcb:sch TP_AIN2.TP x=42.1800 y=694.9600 rot=270
 # pcb:sch TP_AIN3.TP x=131.0800 y=694.9600 rot=270
-# pcb:sch R_ALERT_PULLUP.R x=433.3400 y=672.1000 rot=180
-# pcb:sch TP_ALERT.TP x=397.7800 y=593.3600 rot=0
+# pcb:sch TP_ALERT.TP x=689.8800 y=694.9600 rot=0
+# pcb:sch VDD.1 x=778.7800 y=418.1000 rot=0

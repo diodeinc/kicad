@@ -1,10 +1,10 @@
 """VL53L0X - Time-of-Flight (ToF) ranging sensor with 2m range capability
 
-The VL53L0X is a Time-of-Flight (ToF) laser-ranging module providing accurate 
-distance measurement up to 2m regardless of the target reflectance. It integrates 
-a 940nm VCSEL (Vertical-Cavity Surface-Emitting Laser), VCSEL driver, SPAD 
-(Single Photon Avalanche Diode) array, and embedded microcontroller in a miniature 
-4.4 x 2.4 x 1.0 mm package. The device features Class 1 laser safety, I2C interface 
+The VL53L0X is a Time-of-Flight (ToF) laser-ranging module providing accurate
+distance measurement up to 2m regardless of the target reflectance. It integrates
+a 940nm VCSEL (Vertical-Cavity Surface-Emitting Laser), VCSEL driver, SPAD
+(Single Photon Avalanche Diode) array, and embedded microcontroller in a miniature
+4.4 x 2.4 x 1.0 mm package. The device features Class 1 laser safety, I2C interface
 up to 400kHz, programmable interrupt output, and operates from 2.6V to 3.5V.
 
 Author: @@anthropic/claude-opus-4
@@ -13,6 +13,8 @@ Datasheet: https://www.st.com/resource/en/datasheet/vl53l0x.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
+load("@stdlib/units.zen", "Resistance")
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -26,31 +28,33 @@ I2cPullupLocation = enum("None", "Local", "External")
 InterfaceVoltage = enum("1V8", "2V8")
 
 # Configuration
-add_decoupling = config("add_decoupling", bool, default = True)
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
+add_decoupling = config("add_decoupling", bool, default=True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
 
 # Interface configuration
-interface_voltage = config("interface_voltage", InterfaceVoltage, default = "2V8")
-i2c_pullup_location = config("i2c_pullup_location", I2cPullupLocation, default = "Local")
+interface_voltage = config("interface_voltage", InterfaceVoltage, default="2V8")
+i2c_pullup_location = config("i2c_pullup_location", I2cPullupLocation, default="Local")
 if i2c_pullup_location == I2cPullupLocation("Local"):
-    i2c_pullup_value = config("i2c_pullup_value", str, default = "2kohms" if interface_voltage == InterfaceVoltage("2V8") else "4.7kohms")
+    i2c_pullup_value = config(
+        "i2c_pullup_value", Resistance, default="2kohms" if interface_voltage == InterfaceVoltage("2V8") else "4.7kohms"
+    )
 
 # Control pin configuration
-shutdown_control = config("shutdown_control", ShutdownControl, default = "PullupOnly")
+shutdown_control = config("shutdown_control", ShutdownControl, default="PullupOnly")
 if shutdown_control != ShutdownControl("External"):
-    xshut_pullup_value = config("xshut_pullup_value", str, default = "10kohms")
+    xshut_pullup_value = config("xshut_pullup_value", Resistance, default="10kohms")
 
-interrupt_config = config("interrupt_config", InterruptConfig, default = "Pullup")
+interrupt_config = config("interrupt_config", InterruptConfig, default="Pullup")
 if interrupt_config == InterruptConfig("Pullup"):
-    gpio1_pullup_value = config("gpio1_pullup_value", str, default = "10kohms")
+    gpio1_pullup_value = config("gpio1_pullup_value", Resistance, default="10kohms")
 
 # Test points
-add_test_points = config("add_test_points", bool, default = False)
+add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power)
+VDD = io("VDD", Power, checks=voltage_within("2.6V to 3.5V"))
 GND = io("GND", Ground)
-I2C = io("I2C", I2c, default = I2c())
+I2C = io("I2C", I2c, default=I2c())
 
 # Optional IOs based on configuration
 if shutdown_control == ShutdownControl("HostControlled"):
@@ -68,10 +72,10 @@ _DNC = Net("DNC")  # Do Not Connect
 
 # Main component
 Component(
-    name = "VL53L0X",
-    symbol = Symbol(library = "@kicad-symbols/Sensor_Distance.kicad_sym", name = "VL53L0CXV0DH1"),
-    footprint = File("@kicad-footprints/Sensor_Distance.pretty/ST_VL53L1x.kicad_mod"),
-    pins = {
+    name="VL53L0X",
+    symbol=Symbol(library="@kicad-symbols/Sensor_Distance.kicad_sym", name="VL53L0CXV0DH1"),
+    footprint=File("@kicad-footprints/Sensor_Distance.pretty/ST_VL53L1x.kicad_mod"),
+    pins={
         "AVDD": VDD,
         "AVDDVCSEL": VDD,
         "AVSSVCSEL": GND,
@@ -81,111 +85,49 @@ Component(
         "XSHUT": _XSHUT if shutdown_control != ShutdownControl("HostControlled") else XSHUT,
         "GPIO1": _GPIO1 if interrupt_config == InterruptConfig("None") else GPIO1,
         "DNC": _DNC,
-    }
+    },
 )
 
 # Bulk capacitor (4.7uF as shown in application schematic)
-if add_bulk_cap:
-    Capacitor(
-        name = "C_BULK",
-        value = "4.7uF",
-        voltage = "10V",
-        package = "0603",
-        P1 = VDD,
-        P2 = GND
-    )
+Capacitor(name="C_BULK", value="4.7uF", voltage="10V", package="0603", P1=VDD, P2=GND, dnp=not add_bulk_cap)
 
 # Power supply decoupling (100nF as shown in application schematic)
-if add_decoupling:
-    Capacitor(
-        name = "C_VDD",
-        value = "100nF",
-        voltage = "10V",
-        package = "0402",
-        P1 = VDD,
-        P2 = GND
-    )
+Capacitor(name="C_VDD", value="100nF", voltage="10V", package="0402", P1=VDD, P2=GND, dnp=not add_decoupling)
 
 # XSHUT control
 if shutdown_control == ShutdownControl("PullupOnly"):
     # Pull-up only - device always enabled when powered
-    Resistor(
-        name = "R_XSHUT",
-        value = xshut_pullup_value,
-        package = "0402",
-        P1 = _XSHUT,
-        P2 = VDD
-    )
+    Resistor(name="R_XSHUT", value=xshut_pullup_value, package="0402", P1=_XSHUT, P2=VDD)
 elif shutdown_control == ShutdownControl("HostControlled"):
     # Host controlled with pull-up
-    Resistor(
-        name = "R_XSHUT",
-        value = xshut_pullup_value,
-        package = "0402",
-        P1 = XSHUT,
-        P2 = VDD
-    )
+    Resistor(name="R_XSHUT", value=xshut_pullup_value, package="0402", P1=XSHUT, P2=VDD)
 
 # GPIO1 interrupt configuration
 if interrupt_config == InterruptConfig("Pullup"):
     # Pull-up resistor for open-drain interrupt output
-    Resistor(
-        name = "R_GPIO1",
-        value = gpio1_pullup_value,
-        package = "0402",
-        P1 = GPIO1,
-        P2 = VDD
-    )
+    Resistor(name="R_GPIO1", value=gpio1_pullup_value, package="0402", P1=GPIO1, P2=VDD)
 
 # I2C pull-up resistors
 if i2c_pullup_location == I2cPullupLocation("Local"):
     # SDA pull-up
-    Resistor(
-        name = "R_SDA",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = I2C.SDA,
-        P2 = VDD
-    )
-    
+    Resistor(name="R_SDA", value=i2c_pullup_value, package="0402", P1=I2C.SDA, P2=VDD)
+
     # SCL pull-up
-    Resistor(
-        name = "R_SCL",
-        value = i2c_pullup_value,
-        package = "0402",
-        P1 = I2C.SCL,
-        P2 = VDD
-    )
+    Resistor(name="R_SCL", value=i2c_pullup_value, package="0402", P1=I2C.SCL, P2=VDD)
 
 # Test points for debugging
 if add_test_points:
     # I2C test points
-    TestPoint(
-        name = "TP_SDA",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = I2C.SDA
-    )
-    
-    TestPoint(
-        name = "TP_SCL",
-        variant = "THTPad_D1.0mm_Drill0.5mm",
-        P1 = I2C.SCL
-    )
-    
+    TestPoint(name="TP_SDA", variant="THTPad_D1.0mm_Drill0.5mm", P1=I2C.SDA)
+
+    TestPoint(name="TP_SCL", variant="THTPad_D1.0mm_Drill0.5mm", P1=I2C.SCL)
+
     # Control signal test points
     if shutdown_control == ShutdownControl("HostControlled"):
-        TestPoint(
-            name = "TP_XSHUT",
-            variant = "THTPad_D1.0mm_Drill0.5mm",
-            P1 = XSHUT
-        )
-    
+        TestPoint(name="TP_XSHUT", variant="THTPad_D1.0mm_Drill0.5mm", P1=XSHUT)
+
     if interrupt_config != InterruptConfig("None"):
-        TestPoint(
-            name = "TP_GPIO1",
-            variant = "THTPad_D1.0mm_Drill0.5mm",
-            P1 = GPIO1
-        )
+        TestPoint(name="TP_GPIO1", variant="THTPad_D1.0mm_Drill0.5mm", P1=GPIO1)
 
 # DNC pin handling - must be left floating
 # No connection needed, just documenting the requirement

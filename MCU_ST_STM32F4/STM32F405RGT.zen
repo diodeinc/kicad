@@ -1,10 +1,10 @@
 """STM32F405RGT - ARM Cortex-M4 MCU with FPU, 1024KB Flash, 192KB RAM
 
-The STM32F405RGT is a high-performance microcontroller based on the ARM Cortex-M4 
-32-bit RISC core with FPU operating at up to 168 MHz. It features 1024KB of Flash 
-memory, 192KB of SRAM (including 64KB of CCM data RAM), and an extensive range of 
-enhanced I/Os and peripherals. The device includes 3x 12-bit ADCs, 2x DACs, up to 
-17 timers, and multiple communication interfaces including USB OTG FS/HS, 3x I2C, 
+The STM32F405RGT is a high-performance microcontroller based on the ARM Cortex-M4
+32-bit RISC core with FPU operating at up to 168 MHz. It features 1024KB of Flash
+memory, 192KB of SRAM (including 64KB of CCM data RAM), and an extensive range of
+enhanced I/Os and peripherals. The device includes 3x 12-bit ADCs, 2x DACs, up to
+17 timers, and multiple communication interfaces including USB OTG FS/HS, 3x I2C,
 4x USART, 3x SPI, 2x CAN, and SDIO.
 
 Author: n/a
@@ -12,7 +12,22 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.st.com/resource/en/datasheet/stm32f405rg.pdf
 """
 
-load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground", "NotConnected")
+load("@stdlib/units.zen", "Capacitance", "Resistance")
+load(
+    "@stdlib/interfaces.zen",
+    "Usb2",
+    "Swd",
+    "I2c",
+    "I2s",
+    "Spi",
+    "Uart",
+    "Can",
+    "Sdio",
+    "Power",
+    "Ground",
+    "NotConnected",
+)
+load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -28,46 +43,46 @@ CrystalFreq = enum("8MHz", "16MHz", "25MHz")
 PassivesSize = enum("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
 
 # Configuration
-add_bulk_cap = config("add_bulk_cap", bool, default = True)
-add_power_decoupling = config("add_power_decoupling", bool, default = True)
-add_vcap = config("add_vcap", bool, default = True)
-add_reset_button = config("add_reset_button", bool, default = True, optional = True)
-add_boot0_button = config("add_boot0_button", bool, default = True, optional = True)
-add_boot1_button = config("add_boot1_button", bool, default = True, optional = True)
+add_bulk_cap = config("add_bulk_cap", bool, default=True)
+add_power_decoupling = config("add_power_decoupling", bool, default=True)
+add_vcap = config("add_vcap", bool, default=True)
+add_reset_button = config("add_reset_button", bool, default=True, optional=True)
+add_boot0_button = config("add_boot0_button", bool, default=True, optional=True)
+add_boot1_button = config("add_boot1_button", bool, default=True, optional=True)
 if add_boot0_button:
-    add_boot0_led = config("add_boot0_led", bool, default = True, optional = True)
+    add_boot0_led = config("add_boot0_led", bool, default=True, optional=True)
 if add_boot1_button:
-    add_boot1_led = config("add_boot1_led", bool, default = True, optional = True)
+    add_boot1_led = config("add_boot1_led", bool, default=True, optional=True)
 
 # Clock configuration
-clock_source = config("clock_source", ClockSource, default = "Crystal")
+clock_source = config("clock_source", ClockSource, default="Crystal")
 if clock_source == ClockSource("Crystal"):
-    crystal_freq = config("crystal_freq", CrystalFreq, default = "25MHz")
-    crystal_load_cap = config("crystal_load_cap", str, default = "10pF")
-    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default = True, optional = True)
+    crystal_freq = config("crystal_freq", CrystalFreq, default="25MHz")
+    crystal_load_cap = config("crystal_load_cap", Capacitance, default="10pF")
+    add_crystal_series_resistor = config("add_crystal_series_resistor", bool, default=True, optional=True)
     if add_crystal_series_resistor:
-        crystal_series_resistor = config("crystal_series_resistor", str, default = "1kohm")
+        crystal_series_resistor = config("crystal_series_resistor", Resistance, default="1kohm")
 
 # RTC configuration
-add_rtc = config("add_rtc", bool, default = True, optional = True)
+add_rtc = config("add_rtc", bool, default=True, optional=True)
 
 if add_rtc:
-    add_vbat_battery = config("add_vbat_battery", bool, default = True, optional = True)
-    rtc_load_cap = config("rtc_load_cap", str, default = "12pF")
+    add_vbat_battery = config("add_vbat_battery", bool, default=True, optional=True)
+    rtc_load_cap = config("rtc_load_cap", Capacitance, default="12pF")
 
 # VDDA filter configuration
-add_vdda_filter = config("add_vdda_filter", bool, default = True, optional = True)
+add_vdda_filter = config("add_vdda_filter", bool, default=True, optional=True)
 
 # VBAT configuration
 
 # USB configuration
-add_usb = config("add_usb", bool, default = True, optional = True)
+add_usb = config("add_usb", bool, default=True, optional=True)
 
 # SWD configuration
-add_swd_header = config("add_swd_header", bool, default = True, optional = True)
+add_swd_header = config("add_swd_header", bool, default=True, optional=True)
 
 # Passives size
-passives_size = config("passives_size", PassivesSize, default = "0402")
+passives_size = config("passives_size", PassivesSize, default="0402")
 
 # External IO
 VDD = io("VDD", Power)
@@ -75,14 +90,14 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VBUS = io("VBUS", Power)
-    usb = io("USB", Usb2, default = Usb2("USB"))
+    VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+    usb = io("USB", Usb2, default=Usb2("USB"))
     USB_DM = usb.D.N
     USB_DP = usb.D.P
 
 # SWD IO (if enabled)
 if add_swd_header:
-    swd = io("SWD", Swd, default = Swd("SWD"))
+    swd = io("SWD", Swd, default=Swd("SWD"))
     PA13 = swd.SWDIO
     PA14 = swd.SWCLK
 else:
@@ -112,10 +127,10 @@ else:
 
 # STMicroelectronics Arm Cortex-M4 MCU, 1024 KB flash, 192 KB RAM, 168 MHz, 1.8-3.6 V, 51 GPIO, LQFP64
 Component(
-    name = "STM32F405RGT",
-    symbol = Symbol(library = "@kicad-symbols/MCU_ST_STM32F4.kicad_sym", name = "STM32F405RGTx"),
-    footprint = File("@kicad-footprints/Package_QFP.pretty/LQFP-64_10x10mm_P0.5mm.kicad_mod"),
-    pins = {
+    name="STM32F405RGT",
+    symbol=Symbol(library="@kicad-symbols/MCU_ST_STM32F4.kicad_sym", name="STM32F405RGTx"),
+    footprint=File("@kicad-footprints/Package_QFP.pretty/LQFP-64_10x10mm_P0.5mm.kicad_mod"),
+    pins={
         "NRST": _NRST,
         "BOOT0": _BOOT0,
         "PH0": _PH0,
@@ -175,7 +190,7 @@ Component(
         "PB12": Net("PB12"),
         "PB13": Net("PB13"),
         "PB14": Net("PB14"),
-        "PB15": Net("PB15")
+        "PB15": Net("PB15"),
     },
 )
 
@@ -183,121 +198,121 @@ Component(
 if add_bulk_cap:
     # Bulk capacitor for power stability (using larger size for bulk cap)
     bulk_size = "0805" if passives_size.value in ["0201", "0402", "0603"] else passives_size.value
-    Capacitor(name = "C_BULK", value = "10uF", package = bulk_size, P1 = VDD, P2 = GND)
+    Capacitor(name="C_BULK", value="10uF", package=bulk_size, P1=VDD, P2=GND)
 
 # Power Supply Decoupling
 if add_power_decoupling:
     # VDD decoupling - one 100nF ceramic capacitor per VDD pin (4 total)
-    Capacitor(name = "C_VDD1", value = "100nF", package = passives_size.value, P1 = VDD, P2 = GND)
-    Capacitor(name = "C_VDD2", value = "100nF", package = passives_size.value, P1 = VDD, P2 = GND)
-    Capacitor(name = "C_VDD3", value = "100nF", package = passives_size.value, P1 = VDD, P2 = GND)
-    Capacitor(name = "C_VDD4", value = "100nF", package = passives_size.value, P1 = VDD, P2 = GND)
+    Capacitor(name="C_VDD1", value="100nF", package=passives_size.value, P1=VDD, P2=GND)
+    Capacitor(name="C_VDD2", value="100nF", package=passives_size.value, P1=VDD, P2=GND)
+    Capacitor(name="C_VDD3", value="100nF", package=passives_size.value, P1=VDD, P2=GND)
+    Capacitor(name="C_VDD4", value="100nF", package=passives_size.value, P1=VDD, P2=GND)
 
 # VCAP capacitors - Required for internal voltage regulator
 if add_vcap:
-    Capacitor(name = "C_VCAP1", value = "2.2uF", package = passives_size.value, P1 = _VCAP1, P2 = GND)
-    Capacitor(name = "C_VCAP2", value = "2.2uF", package = passives_size.value, P1 = _VCAP2, P2 = GND)
+    Capacitor(name="C_VCAP1", value="2.2uF", package=passives_size.value, P1=_VCAP1, P2=GND)
+    Capacitor(name="C_VCAP2", value="2.2uF", package=passives_size.value, P1=_VCAP2, P2=GND)
 
 # VDDA Filter
 if add_vdda_filter:
     # Ferrite bead for VDDA filtering - 600Ω @ 100MHz
     FerriteBead(
-        name = "FB_VDDA",
-        frequency = "100MHz",
-        value = "600ohm",
-        package = passives_size.value,
-        P1 = VDD,
-        P2 = _VDDA,
+        name="FB_VDDA",
+        frequency="100MHz",
+        value="600ohm",
+        package=passives_size.value,
+        P1=VDD,
+        P2=_VDDA,
     )
     # VDDA decoupling capacitors
-    Capacitor(name = "C_VDDA1", value = "100nF", package = passives_size.value, P1 = _VDDA, P2 = GND)
-    Capacitor(name = "C_VDDA2", value = "1uF", package = passives_size.value, P1 = _VDDA, P2 = GND)
+    Capacitor(name="C_VDDA1", value="100nF", package=passives_size.value, P1=_VDDA, P2=GND)
+    Capacitor(name="C_VDDA2", value="1uF", package=passives_size.value, P1=_VDDA, P2=GND)
 
 # VBAT Battery Connection
 if add_vbat_battery and add_rtc:
     # Battery holder for RTC backup
     Component(
-        name = "BT_VBAT",
-        symbol = Symbol(library = "@kicad-symbols/Device.kicad_sym", name = "Battery_Cell"),
-        footprint = File("@kicad-footprints/Battery.pretty/BatteryHolder_Keystone_500.kicad_mod"),
-        pins = {
+        name="BT_VBAT",
+        symbol=Symbol(library="@kicad-symbols/Device.kicad_sym", name="Battery_Cell"),
+        footprint=File("@kicad-footprints/Battery.pretty/BatteryHolder_Keystone_500.kicad_mod"),
+        pins={
             "+": _VBAT,
             "-": GND,
         },
     )
     # VBAT decoupling
-    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size.value, P1 = _VBAT, P2 = GND)
+    Capacitor(name="C_VBAT", value="100nF", package=passives_size.value, P1=_VBAT, P2=GND)
 
 # Reset Circuit - Always included
 # Pull-up resistor on RESET pin
-Resistor(name = "R_RESET", value = "10kohms", package = passives_size.value, P1 = _NRST, P2 = VDD)
+Resistor(name="R_RESET", value="10kohms", package=passives_size.value, P1=_NRST, P2=VDD)
 
 # Reset capacitor for noise filtering
-Capacitor(name = "C_RESET", value = "100nF", package = passives_size.value, P1 = _NRST, P2 = GND)
+Capacitor(name="C_RESET", value="100nF", package=passives_size.value, P1=_NRST, P2=GND)
 
 # Reset Button
 if add_reset_button:
     Component(
-        name = "SW_RESET",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_RESET",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": GND,
             "2": _NRST,
-        }
+        },
     )
 
 # Boot Configuration - Always add pull-down resistors for normal Flash boot
-Resistor(name = "R_BOOT0", value = "10kohms", package = passives_size.value, P1 = _BOOT0, P2 = GND)
-Resistor(name = "R_BOOT1", value = "10kohms", package = passives_size.value, P1 = _BOOT1, P2 = GND)
+Resistor(name="R_BOOT0", value="10kohms", package=passives_size.value, P1=_BOOT0, P2=GND)
+Resistor(name="R_BOOT1", value="10kohms", package=passives_size.value, P1=_BOOT1, P2=GND)
 
 # BOOT0 Button and LED
 if add_boot0_button:
     Component(
-        name = "SW_BOOT0",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_BOOT0",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": _BOOT0,
             "2": VDD,
-        }
+        },
     )
-    
+
     # Boot LED indicator
     if add_boot0_led:
         _LED_BOOT0_K = Net("LED_BOOT0_K")
         Led(
-            name = "LED_BOOT0",
-            color = "yellow",
-            package = passives_size.value,
-            A = _BOOT0,
-            K = _LED_BOOT0_K,
+            name="LED_BOOT0",
+            color="yellow",
+            package=passives_size.value,
+            A=_BOOT0,
+            K=_LED_BOOT0_K,
         )
-        Resistor(name = "R_LED_BOOT0", value = "1kohms", package = passives_size.value, P1 = _LED_BOOT0_K, P2 = GND)
+        Resistor(name="R_LED_BOOT0", value="1kohms", package=passives_size.value, P1=_LED_BOOT0_K, P2=GND)
 
-# BOOT1 Button and LED  
+# BOOT1 Button and LED
 if add_boot1_button:
     Component(
-        name = "SW_BOOT1",
-        symbol = Symbol(library = "@kicad-symbols/Switch.kicad_sym", name = "SW_Push"),
-        footprint = File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
-        pins = {
+        name="SW_BOOT1",
+        symbol=Symbol(library="@kicad-symbols/Switch.kicad_sym", name="SW_Push"),
+        footprint=File("@kicad-footprints/Button_Switch_SMD.pretty/SW_SPST_B3U-1000P.kicad_mod"),
+        pins={
             "1": VDD,
             "2": _BOOT1,
-        }
+        },
     )
-    
+
     # Boot LED indicator
     if add_boot1_led:
         _LED_BOOT1_K = Net("LED_BOOT1_K")
         Led(
-            name = "LED_BOOT1",
-            color = "orange",
-            package = passives_size.value,
-            A = _BOOT1,
-            K = _LED_BOOT1_K,
+            name="LED_BOOT1",
+            color="orange",
+            package=passives_size.value,
+            A=_BOOT1,
+            K=_LED_BOOT1_K,
         )
-        Resistor(name = "R_LED_BOOT1", value = "1kohms", package = passives_size.value, P1 = _LED_BOOT1_K, P2 = GND)
+        Resistor(name="R_LED_BOOT1", value="1kohms", package=passives_size.value, P1=_LED_BOOT1_K, P2=GND)
 
 # High Speed External (HSE) Crystal
 if clock_source == ClockSource("Crystal"):
@@ -308,7 +323,7 @@ if clock_source == ClockSource("Crystal"):
         freq_value = "16MHz"
     else:  # 25MHz
         freq_value = "25MHz"
-    
+
     # Determine crystal output connection
     if add_crystal_series_resistor:
         # Internal net for series resistor
@@ -317,50 +332,49 @@ if clock_source == ClockSource("Crystal"):
     else:
         # Direct connection without series resistor
         crystal_out = _PH1
-    
+
     # Crystal with 3225_4Pin package
-    Crystal(
-        name = "Y_HSE",
-        frequency = freq_value,
-        package = "3225_4Pin",
-        XIN = _PH0,
-        XOUT = crystal_out,
-        GND = GND
-    )
-    
+    Crystal(name="Y_HSE", frequency=freq_value, package="3225_4Pin", XIN=_PH0, XOUT=crystal_out, GND=GND)
+
     # Load capacitors
-    Capacitor(name = "C_HSE1", value = crystal_load_cap, package = passives_size.value, P1 = _PH0, P2 = GND)
-    Capacitor(name = "C_HSE2", value = crystal_load_cap, package = passives_size.value, P1 = crystal_out, P2 = GND)
-    
+    Capacitor(name="C_HSE1", value=crystal_load_cap, package=passives_size.value, P1=_PH0, P2=GND)
+    Capacitor(name="C_HSE2", value=crystal_load_cap, package=passives_size.value, P1=crystal_out, P2=GND)
+
     # Series resistor for oscillator stability (if enabled)
-    if add_crystal_series_resistor:
-        Resistor(name = "R_OSC", value = crystal_series_resistor, package = passives_size.value, P1 = _R_OSC, P2 = _PH1)
+    Resistor(
+        name="R_OSC",
+        value=crystal_series_resistor,
+        package=passives_size.value,
+        P1=_R_OSC,
+        P2=_PH1,
+        dnp=not add_crystal_series_resistor,
+    )
 
 # RTC Crystal (32.768kHz)
 if add_rtc:
     Crystal(
-        name = "Y_RTC",
-        frequency = "32.768kHz",
-        package = "3215_2Pin",
-        XIN = _PC14,
-        XOUT = _PC15,
+        name="Y_RTC",
+        frequency="32.768kHz",
+        package="3215_2Pin",
+        XIN=_PC14,
+        XOUT=_PC15,
     )
     # Load capacitors for RTC crystal
-    Capacitor(name = "C_RTC1", value = rtc_load_cap, package = passives_size.value, P1 = _PC14, P2 = GND)
-    Capacitor(name = "C_RTC2", value = rtc_load_cap, package = passives_size.value, P1 = _PC15, P2 = GND)
+    Capacitor(name="C_RTC1", value=rtc_load_cap, package=passives_size.value, P1=_PC14, P2=GND)
+    Capacitor(name="C_RTC2", value=rtc_load_cap, package=passives_size.value, P1=_PC15, P2=GND)
 
 # USB-C Connector with ESD Protection
 if add_usb:
     # CC nets for USB Type-C
     _CC1 = Net("CC1")
     _CC2 = Net("CC2")
-    
+
     # USB-C Receptacle
     Component(
-        name = "J_USB",
-        symbol = Symbol(library = "@kicad-symbols/Connector.kicad_sym", name = "USB_C_Receptacle_USB2.0_16P"),
-        footprint = File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
-        pins = {
+        name="J_USB",
+        symbol=Symbol(library="@kicad-symbols/Connector.kicad_sym", name="USB_C_Receptacle_USB2.0_16P"),
+        footprint=File("@kicad-footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod"),
+        pins={
             "VBUS": VBUS,
             "GND": GND,
             "D+": USB_DP,
@@ -372,47 +386,47 @@ if add_usb:
             "SHIELD": GND,
         },
     )
-    
+
     # CC resistors for USB 2.0 device mode
-    Resistor(name = "R_CC1", value = "5.1kohms", package = passives_size.value, P1 = _CC1, P2 = GND)
-    Resistor(name = "R_CC2", value = "5.1kohms", package = passives_size.value, P1 = _CC2, P2 = GND)
-    
+    Resistor(name="R_CC1", value="5.1kohms", package=passives_size.value, P1=_CC1, P2=GND)
+    Resistor(name="R_CC2", value="5.1kohms", package=passives_size.value, P1=_CC2, P2=GND)
+
     # USBLC6-2SC6 ESD Protection
     Component(
-        name = "U_USB_ESD",
-        symbol = Symbol(library = "@kicad-symbols/Power_Protection.kicad_sym", name = "USBLC6-2SC6"),
-        footprint = File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-        pins = {
+        name="U_USB_ESD",
+        symbol=Symbol(library="@kicad-symbols/Power_Protection.kicad_sym", name="USBLC6-2SC6"),
+        footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
+        pins={
             "I/O1": USB_DM,
             "GND": GND,
             "I/O2": USB_DP,
             "VBUS": VBUS,
         },
     )
-    
+
     # VBUS decoupling
-    Capacitor(name = "C_VBUS", value = "4.7uF", package = passives_size.value, P1 = VBUS, P2 = GND)
+    Capacitor(name="C_VBUS", value="4.7uF", package=passives_size.value, P1=VBUS, P2=GND)
 
 # SWD Header (Cortex Debug Connector)
-if add_swd_header:
-    PinHeader(
-        name = "J_SWD",
-        pins = 6,
-        rows = 1,
-        pitch = "2.54mm",
-        orientation = "Vertical",
-        P1 = VDD,       # VDD
-        P2 = swd.SWCLK, # SWCLK
-        P3 = GND,       # GND
-        P4 = swd.SWDIO, # SWDIO
-        P5 = _NRST,     # RESET
-        P6 = GND,       # GND
-    )
+PinHeader(
+    name="J_SWD",
+    pins=6,
+    rows=1,
+    pitch="2.54mm",
+    orientation="Vertical",
+    P1=VDD,  # VDD
+    P2=swd.SWCLK,  # SWCLK
+    P3=GND,  # GND
+    P4=swd.SWDIO,  # SWDIO
+    P5=_NRST,  # RESET
+    P6=GND,  # GND,
+    dnp=not add_swd_header,
+)
 
 # VBAT supply for RTC and backup registers
 # Connect to VDD if no battery backup is used
 if not (add_vbat_battery and add_rtc):
-    Capacitor(name = "C_VBAT", value = "100nF", package = passives_size.value, P1 = _VBAT, P2 = GND)
+    Capacitor(name="C_VBAT", value="100nF", package=passives_size.value, P1=_VBAT, P2=GND)
 
 # pcb:sch C_HSE1.C x=346.9800 y=1040.4000 rot=0
 # pcb:sch C_HSE2.C x=550.1800 y=1040.4000 rot=0
