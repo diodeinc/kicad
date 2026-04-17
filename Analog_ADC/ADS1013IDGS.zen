@@ -100,12 +100,9 @@ Component(
     footprint=File("@kicad-footprints/Package_SO.pretty/TSSOP-10_3x3mm_P0.5mm.kicad_mod"),
     pins={
         "ADDR": _ADDR_NET,
-        "2": NotConnected(),
         "GND": GND,
         "AIN0": _AIN0_FILTERED,
         "AIN1": _AIN1_FILTERED,
-        "6": NotConnected(),
-        "7": NotConnected(),
         "VDD": VDD,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
