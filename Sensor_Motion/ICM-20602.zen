@@ -88,8 +88,6 @@ else:
 
 # Internal nets
 _REGOUT = Net("REGOUT")
-_SAO_SD0 = Net("SAO_SD0")
-_CS = Net("CS")
 
 # Interface Mode Configuration
 if interface_mode == InterfaceMode("I2C"):
@@ -136,7 +134,6 @@ Component(
         "SDA/SDI": _SDA_SDI,
         "SCL/SPC": _SCL_SPC,
         "~{CS}": _CS,
-        "RESV": GND,
         "VDD": VDD,
         "GND": GND,
         "VDDIO": VDDIO,
