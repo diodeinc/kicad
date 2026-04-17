@@ -100,7 +100,7 @@ _gpio_p1 = [Net(f"P1{i}") for i in range(8)]
 
 # Expose active ports as external IOs
 if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
-    gpio_p0 = [io(f"P0{i}", Net, default=_gpio_p0[i]) for i in range(8)]
+    gpio_p0 = [io(f"P0{i}", Net) for i in range(8)]
     # Connect internal nets to external IOs
     for i in range(8):
         _gpio_p0[i] = gpio_p0[i]
@@ -108,7 +108,7 @@ else:
     gpio_p0 = _gpio_p0  # Port 0 not exposed, use internal nets
 
 if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
-    gpio_p1 = [io(f"P1{i}", Net, default=_gpio_p1[i]) for i in range(8)]
+    gpio_p1 = [io(f"P1{i}", Net) for i in range(8)]
     # Connect internal nets to external IOs
     for i in range(8):
         _gpio_p1[i] = gpio_p1[i]
