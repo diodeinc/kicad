@@ -86,10 +86,21 @@ if expose_address_pins:
     _A1 = A1
     _A2 = A2
 else:
-    # Internal nets for address pins
-    _A0 = Net("A0")
-    _A1 = Net("A1")
-    _A2 = Net("A2")
+    # Hard-strap address pins to VCC/GND based on `address` config.
+    _address_map = {
+        AddressConfig("0x70"): (False, False, False),  # A2=L, A1=L, A0=L
+        AddressConfig("0x71"): (False, False, True),  # A2=L, A1=L, A0=H
+        AddressConfig("0x72"): (False, True, False),  # A2=L, A1=H, A0=L
+        AddressConfig("0x73"): (False, True, True),  # A2=L, A1=H, A0=H
+        AddressConfig("0x74"): (True, False, False),  # A2=H, A1=L, A0=L
+        AddressConfig("0x75"): (True, False, True),  # A2=H, A1=L, A0=H
+        AddressConfig("0x76"): (True, True, False),  # A2=H, A1=H, A0=L
+        AddressConfig("0x77"): (True, True, True),  # A2=H, A1=H, A0=H
+    }
+    _a2_high, _a1_high, _a0_high = _address_map[address]
+    _A0 = VCC if _a0_high else GND
+    _A1 = VCC if _a1_high else GND
+    _A2 = VCC if _a2_high else GND
 
 # Create nets for all channels (some may not be exposed)
 _SC = [Net(f"SC{i}") for i in range(8)]
@@ -105,27 +116,6 @@ for ch in range(8):
     if ch not in enabled_channels:
         io(f"SC{ch}", Net, default=_SC[ch])
         io(f"SD{ch}", Net, default=_SD[ch])
-
-# Address configuration
-if not expose_address_pins:
-    # Map address to pin states
-    address_map = {
-        AddressConfig("0x70"): (False, False, False),  # A2=L, A1=L, A0=L
-        AddressConfig("0x71"): (False, False, True),  # A2=L, A1=L, A0=H
-        AddressConfig("0x72"): (False, True, False),  # A2=L, A1=H, A0=L
-        AddressConfig("0x73"): (False, True, True),  # A2=L, A1=H, A0=H
-        AddressConfig("0x74"): (True, False, False),  # A2=H, A1=L, A0=L
-        AddressConfig("0x75"): (True, False, True),  # A2=H, A1=L, A0=H
-        AddressConfig("0x76"): (True, True, False),  # A2=H, A1=H, A0=L
-        AddressConfig("0x77"): (True, True, True),  # A2=H, A1=H, A0=H
-    }
-
-    a2_high, a1_high, a0_high = address_map[address]
-
-    # Connect address pins
-    _A0 = VCC if a0_high else GND
-    _A1 = VCC if a1_high else GND
-    _A2 = VCC if a2_high else GND
 
 # Main component
 Component(
