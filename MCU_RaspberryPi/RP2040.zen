@@ -58,7 +58,7 @@ if specify_vdd_configuration:
     USB_VDD = io("USB_VDD", Net)
     ADC_AVDD = io("ADC_AVDD", Net)
 
-VDD_1V1 = io("VDD_1V1", Net)
+VDD_1V1 = io("VDD_1V1", Power)
 VDD_3V3 = io("VDD_3V3", Power)
 GND = io("GND", Ground)
 
@@ -67,7 +67,6 @@ usb = io("usb", Usb2)
 swd = io("swd", Swd)
 oscpair = OscPair("oscpair") if add_crystal else io("oscpair", OscPair)
 RUN = io("RUN", Net)
-TESTEN = io("TESTEN", Net)
 
 if add_usb_series_resistors:
     _usb = Usb2("RP_USB")
