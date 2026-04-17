@@ -151,7 +151,6 @@ Component(
         "VBUS": _VBUS_FILT,
         "VS": VS,
         "GND": GND,
-        "NC": NotConnected(),  # No connect
         "ALERT": ALERT,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,
