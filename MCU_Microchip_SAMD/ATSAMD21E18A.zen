@@ -138,8 +138,8 @@ else:
     PA31 = swd.SWDIO
 
 # Internal nets
-_VDDCORE = Net("VDDCORE")
-_VDDANA = Net("VDDANA") if add_analog_filtering else VDD
+_VDDCORE = Power("VDDCORE")
+_VDDANA = Power("VDDANA") if add_analog_filtering else VDD
 _RESET = Net("RESET")
 
 # Crystal oscillator nets
@@ -351,8 +351,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VDD),
+            VIN=Power(VUSB),
+            VOUT=Power(VDD),
             GND=GND,
             add_input_cap=add_decoupling,
             add_output_cap=add_decoupling,
