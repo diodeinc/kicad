@@ -265,8 +265,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VCC
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VCC),
+            VIN=Power(VUSB),
+            VOUT=Power(VCC),
             GND=GND,
             add_input_cap=True,
             add_output_cap=True,
