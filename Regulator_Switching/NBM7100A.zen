@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.nexperia.com/products/power-management/battery-life-boosters/NBM7100A.html
 """
 
-load("@stdlib/interfaces.zen", "I2c", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,13 +39,13 @@ storage_capacitance = config("storage_capacitance", StorageCapacitance, default=
 i2c_address = config("i2c_address", I2cAddress, default="0x2E")
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
-VBT = io("VBT", Net, default=Net("VBT"))
-VDH = io("VDH", Net, default=Net("VDH"))
-VDP = io("VDP", Net, default=Net("VDP"))
-RDY = io("RDY", Net, default=Net("RDY"))
-START = io("START", Net, default=Net("START"))
-ADR = io("ADR", Net, default=Net("ADR"))
+i2c = io("I2C", I2c)
+VBT = io("VBT", Power)
+VDH = io("VDH", Power)
+VDP = io("VDP", Power)
+RDY = io("RDY", Net)
+START = io("START", Net)
+ADR = io("ADR", Net)
 GND = io("GND", Ground)
 
 # Internal nets
@@ -73,7 +73,6 @@ Component(
         "EP": GND,  # Exposed pad to ground
         "VSS": GND,
         "VSSP": GND,
-        "NC": NotConnected(),  # Not internally connected
         "VDHS": _VDHS,
         "VDH": VDH,
         "VDP": VDP,
