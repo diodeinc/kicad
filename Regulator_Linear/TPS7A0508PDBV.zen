@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps7a05.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
@@ -47,14 +47,14 @@ else:
     _EN = Net("EN")
 
 # Internal net for NC pin
-_NC = NotConnected()
+
 
 # 200mA Ultra-Low-Iq regulator, positive, 0.8V fixed output, SOT-23-5
 Component(
     name="TPS7A0508PDBV",
     symbol=Symbol(library="@kicad-symbols/Regulator_Linear.kicad_sym", name="TPS7A0508PDBV"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
-    pins={"IN": VIN, "EN": _EN, "GND": GND, "NC": _NC, "OUT": VOUT},
+    pins={"IN": VIN, "EN": _EN, "GND": GND, "OUT": VOUT},
 )
 
 # Enable pin configuration
