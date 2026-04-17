@@ -48,12 +48,11 @@ BATT_MINUS = io("BATT-", Ground)  # Battery negative terminal
 BATT_INT = Net("BATT-INT")
 
 # Internal nets
-_VCC = Net("VCC")
-_GND = Net("GND")
+_VCC = Power("_VCC")
+_GND = Ground("_GND")
 _CS = Net("CS")
 _OD = Net("OD")
 _OC = Net("OC")
-_TD = Net("TD")
 
 
 # DW01A Battery Protection IC
@@ -61,7 +60,7 @@ Component(
     name="U1",
     symbol=Symbol(library="@kicad-symbols/Battery_Management.kicad_sym", name="DW01A"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-    pins={"VCC": _VCC, "GND": _GND, "OD": _OD, "OC": _OC, "CS": _CS, "TD": _TD},
+    pins={"VCC": _VCC, "GND": _GND, "OD": _OD, "OC": _OC, "CS": _CS},
 )
 
 # R1: 100Ω resistor from BATT+ to VCC
