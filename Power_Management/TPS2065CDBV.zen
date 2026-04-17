@@ -169,7 +169,6 @@ elif enable_config == PinConfig("PullDown"):
 
 # Optional input TVS diode for ESD protection
 if add_input_tvs:
-    Diode = Module("@stdlib/generics/Diode.zen")
     Diode(
         name="D_TVS_IN",
         variant="Zener",  # TVS diodes are similar to Zener
