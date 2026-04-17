@@ -174,9 +174,13 @@ else:
 PG10 = _NRST
 
 # Internal nets
-_VDDA = Net("VDDA") if add_analog_decoupling else VDD
-_VSSA = io("_VSSA", Ground)
-_VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
+if add_analog_decoupling:
+    _VDDA = Power("VDDA")
+    _VSSA = io("_VSSA", Ground)
+else:
+    _VDDA = VDD
+    _VSSA = GND
+_VBAT = Power("VBAT") if add_vbat_ferrite_bead else VDD
 _VREF_PLUS = Net("VREF+") if add_vref_buffer else VDD
 
 # STMicroelectronics Arm Cortex-M4 MCU, 128KB flash, 32KB RAM, 170 MHz, 1.71-3.6V, 44 GPIO, LQFP48
@@ -251,15 +255,9 @@ if add_analog_decoupling:
     # VDDA decoupling
     Capacitor(name="C_VDDA", value="100nF", package=passives_size, P1=_VDDA, P2=_VSSA)
     Capacitor(name="C_VDDA2", value="1uF", package=passives_size, P1=_VDDA, P2=_VSSA)
-elif not add_analog_decoupling and add_power_decoupling:
-    # Direct connection to VDD
+elif add_power_decoupling:
+    # Direct connection to VDD (analog decoupling disabled)
     Capacitor(name="C_VDDA", value="100nF", package=passives_size, P1=VDD, P2=GND)
-    _VDDA = VDD
-    _VSSA = GND
-else:
-    # If analog decoupling is disabled, tie directly
-    _VDDA = VDD
-    _VSSA = GND
 
 # VBAT Connection
 if add_vbat_ferrite_bead:
@@ -267,13 +265,9 @@ if add_vbat_ferrite_bead:
     FerriteBead(name="FB_VBAT", package=passives_size, P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
     Capacitor(name="C_VBAT", value="100nF", package=passives_size, P1=_VBAT, P2=GND)
-elif not add_vbat_ferrite_bead and add_power_decoupling:
-    # Direct connection to VDD
+elif add_power_decoupling:
+    # Direct connection to VDD (VBAT ferrite bead disabled)
     Capacitor(name="C_VBAT", value="100nF", package=passives_size, P1=VDD, P2=GND)
-    _VBAT = VDD
-else:
-    # If analog decoupling is disabled, tie directly
-    _VBAT = VDD
 
 # Voltage Reference Buffer
 if add_vref_buffer:
@@ -492,8 +486,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VDD),
+            VIN=Power(VUSB),
+            VOUT=Power(VDD),
             GND=GND,
             # Use default configuration for the regulator
             add_input_cap=True,
