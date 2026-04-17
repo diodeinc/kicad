@@ -44,7 +44,7 @@ add_output_feedback_path = config("add_output_feedback_path", bool, default=True
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, default=Power("VDD"), checks=voltage_within("2.7V to 5.5V"))
+VDD = io("VDD", Power, checks=voltage_within("2.7V to 5.5V"))
 GND = io("GND", Ground)
 
 # SPI interface - Note: This is SPI-compatible but uses SYNC instead of CS
@@ -61,9 +61,10 @@ VOUT = io("VOUT", Net)
 
 # Output feedback
 if add_output_feedback_path:
-    VFB = io("VFB", Net, default=VOUT)  # Default to direct connection
+    VFB = io("VFB", Net, optional=True)
+    _vfb_pin = VFB if VFB != None else VOUT
 else:
-    VFB = Net("VFB")  # Internal net
+    _vfb_pin = Net("VFB")  # Internal net
 
 # Internal nets
 _VOUT_INT = Net("VOUT_INT") if add_output_filtering else VOUT
@@ -81,7 +82,7 @@ Component(
         "V_{REF}": _VREF_FILT,
         "GND": GND,
         "V_{DD}": VDD,
-        "V_{FB}": VFB,
+        "V_{FB}": _vfb_pin,
         "V_{OUT}": _VOUT_INT,
     },
 )
