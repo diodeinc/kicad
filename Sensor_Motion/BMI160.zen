@@ -80,8 +80,8 @@ elif interface_mode == InterfaceMode("SPI3Wire") or interface_mode == InterfaceM
         _SDO = spi.MISO
 
 # Interrupt pins (always exposed)
-INT1 = io("INT1", Net, default=Net("INT1"))
-INT2 = io("INT2", Net, default=Net("INT2"))
+INT1 = io("INT1", Net)
+INT2 = io("INT2", Net)
 
 # Auxiliary interface configuration
 if auxiliary_mode == AuxiliaryMode("None"):
@@ -99,9 +99,9 @@ elif auxiliary_mode == AuxiliaryMode("I2C"):
     _OSDO = NotConnected()
 elif auxiliary_mode == AuxiliaryMode("SPI3Wire"):
     # 3-wire SPI auxiliary interface for OIS (bidirectional data)
-    OIS_CLK = io("OIS_CLK", Net, default=Net("OIS_CLK"))
-    OIS_CS = io("OIS_CS", Net, default=Net("OIS_CS"))
-    OIS_SISO = io("OIS_SISO", Net, default=Net("OIS_SISO"))  # Serial In/Serial Out - bidirectional
+    OIS_CLK = io("OIS_CLK", Net)
+    OIS_CS = io("OIS_CS", Net)
+    OIS_SISO = io("OIS_SISO", Net)  # Serial In/Serial Out - bidirectional
     _ASCx = OIS_CLK
     _OCSB = OIS_CS
     _ASDx = OIS_SISO
