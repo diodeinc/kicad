@@ -76,9 +76,9 @@ else:
     _STDBY = Net("STDBY")
 
 # Internal nets
-_VCC = Net("VCC")
+_VCC = Power("VCC") if add_input_series_resistor else VIN
 _PROG = Net("PROG")
-_BAT = Net("BAT")
+_BAT = VBAT
 
 # Input protection and filtering
 if input_protection != InputProtection("None"):
@@ -92,12 +92,6 @@ if input_protection != InputProtection("None"):
 # Series input resistor for current limiting and thermal management
 if add_input_series_resistor:
     Resistor(name="R_IN", value=input_series_resistance, package="0805", P1=VIN, P2=_VCC)
-else:
-    # Direct connection
-    _VCC = VIN
-
-# Battery output connection - direct assignment
-_BAT = VBAT
 
 
 # Main TP4057 Component
