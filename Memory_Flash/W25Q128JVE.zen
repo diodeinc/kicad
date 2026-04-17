@@ -33,20 +33,20 @@ if spi_mode == SpiMode("Standard") or spi_mode == SpiMode("Dual"):
         reset_pullup = config("reset_pullup", bool, default=True)
 
 # External IO
-spi = io("spi", Spi, default=Spi("spi"))
+spi = io("spi", Spi)
 VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
 GND = io("GND", Ground)
 
 # Additional IO based on SPI mode and configuration
 if spi_mode == SpiMode("Quad"):
-    IO2 = io("IO2", Net, default=Net("IO2"))
-    IO3 = io("IO3", Net, default=Net("IO3"))
+    IO2 = io("IO2", Net)
+    IO3 = io("IO3", Net)
     _WP = IO2
     _HOLD = IO3
 else:
     # In non-Quad modes, WP and HOLD can be control pins
     if write_protect_mode == WriteProtectMode("Hardware"):
-        WP_CTRL = io("WP", Net, default=Net("nWP"))
+        WP_CTRL = io("WP", Net)
         _WP = WP_CTRL
     elif write_protect_mode == WriteProtectMode("None"):
         _WP = VCC
@@ -54,7 +54,7 @@ else:
         _WP = Net("WP/IO2")
 
     if enable_hold:
-        HOLD_CTRL = io("HOLD", Net, default=Net("nHOLD"))
+        HOLD_CTRL = io("HOLD", Net)
         _HOLD = HOLD_CTRL
     else:
         _HOLD = Net("HOLD")
@@ -64,9 +64,7 @@ _CS = spi.CS
 _CLK = spi.CLK
 _DI_IO0 = spi.MOSI
 _DO_IO1 = spi.MISO
-_EP = Net("EP")  # Exposed pad
-# Connect exposed pad to GND
-_EP = GND
+# Exposed pad: tied to GND.
 
 
 # 128Mbit / 16MiB Serial Flash Memory, Standard/Dual/Quad SPI, 2.7-3.6V, WSON-8
@@ -83,7 +81,7 @@ Component(
         "~{HOLD}/~{RESET}/IO_{3}": _HOLD,
         "VCC": VCC,
         "GND": GND,
-        "EP": _EP,
+        "EP": GND,
     },
 )
 
