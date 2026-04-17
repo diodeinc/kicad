@@ -94,25 +94,19 @@ else:
     INT = Net("INT_NC")  # Not connected internally
 
 # GPIO ports - conditionally exposed based on port configuration
-# Create internal nets for all GPIO pins
-_gpio_p0 = [Net(f"P0{i}") for i in range(8)]
-_gpio_p1 = [Net(f"P1{i}") for i in range(8)]
-
-# Expose active ports as external IOs
+# Create internal nets for unused pins only; exposed pins use external IOs.
 if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
     gpio_p0 = [io(f"P0{i}", Net) for i in range(8)]
-    # Connect internal nets to external IOs
-    for i in range(8):
-        _gpio_p0[i] = gpio_p0[i]
+    _gpio_p0 = gpio_p0
 else:
+    _gpio_p0 = [Net(f"P0{i}") for i in range(8)]
     gpio_p0 = _gpio_p0  # Port 0 not exposed, use internal nets
 
 if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
     gpio_p1 = [io(f"P1{i}", Net) for i in range(8)]
-    # Connect internal nets to external IOs
-    for i in range(8):
-        _gpio_p1[i] = gpio_p1[i]
+    _gpio_p1 = gpio_p1
 else:
+    _gpio_p1 = [Net(f"P1{i}") for i in range(8)]
     gpio_p1 = _gpio_p1  # Port 1 not exposed, use internal nets
 
 # Address configuration nets
