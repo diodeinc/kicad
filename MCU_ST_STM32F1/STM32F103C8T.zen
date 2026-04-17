@@ -172,9 +172,13 @@ else:
     _NRST = Net("NRST")  # Internal net for reset circuit
 
 # Internal nets
-_VDDA = io("_VDDA", Power)
-_VSSA = io("_VSSA", Ground)
-_VBAT = Net("VBAT")
+if add_analog_decoupling:
+    _VDDA = io("_VDDA", Power)
+    _VSSA = io("_VSSA", Ground)
+else:
+    _VDDA = VDD
+    _VSSA = GND
+_VBAT = Power("VBAT") if add_vbatt_ferrite_bead else VDD
 _BOOT0 = Net("BOOT0")
 
 # STMicroelectronics Arm Cortex-M3 MCU, 64KB flash, 20KB RAM, 72 MHz, 2.0-3.6V, 37 GPIO, LQFP48
@@ -248,20 +252,12 @@ if add_analog_decoupling:
     Capacitor(name="C_VDDA", value="100nF", package="0402", P1=_VDDA, P2=_VSSA)
     Capacitor(name="C_VDDA2", value="1uF", package="0402", P1=_VDDA, P2=_VSSA)
 
-else:
-    # If analog decoupling is disabled, always tie directly
-    _VDDA = VDD
-    _VSSA = GND
-
 # VBAT Connection
 if add_vbatt_ferrite_bead:
     # Connect to VDD through ferrite bead for noise filtering
     FerriteBead(name="FB_VBAT", package="0402", P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
     Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_VBAT, P2=GND)
-else:
-    # Direct connection to VDD
-    _VBAT = VDD
 
 
 # Reset Configuration
