@@ -191,10 +191,14 @@ else:
     _BOOT0 = Net("BOOT0")  # Internal net for boot circuit
 
 # Internal nets
-_VDDA = Net("VDDA") if add_analog_decoupling else VDD
-_VSSA = io("_VSSA", Ground)
-_VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
-_VCAP1 = Net("VCAP1")
+if add_analog_decoupling:
+    _VDDA = Power("VDDA")
+    _VSSA = io("_VSSA", Ground)
+else:
+    _VDDA = VDD
+    _VSSA = GND
+_VBAT = Power("VBAT") if add_vbat_ferrite_bead else VDD
+_VCAP1 = Power("VCAP1")
 
 # STMicroelectronics Arm Cortex-M4 MCU, 512KB flash, 128KB RAM, 100 MHz, 1.7-3.6V, 36 GPIO, UFQFPN48
 Component(
@@ -273,10 +277,6 @@ if add_analog_decoupling:
     NetTie(name="NT_VSSA", P1=GND, P2=_VSSA)
     Capacitor(name="C_VDDA", value="100nF", package="0402", P1=_VDDA, P2=_VSSA)
     Capacitor(name="C_VDDA2", value="1uF", package="0402", P1=_VDDA, P2=_VSSA)
-else:
-    # If analog decoupling is disabled, always tie directly
-    _VDDA = VDD
-    _VSSA = GND
 
 # VBAT Connection
 if add_vbat_ferrite_bead:
@@ -284,9 +284,6 @@ if add_vbat_ferrite_bead:
     FerriteBead(name="FB_VBAT", package="0402", P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
     Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_VBAT, P2=GND)
-else:
-    # Direct connection to VDD
-    _VBAT = VDD
 
 # Reset Configuration
 if reset_configuration == ResetConfiguration("Pullup"):
