@@ -32,7 +32,7 @@ add_output_discharge = config("add_output_discharge", bool, default=True)
 # External IO
 VIN = io("VIN", Power)
 VOUT = io("VOUT", Power)
-EN = io("EN", Net, default=Net("EN")) if enable_control else VIN
+EN = io("EN", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
 # -200mA, Low Noise, CMOS Low Dropout Regulator, Negative, -5.0V Fixed Output, TSOT-23-5
@@ -44,7 +44,6 @@ Component(
         "GND": GND,
         "VIN": VIN,
         "EN": EN,
-        "NC": NotConnected(),  # No connect pin
         "VOUT": VOUT,
     },
 )
