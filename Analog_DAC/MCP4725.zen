@@ -59,21 +59,24 @@ add_output_filter = config("add_output_filter", bool, default=True)
 i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x60"))
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 VDD = io("VDD", Power, checks=voltage_within("2.7V to 5.5V"))
 VSS = io("VSS", Ground)
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VOUT = io("VOUT", Net)
 
 # A0 pin configuration based on selected I2C address
 _factory_version, _a0_connection = address_map[i2c_address]
 _A0 = VDD if _a0_connection == "VDD" else VSS
+
+# Internal chip output node — pre-filter when output filter is enabled
+_VOUT_CHIP = Net("VOUT_CHIP") if add_output_filter else VOUT
 
 # 12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6
 Component(
     name="MCP4725",
     symbol=Symbol(library="@kicad-symbols/Analog_DAC.kicad_sym", name="MCP4725xxx-xCH"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-6.kicad_mod"),
-    pins={"SCL": i2c.SCL, "SDA": i2c.SDA, "A0": _A0, "VDD": VDD, "VSS": VSS, "VOUT": VOUT},
+    pins={"SCL": i2c.SCL, "SDA": i2c.SDA, "A0": _A0, "VDD": VDD, "VSS": VSS, "VOUT": _VOUT_CHIP},
 )
 
 # Power Supply Decoupling - Datasheet recommends 0.1µF ceramic capacitor
@@ -97,14 +100,10 @@ if add_i2c_pullups:
 # Optional Output Filter - For noise-sensitive applications
 if add_output_filter:
     # Series resistor for RC filter (100-1k ohm typical)
-    _VOUT_FILTERED = Net("VOUT_FILTERED")
-    Resistor(name="R_FILTER", value="100ohms", package="0402", P1=VOUT, P2=_VOUT_FILTERED)
+    Resistor(name="R_FILTER", value="100ohms", package="0402", P1=_VOUT_CHIP, P2=VOUT)
 
     # Filter capacitor (100pF-1nF typical, depends on bandwidth requirements)
-    Capacitor(name="C_FILTER", value="100pF", package="0402", P1=_VOUT_FILTERED, P2=VSS)
-
-    # Update output net to filtered version
-    VOUT = _VOUT_FILTERED
+    Capacitor(name="C_FILTER", value="100pF", package="0402", P1=VOUT, P2=VSS)
 
 # pcb:sch MCP4725 x=405.4000 y=214.9000 rot=0
 # pcb:sch C_DEC.C x=92.9800 y=227.6000 rot=0
