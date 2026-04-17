@@ -13,7 +13,7 @@ Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -29,8 +29,8 @@ add_shutdown_pullup = config("add_shutdown_pullup", bool, default=True)
 output_voltage = config("output_voltage", OutputVoltage, default="2.5")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 SHDN = io("SHDN", Net, default=Net("SHDN"))
 GND = io("GND", Ground)
 
