@@ -77,7 +77,6 @@ OUT = io("OUT", Net)  # Current output (converted to voltage by RL)
 # Internal nets
 _IN_P_FILT = Net("IN_PLUS_FILT") if add_input_filtering else IN_P
 _IN_N_FILT = Net("IN_MINUS_FILT") if add_input_filtering else IN_N
-_OUT_INT = Net("OUT_INT")  # Internal output net before load resistor
 
 # Main component
 Component(
@@ -85,7 +84,7 @@ Component(
     symbol=Symbol(library="@kicad-symbols/Amplifier_Current.kicad_sym", name="INA168"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
     pins={
-        "1": _OUT_INT,  # Output current
+        "1": OUT,  # Output current
         "GND": GND,  # Ground
         "+": _IN_P_FILT,  # VIN+ input
         "-": _IN_N_FILT,  # VIN- input
@@ -115,10 +114,7 @@ if add_input_filtering:
 
 # Load resistor to convert output current to voltage
 # Gain = RL * gm where gm = 200µA/V
-Resistor(name="R_LOAD", value=load_resistor_value, package="0603", P1=_OUT_INT, P2=GND)
-
-# Connect internal output to external output
-OUT = _OUT_INT
+Resistor(name="R_LOAD", value=load_resistor_value, package="0603", P1=OUT, P2=GND)
 
 # Output filtering (optional)
 if add_output_filtering:
