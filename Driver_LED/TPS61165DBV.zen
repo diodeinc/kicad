@@ -83,20 +83,22 @@ circuit_mode = config("circuit_mode", CircuitMode, default="Typical")
 # External IO
 VDD = io("VDD", Power, checks=voltage_within("3V to 18V"))
 GND = io("GND", Ground)
-LED_ANODE = io("LED_ANODE", Net, default=Net("LED_ANODE"))
-LED_CATHODE = io("LED_CATHODE", Net, default=Net("LED_CATHODE"))
+LED_ANODE = io("LED_ANODE", Net)
+LED_CATHODE = io("LED_CATHODE", Net)
 
 # Control input - external pin for user control
-CTRL = io("CTRL", Net, default=Net("CTRL"))
+CTRL = io("CTRL", Net)
 
 # PWM input for external PWM dimming network
 if circuit_mode == CircuitMode("ExternalPWM"):
-    PWM_IN = io("PWM_IN", Net, default=Net("PWM_IN"))
+    PWM_IN = io("PWM_IN", Net)
 
 # Internal nets
-_SW = Net("SW")
+_SW = Power("SW")
 _COMP = Net("COMP")
-_FB = Net("FB")
+# In Typical mode, LED_CATHODE ties directly to the FB pin for current sensing.
+# In ExternalPWM mode, FB is driven by a divider network from LED_CATHODE/PWM_IN.
+_FB = LED_CATHODE if circuit_mode == CircuitMode("Typical") else Net("FB")
 
 # Main component - High-Brightness White LED Driver
 Component(
@@ -108,29 +110,23 @@ Component(
 
 # Current sense resistor calculation based on LED current
 # I_LED = V_FB / R_SET, where V_FB = 200mV
-if led_current == LEDCurrent("20mA"):
-    r_set_value = "10ohms"
-elif led_current == LEDCurrent("50mA"):
-    r_set_value = "4ohms"
-elif led_current == LEDCurrent("100mA"):
-    r_set_value = "2ohms"
-elif led_current == LEDCurrent("150mA"):
-    r_set_value = "1.33ohms"
-elif led_current == LEDCurrent("200mA"):
-    r_set_value = "1ohms"
-elif led_current == LEDCurrent("300mA"):
-    r_set_value = "0.68ohms"
-else:  # 350mA
-    r_set_value = "0.57ohms"
+# In ExternalPWM mode the datasheet recommends RSET = 0.64 ohm.
+_r_set_by_current = {
+    LEDCurrent("20mA"): "10ohms",
+    LEDCurrent("50mA"): "4ohms",
+    LEDCurrent("100mA"): "2ohms",
+    LEDCurrent("150mA"): "1.33ohms",
+    LEDCurrent("200mA"): "1ohms",
+    LEDCurrent("300mA"): "0.68ohms",
+    LEDCurrent("350mA"): "0.57ohms",
+}
+r_set_value = "0.64ohms" if circuit_mode == CircuitMode("ExternalPWM") else _r_set_by_current[led_current]
 
 # Current sensing configuration depends on circuit mode
 if circuit_mode == CircuitMode("ExternalPWM"):
     # External PWM dimming network with resistor divider
     # Create internal net for divider point
     _DIVIDER = Net("DIVIDER")
-
-    # Adjust RSET for external PWM dimming (typical value from datasheet)
-    r_set_value = "0.64ohms"
 
     # R1: 10kΩ from LED cathode to FB pin
     Resistor(name="R1_PWM", value="10kohms", package="0603", P1=LED_CATHODE, P2=_FB)
@@ -147,12 +143,8 @@ if circuit_mode == CircuitMode("ExternalPWM"):
     # RSET connects between LED cathode and ground
     Resistor(name="R_SET", value=r_set_value, package="0805", P1=LED_CATHODE, P2=GND)
 else:
-    # Standard current sense configuration
-    # Connect between FB (which connects to LED cathode) and GND
+    # Standard current sense: R_SET from FB (== LED_CATHODE) to GND
     Resistor(name="R_SET", value=r_set_value, package="0805", P1=_FB, P2=GND)
-
-    # Connect LED cathode to FB pin for current sensing
-    LED_CATHODE = _FB
 
 # Circuit topology summary:
 # Typical:  VDD -> L1 -> SW -> D1 -> LED_ANODE -> LEDs -> LED_CATHODE -> FB -> R_SET -> GND
