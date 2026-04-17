@@ -56,8 +56,12 @@ VSS = io("VSS", Ground)
 i2c = io("I2C", I2c)
 
 # Internal nets for contrast
-_V0 = Net("V0") if power_mode == PowerMode("SingleSupply") else VDD
-_VLCD = Net("VLCD")
+if power_mode == PowerMode("SingleSupply"):
+    _V0 = Power("V0") if add_contrast_circuit else VSS
+    _VLCD = Net("VLCD") if add_contrast_circuit else VSS
+else:
+    _V0 = VDD
+    _VLCD = Net("VLCD") if add_contrast_circuit else VSS
 
 # Main display component - based on pinout table
 Component(
@@ -140,9 +144,8 @@ if add_contrast_circuit:
 
 else:
     # Contrast circuit is mandatory - provide minimal connections
-    # V0 and VLCD must not float
-    _V0 = VSS  # Connect to ground as failsafe
-    _VLCD = VSS
+    # V0 and VLCD must not float; handled above when add_contrast_circuit is False.
+    pass
 
 # Test points
 if add_test_points:
