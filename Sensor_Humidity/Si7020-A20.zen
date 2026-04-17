@@ -56,7 +56,6 @@ _SCL = i2c.SCL
 _SDA = i2c.SDA
 
 # DNC pins - Do Not Connect pins can be floating or tied to VDD (NOT GND)
-_DNC = Net("DNC")
 
 
 # Digital Humidity and Temperature Sensor, ±4%RH, ±0.4°C, I2C, 1.9-3.6V, DFN-6
@@ -67,7 +66,6 @@ Component(
     pins={
         "SDA": _SDA,  # Pin 1
         "GND": GND,  # Pin 2
-        "NC": _DNC,  # Pins 3,4 - DNC (Do Not Connect) - can be floating or tied to VDD
         "VDD": VDD,  # Pin 5
         "SCL": _SCL,  # Pin 6
         "PAD": GND,  # TGND Paddle - internally connected to GND, main thermal input
