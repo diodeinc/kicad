@@ -54,77 +54,67 @@ passives_size = config("passives_size", PassivesSize, default="0402")
 # External IO
 VCC = io("VCC", Power)
 GND = io("GND", Ground)
-RESET = io("RESET", Net, default=Net("RESET"))
+RESET = io("RESET", Net)
 
 # Port B IO
-PB0 = io("PB0", Net, default=Net("PB0"))
-PB1 = io("PB1", Net, default=Net("PB1"))
-PB2 = io("PB2", Net, default=Net("PB2"))
-PB3 = io("PB3", Net, default=Net("PB3"))
-PB4 = io("PB4", Net, default=Net("PB4"))
-PB5 = io("PB5", Net, default=Net("PB5"))
-PB6 = io("PB6", Net, default=Net("PB6"))
-PB7 = io("PB7", Net, default=Net("PB7"))
+PB0 = io("PB0", Net)
+PB1 = io("PB1", Net)
 
 # Port C IO
-PC0 = io("PC0", Net, default=Net("PC0"))
-PC1 = io("PC1", Net, default=Net("PC1"))
-PC2 = io("PC2", Net, default=Net("PC2"))
-PC3 = io("PC3", Net, default=Net("PC3"))
-PC4 = io("PC4", Net, default=Net("PC4"))
-PC5 = io("PC5", Net, default=Net("PC5"))
+PC0 = io("PC0", Net)
+PC1 = io("PC1", Net)
+PC2 = io("PC2", Net)
+PC3 = io("PC3", Net)
 
 # Port D IO
-PD0 = io("PD0", Net, default=Net("PD0"))
-PD1 = io("PD1", Net, default=Net("PD1"))
-PD2 = io("PD2", Net, default=Net("PD2"))
-PD3 = io("PD3", Net, default=Net("PD3"))
-PD4 = io("PD4", Net, default=Net("PD4"))
-PD5 = io("PD5", Net, default=Net("PD5"))
-PD6 = io("PD6", Net, default=Net("PD6"))
-PD7 = io("PD7", Net, default=Net("PD7"))
+PD2 = io("PD2", Net)
+PD3 = io("PD3", Net)
+PD4 = io("PD4", Net)
+PD5 = io("PD5", Net)
+PD6 = io("PD6", Net)
+PD7 = io("PD7", Net)
 
 # Analog IO
-ADC6 = io("ADC6", Net, default=Net("ADC6"))
-ADC7 = io("ADC7", Net, default=Net("ADC7"))
+ADC6 = io("ADC6", Net)
+ADC7 = io("ADC7", Net)
 
 # Internal nets
 _AVCC = VCC
 _AREF = Net("AREF")
-_XTAL1 = Net("XTAL1") if clock_source == ClockSource("Crystal") else PB6
-_XTAL2 = Net("XTAL2") if clock_source == ClockSource("Crystal") else PB7
+_XTAL1 = Net("XTAL1") if clock_source == ClockSource("Crystal") else io("PB6", Net)
+_XTAL2 = Net("XTAL2") if clock_source == ClockSource("Crystal") else io("PB7", Net)
 
 # ---- Peripheral Interfaces -------------------------------------------------
 # SPI on PB3 (MOSI), PB4 (MISO), PB5 (SCK) + PB2 (CS) if enabled
 if enable_spi:
-    spi = io("SPI", Spi, default=Spi("SPI"))
+    spi = io("SPI", Spi)
     PB3_net = spi.MOSI
     PB4_net = spi.MISO
     PB5_net = spi.CLK  # SCK
     PB2_net = spi.CS
 else:
-    PB3_net = PB3
-    PB4_net = PB4
-    PB5_net = PB5
-    PB2_net = PB2
+    PB2_net = io("PB2", Net)
+    PB3_net = io("PB3", Net)
+    PB4_net = io("PB4", Net)
+    PB5_net = io("PB5", Net)
 
 # I2C on PC4 (SDA) / PC5 (SCL)
 if enable_i2c:
-    i2c = io("I2C", I2c, default=I2c("I2C"))
+    i2c = io("I2C", I2c)
     PC4_net = i2c.SDA
     PC5_net = i2c.SCL
 else:
-    PC4_net = PC4
-    PC5_net = PC5
+    PC4_net = io("PC4", Net)
+    PC5_net = io("PC5", Net)
 
 # UART on PD0 (RX) / PD1 (TX)
 if enable_uart or enable_ftdi_header:
-    uart = io("UART", Uart, default=Uart("UART"))
+    uart = io("UART", Uart)
     PD0_net = uart.RX
     PD1_net = uart.TX
 else:
-    PD0_net = PD0
-    PD1_net = PD1
+    PD0_net = io("PD0", Net)
+    PD1_net = io("PD1", Net)
 
 # FTDI Header (1x6)
 if enable_ftdi_header:
