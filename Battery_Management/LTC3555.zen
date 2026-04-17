@@ -58,6 +58,34 @@ VoltageConfig = enum(
     "0.800V",
 )
 
+
+# Feedback divider helper: VOUT = vfb * (1 + R_top / R_bot); uses 100k as R_bot.
+def _fb_top_ohms(vout, vfb):
+    _ratio = (vout / vfb) - 1
+    _r1k = 100 * _ratio
+    return str(int(_r1k)) + "kohm" if _r1k == int(_r1k) else str(_r1k) + "kohm"
+
+
+# Buck2/3 programmable FB-voltage table in I2C mode.
+_fb_voltage_by_config = {
+    VoltageConfig("0.425V"): 0.425,
+    VoltageConfig("0.450V"): 0.450,
+    VoltageConfig("0.475V"): 0.475,
+    VoltageConfig("0.500V"): 0.500,
+    VoltageConfig("0.525V"): 0.525,
+    VoltageConfig("0.550V"): 0.550,
+    VoltageConfig("0.575V"): 0.575,
+    VoltageConfig("0.600V"): 0.600,
+    VoltageConfig("0.625V"): 0.625,
+    VoltageConfig("0.650V"): 0.650,
+    VoltageConfig("0.675V"): 0.675,
+    VoltageConfig("0.700V"): 0.700,
+    VoltageConfig("0.725V"): 0.725,
+    VoltageConfig("0.750V"): 0.750,
+    VoltageConfig("0.775V"): 0.775,
+    VoltageConfig("0.800V"): 0.800,
+}
+
 # Configuration
 add_input_cap = config("add_input_cap", bool, default=True)
 add_output_cap = config("add_output_cap", bool, default=True)
@@ -92,49 +120,49 @@ add_charge_led = config("add_charge_led", bool, default=True)
 
 # External IO
 VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-BAT = io("BAT", Net, default=Net("BAT"))
+VOUT = io("VOUT", Power)
+BAT = io("BAT", Power)
 GND = io("GND", Ground)
 
 if enable_i2c:
-    i2c = io("I2C", I2c, default=I2c("I2C"))
-    DVCC = io("DVCC", Net, default=Net("DVCC"))
+    i2c = io("I2C", I2c)
+    DVCC = io("DVCC", Power)
 else:
     # Manual control pins
-    EN1 = io("EN1", Net, default=Net("EN1")) if enable_buck1 else None
-    EN2 = io("EN2", Net, default=Net("EN2")) if enable_buck2 else None
-    EN3 = io("EN3", Net, default=Net("EN3")) if enable_buck3 else None
-    ILIM0 = io("ILIM0", Net, default=Net("ILIM0"))
-    ILIM1 = io("ILIM1", Net, default=Net("ILIM1"))
+    EN1 = io("EN1", Net) if enable_buck1 else None
+    EN2 = io("EN2", Net) if enable_buck2 else None
+    EN3 = io("EN3", Net) if enable_buck3 else None
+    ILIM0 = io("ILIM0", Net)
+    ILIM1 = io("ILIM1", Net)
 
 # Buck outputs
-BUCK1_OUT = io("BUCK1_OUT", Net, default=Net("BUCK1_OUT")) if enable_buck1 else None
-BUCK2_OUT = io("BUCK2_OUT", Net, default=Net("BUCK2_OUT")) if enable_buck2 else None
-BUCK3_OUT = io("BUCK3_OUT", Net, default=Net("BUCK3_OUT")) if enable_buck3 else None
+BUCK1_OUT = io("BUCK1_OUT", Net) if enable_buck1 else None
+BUCK2_OUT = io("BUCK2_OUT", Net) if enable_buck2 else None
+BUCK3_OUT = io("BUCK3_OUT", Net) if enable_buck3 else None
 
 # Status outputs
-CHRG_STAT = io("CHRG_STAT", Net, default=Net("CHRG_STAT"))
-RST3 = io("RST3", Net, default=Net("RST3")) if enable_buck3 else None
+CHRG_STAT = io("CHRG_STAT", Net)
+RST3 = io("RST3", Net) if enable_buck3 else None
 
 # Internal nets
-_SW = Net("SW")
+_SW = Power("SW")
 _CLPROG = Net("CLPROG")
 _CLPROG_FILTER = Net("CLPROG_FILTER")  # Intermediate net for series connection
 _PROG = Net("PROG")
 _NTC = GND if not enable_ntc else Net("NTC")
 _GATE = Net("GATE") if add_external_ideal_diode else NotConnected()
-_LDO3V3 = Net("LDO3V3")
+_LDO3V3 = Power("LDO3V3")
 
 # Buck internal nets
-_SW1 = Net("SW1") if enable_buck1 else NotConnected()
+_SW1 = Power("SW1") if enable_buck1 else NotConnected()
 _FB1 = Net("FB1") if enable_buck1 else NotConnected()
 _VIN1 = VOUT if enable_buck1 else NotConnected()
 
-_SW2 = Net("SW2") if enable_buck2 else NotConnected()
+_SW2 = Power("SW2") if enable_buck2 else NotConnected()
 _FB2 = Net("FB2") if enable_buck2 else NotConnected()
 _VIN2 = VOUT if enable_buck2 else NotConnected()
 
-_SW3 = Net("SW3") if enable_buck3 else NotConnected()
+_SW3 = Power("SW3") if enable_buck3 else NotConnected()
 _FB3 = Net("FB3") if enable_buck3 else NotConnected()
 _VIN3 = VOUT if enable_buck3 else NotConnected()
 
@@ -296,11 +324,7 @@ if enable_buck1:
         # For voltages <= 0.8V, direct connection
         Resistor(name="R_FB1_TOP", value="0ohm", package="0402", P1=BUCK1_OUT, P2=_FB1)
     else:
-        ratio = (buck1_output_voltage / 0.8) - 1
-        # Using R2 = 100k as base
-        r1_value = 100 * ratio
-        r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-        Resistor(name="R_FB1_TOP", value=r1_str, package="0402", P1=BUCK1_OUT, P2=_FB1)
+        Resistor(name="R_FB1_TOP", value=_fb_top_ohms(buck1_output_voltage, 0.8), package="0402", P1=BUCK1_OUT, P2=_FB1)
         Resistor(name="R_FB1_BOT", value="100kohm", package="0402", P1=_FB1, P2=GND)
 
     # Feedback compensation capacitor
@@ -321,35 +345,13 @@ if enable_buck2:
     # VOUT = VFB * (1 + R1/R2)
     if enable_i2c:
         # With I2C, FB can be programmed from 0.425V to 0.8V
-        # Get numeric value from VoltageConfig enum
-        fb_voltage_map = {
-            VoltageConfig("0.425V"): 0.425,
-            VoltageConfig("0.450V"): 0.450,
-            VoltageConfig("0.475V"): 0.475,
-            VoltageConfig("0.500V"): 0.500,
-            VoltageConfig("0.525V"): 0.525,
-            VoltageConfig("0.550V"): 0.550,
-            VoltageConfig("0.575V"): 0.575,
-            VoltageConfig("0.600V"): 0.600,
-            VoltageConfig("0.625V"): 0.625,
-            VoltageConfig("0.650V"): 0.650,
-            VoltageConfig("0.675V"): 0.675,
-            VoltageConfig("0.700V"): 0.700,
-            VoltageConfig("0.725V"): 0.725,
-            VoltageConfig("0.750V"): 0.750,
-            VoltageConfig("0.775V"): 0.775,
-            VoltageConfig("0.800V"): 0.800,
-        }
-        fb_voltage = fb_voltage_map.get(buck2_fb_voltage, 0.8)
+        _buck2_fb_v = _fb_voltage_by_config.get(buck2_fb_voltage, 0.8)
 
-        if buck2_output_voltage <= fb_voltage:
+        if buck2_output_voltage <= _buck2_fb_v:
             # For output <= FB voltage, direct connection
             Resistor(name="R_FB2_TOP", value="0ohm", package="0402", P1=BUCK2_OUT, P2=_FB2)
         else:
-            ratio = (buck2_output_voltage / fb_voltage) - 1
-            r1_value = 100 * ratio
-            r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name="R_FB2_TOP", value=r1_str, package="0402", P1=BUCK2_OUT, P2=_FB2)
+            Resistor(name="R_FB2_TOP", value=_fb_top_ohms(buck2_output_voltage, _buck2_fb_v), package="0402", P1=BUCK2_OUT, P2=_FB2)
             Resistor(name="R_FB2_BOT", value="100kohm", package="0402", P1=_FB2, P2=GND)
     else:
         # Without I2C, FB is fixed at 0.8V
@@ -357,10 +359,7 @@ if enable_buck2:
             # For voltages <= 0.8V, direct connection
             Resistor(name="R_FB2_TOP", value="0ohm", package="0402", P1=BUCK2_OUT, P2=_FB2)
         else:
-            ratio = (buck2_output_voltage / 0.8) - 1
-            r1_value = 100 * ratio
-            r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name="R_FB2_TOP", value=r1_str, package="0402", P1=BUCK2_OUT, P2=_FB2)
+            Resistor(name="R_FB2_TOP", value=_fb_top_ohms(buck2_output_voltage, 0.8), package="0402", P1=BUCK2_OUT, P2=_FB2)
             Resistor(name="R_FB2_BOT", value="100kohm", package="0402", P1=_FB2, P2=GND)
 
     # Feedback compensation capacitor
@@ -381,35 +380,13 @@ if enable_buck3:
     # VOUT = VFB * (1 + R1/R2)
     if enable_i2c:
         # With I2C, FB can be programmed from 0.425V to 0.8V
-        # Get numeric value from VoltageConfig enum
-        fb_voltage_map = {
-            VoltageConfig("0.425V"): 0.425,
-            VoltageConfig("0.450V"): 0.450,
-            VoltageConfig("0.475V"): 0.475,
-            VoltageConfig("0.500V"): 0.500,
-            VoltageConfig("0.525V"): 0.525,
-            VoltageConfig("0.550V"): 0.550,
-            VoltageConfig("0.575V"): 0.575,
-            VoltageConfig("0.600V"): 0.600,
-            VoltageConfig("0.625V"): 0.625,
-            VoltageConfig("0.650V"): 0.650,
-            VoltageConfig("0.675V"): 0.675,
-            VoltageConfig("0.700V"): 0.700,
-            VoltageConfig("0.725V"): 0.725,
-            VoltageConfig("0.750V"): 0.750,
-            VoltageConfig("0.775V"): 0.775,
-            VoltageConfig("0.800V"): 0.800,
-        }
-        fb_voltage = fb_voltage_map.get(buck3_fb_voltage, 0.8)
+        _buck3_fb_v = _fb_voltage_by_config.get(buck3_fb_voltage, 0.8)
 
-        if buck3_output_voltage <= fb_voltage:
+        if buck3_output_voltage <= _buck3_fb_v:
             # For output <= FB voltage, direct connection
             Resistor(name="R_FB3_TOP", value="0ohm", package="0402", P1=BUCK3_OUT, P2=_FB3)
         else:
-            ratio = (buck3_output_voltage / fb_voltage) - 1
-            r1_value = 100 * ratio
-            r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name="R_FB3_TOP", value=r1_str, package="0402", P1=BUCK3_OUT, P2=_FB3)
+            Resistor(name="R_FB3_TOP", value=_fb_top_ohms(buck3_output_voltage, _buck3_fb_v), package="0402", P1=BUCK3_OUT, P2=_FB3)
             Resistor(name="R_FB3_BOT", value="100kohm", package="0402", P1=_FB3, P2=GND)
     else:
         # Without I2C, FB is fixed at 0.8V
@@ -417,10 +394,7 @@ if enable_buck3:
             # For voltages <= 0.8V, direct connection
             Resistor(name="R_FB3_TOP", value="0ohm", package="0402", P1=BUCK3_OUT, P2=_FB3)
         else:
-            ratio = (buck3_output_voltage / 0.8) - 1
-            r1_value = 100 * ratio
-            r1_str = str(int(r1_value)) + "kohm" if r1_value == int(r1_value) else str(r1_value) + "kohm"
-            Resistor(name="R_FB3_TOP", value=r1_str, package="0402", P1=BUCK3_OUT, P2=_FB3)
+            Resistor(name="R_FB3_TOP", value=_fb_top_ohms(buck3_output_voltage, 0.8), package="0402", P1=BUCK3_OUT, P2=_FB3)
             Resistor(name="R_FB3_BOT", value="100kohm", package="0402", P1=_FB3, P2=GND)
 
     # Feedback compensation capacitor
