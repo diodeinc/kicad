@@ -73,8 +73,8 @@ add_power_good_led = config("add_power_good_led", bool, default=False, optional=
 add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IO
-VIN = io("VIN", Power, default=Power("VIN"), checks=voltage_within("2.5V to 6V"))
-VOUT = io("VOUT", Power, default=Power("VOUT"))
+VIN = io("VIN", Power, checks=voltage_within("2.5V to 6V"))
+VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
 # Enable pin handling based on configuration
@@ -85,7 +85,6 @@ if enable_control != EnableControl("AlwaysOn"):
 
 # Internal nets
 _VIN_FILT = Net("VIN_FILT") if input_filter_type != InputFilterType("None") else VIN
-_NC = NotConnected()  # No connect pin
 
 # Main regulator component
 Component(
@@ -96,7 +95,6 @@ Component(
         "VIN": _VIN_FILT,
         "EN": _VIN_FILT if enable_control == EnableControl("AlwaysOn") else _EN,
         "GND": GND,
-        "NC": _NC,
         "VOUT": VOUT,
     },
 )
