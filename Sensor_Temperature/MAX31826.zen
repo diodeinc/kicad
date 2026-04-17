@@ -168,7 +168,6 @@ Component(
     pins={
         "V_{DD}": _VDD_CHIP,  # Pin 1 - Power supply (GND in parasite mode)
         "DQ": _DQ,  # Pin 2 - 1-Wire data
-        "NC": NotConnected(),  # Pin 3 - No connection
         "GND": GND,  # Pin 4 - Ground
         "AD0": _AD0,  # Pin 5 - Address bit 0 (LSB)
         "AD1": _AD1,  # Pin 6 - Address bit 1

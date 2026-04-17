@@ -31,10 +31,10 @@ i2c_address = config("i2c_address", I2cAddress, default="0x4C")
 resolution = config("resolution", Resolution, default="11bit")
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 VDD = io("VDD", Power, checks=voltage_within("1V to 2.7V"))
 GND = io("GND", Ground)
-ALERT = io("ALERT", Net, default=Net("ALERT")) if enable_alert else None
+ALERT = io("ALERT", Net) if enable_alert else None
 
 # Address configuration
 _ADDR = GND if i2c_address == I2cAddress("0x4D") else VDD if i2c_address == I2cAddress("0x4E") else Net("ADDR_FLOAT")

@@ -31,10 +31,10 @@ event_polarity = config("event_polarity", EventPolarity, default="ActiveLow")
 i2c_address = config("i2c_address", I2cAddress, default="0x18")
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 VDD = io("VDD", Power, checks=voltage_within("1.7V to 3.6V"))
 GND = io("GND", Ground)
-EVENT = io("EVENT", Net, default=Net("EVENT")) if enable_event else None
+EVENT = io("EVENT", Net) if enable_event else None
 
 # Address configuration nets
 _A0 = (
