@@ -114,11 +114,11 @@ _A1_NET = VDD if a1_state else GND
 _A0_NET = VDD if a0_state else GND
 
 # Reference pin connection
-_REF_NET = Net("REF")
 if reference_mode == ReferenceMode("External"):
-    _REF_CONNECT = REF_EXT
     _REF_NET = REF_EXT
+    _REF_CONNECT = REF_EXT
 else:
+    _REF_NET = Net("REF")
     _REF_CONNECT = _REF_NET
 
 # Main component
