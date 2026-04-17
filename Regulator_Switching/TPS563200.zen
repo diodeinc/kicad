@@ -11,7 +11,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/tps563200.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -37,27 +37,23 @@ enable_config = config("enable_config", EnableConfig, default="AlwaysOn")
 feedforward_cap = config("feedforward_cap", FeedforwardCapValue, default="100pF")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
 # Enable pin configuration
-if enable_config == EnableConfig("External"):
-    EN = io("EN", Net, default=Net("EN"))
-else:
-    EN = Net("EN")
+if enable_config == EnableConfig("External") or enable_config == EnableConfig("Pullup"):
+    EN = io("EN", Net)
+else:  # AlwaysOn: EN tracks VIN internally
+    EN = VIN
 
 # Internal nets
-_SW = Net("SW")
+_SW = Power("SW")
 _VBST = Net("VBST")
-_VFB = Net("VFB")
+_VFB = VOUT if output_voltage == OutputVoltage("0.76V") else Net("VFB")
 
-# Enable pin configuration
-if enable_config == EnableConfig("AlwaysOn"):
-    # Direct connection to VIN for always-on operation
-    EN = VIN
-elif enable_config == EnableConfig("Pullup"):
-    # Pull-up resistor to VIN with external control capability
+# EN pull-up when `Pullup` mode is selected
+if enable_config == EnableConfig("Pullup"):
     Resistor(name="R_EN", value="100kohms", package="0402", P1=EN, P2=VIN)
 
 # Main component - 3A Synchronous Step-Down Voltage Regulator
@@ -96,9 +92,6 @@ else:  # 7.0V
 if output_voltage != OutputVoltage("0.76V"):
     Resistor(name="R_TOP", value=r_top, package="0402", P1=VOUT, P2=_VFB)
     Resistor(name="R_BOT", value="10kohms", package="0402", P1=_VFB, P2=GND)
-else:
-    # Direct connection for 0.76V output
-    _VFB = VOUT
 
 # Optional feedforward capacitor for improved transient response
 if feedforward_cap != FeedforwardCapValue("None") and output_voltage != OutputVoltage("0.76V"):
