@@ -62,7 +62,6 @@ Component(
         "SDA": _SDA,
         "VDD": VDD,
         "VSS": GND,
-        "NC": GND,  # Center pad - internally connected to VSS, connect directly to ground
     },
 )
 
