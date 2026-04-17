@@ -75,17 +75,17 @@ else:  # SPI modes
 
 # Interrupt pins
 if enable_interrupt:
-    INT = io("INT", Net, default=Net("INT"))
+    INT = io("INT", Net)
 else:
     INT = NotConnected()
 
 if enable_data_ready:
-    DRDY = io("DRDY", Net, default=Net("DRDY"))
+    DRDY = io("DRDY", Net)
 else:
     DRDY = NotConnected()
 
 # Internal nets
-_C1 = Net("C1")  # External capacitor connection
+_C1 = Power("C1")  # External capacitor connection
 
 # Main component
 Component(
