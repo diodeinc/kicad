@@ -43,7 +43,7 @@ GND = io("GND", Ground)
 CLKIN = io("CLKIN", Net)
 
 # Internal nets
-_VDD_FILT = Net("VDD_FILT") if add_power_filtering else VDD
+_VDD_FILT = Power("VDD_FILT") if add_power_filtering else VDD
 
 # Output clocks
 CLK_OUT0 = io("CLK_OUT0", Net)
