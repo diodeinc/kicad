@@ -128,7 +128,7 @@ else:
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net)
+    VUSB = io("VUSB", Power)
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
