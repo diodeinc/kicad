@@ -53,42 +53,39 @@ VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
 
 # SWD IO (if enabled)
 if add_swd_header:
-    swd = io("SWD", Swd, default=Swd("SWD"))
+    swd = io("SWD", Swd)
 
-# Reset and Boot pins
-NRST = io("NRST", Net, default=Net("NRST"))
-BOOT0 = io("BOOT0", Net, default=Net("BOOT0"))
+# Reset pin
+NRST = io("NRST", Net)
 
 # Port A pins
-PA0 = io("PA0", Net, default=Net("PA0"))
-PA1 = io("PA1", Net, default=Net("PA1"))
-PA2 = io("PA2", Net, default=Net("PA2"))
-PA3 = io("PA3", Net, default=Net("PA3"))
-PA4 = io("PA4", Net, default=Net("PA4"))
-PA5 = io("PA5", Net, default=Net("PA5"))
-PA6 = io("PA6", Net, default=Net("PA6"))
-PA7 = io("PA7", Net, default=Net("PA7"))
-PA8_PB0_PB1_PB2 = io("PA8_PB0_PB1_PB2", Net, default=Net("PA8/PB0/PB1/PB2"))
-PA9_PA11 = io("PA9_PA11", Net, default=Net("PA9/PA11"))
-PA10_PA12 = io("PA10_PA12", Net, default=Net("PA10/PA12"))
-PA13 = io("PA13", Net, default=Net("PA13"))
-PA14_PA15 = io("PA14_PA15", Net, default=Net("PA14/PA15"))
+PA0 = io("PA0", Net)
+PA1 = io("PA1", Net)
+PA2 = io("PA2", Net)
+PA3 = io("PA3", Net)
+PA4 = io("PA4", Net)
+PA5 = io("PA5", Net)
+PA6 = io("PA6", Net)
+PA7 = io("PA7", Net)
+PA8_PB0_PB1_PB2 = io("PA8_PB0_PB1_PB2", Net)
+PA9_PA11 = io("PA9_PA11", Net)
+PA10_PA12 = io("PA10_PA12", Net)
 
 # Port B pins
-PB3_PB4_PB5_PB6 = io("PB3_PB4_PB5_PB6", Net, default=Net("PB3/PB4/PB5/PB6"))
-PB7_PB8 = io("PB7_PB8", Net, default=Net("PB7/PB8"))
-PB9_PC14 = io("PB9_PC14", Net, default=Net("PB9/PC14"))
+PB3_PB4_PB5_PB6 = io("PB3_PB4_PB5_PB6", Net)
+PB7_PB8 = io("PB7_PB8", Net)
+PB9_PC14 = io("PB9_PC14", Net)
 
 # Port C pin
-PC15 = io("PC15", Net, default=Net("PC15"))
+PC15 = io("PC15", Net)
 
 # SWD interface routing
 if add_swd_header:
     PA13_net = swd.SWDIO
     PA14_net = swd.SWCLK
 else:
-    PA13_net = PA13
-    PA14_net = PA14_PA15
+    PA13_net = io("PA13", Net)
+    PA14_net = io("PA14_PA15", Net)
 
 # STMicroelectronics Arm Cortex-M0+ MCU, 32KB flash, 8KB RAM, 64 MHz, 2.0-3.6V, 17 GPIO, TSSOP20
 Component(
