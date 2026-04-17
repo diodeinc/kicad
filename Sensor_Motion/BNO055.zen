@@ -36,12 +36,12 @@ add_boot_pullup = config("add_boot_pullup", bool, default=True)
 VDD = io("VDD", Power)
 VDDIO = VDD  # Connect VDDIO to VDD
 GND = io("GND", Ground)
-RESET = io("RESET", Net, default=Net("nRESET"))
-INT = io("INT", Net, default=Net("INT"))
+RESET = io("RESET", Net)
+INT = io("INT", Net)
 
 # Interface IO based on mode
 if interface_mode == InterfaceMode("I2C") or interface_mode == InterfaceMode("HID_I2C"):
-    i2c = io("I2C", I2c, default=I2c("I2C"))
+    i2c = io("I2C", I2c)
     _COM0 = i2c.SDA
     _COM1 = i2c.SCL
     _COM2 = GND if i2c_address == I2cAddress("0x28") else VDDIO
@@ -96,21 +96,10 @@ Component(
         "COM1": _COM1,
         "COM2": _COM2,
         "COM3": _COM3,
-        "PIN1": GND,
-        "PIN7": GND,
-        "PIN8": GND,
         "VDD": VDD,
         "GND": GND,
         "VDDIO": VDDIO,
         "GNDIO": GND,
-        "PIN15": GND,
-        "PIN16": GND,
-        "PIN12": GND,
-        "PIN13": GND,
-        "PIN21": GND,
-        "PIN22": GND,
-        "PIN23": GND,
-        "PIN24": GND,
         "XOUT32": _XOUT32,
         "XIN32": _XIN32,
         "PS0": _PS0,
