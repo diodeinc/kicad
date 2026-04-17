@@ -37,15 +37,21 @@ add_output_filters = config("add_output_filters", bool, default=True)
 i2c_address = config("i2c_address", I2cAddress, default=I2cAddress("0x60"))
 
 # External IO
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 VDD = io("VDD", Power)
 VSS = io("VSS", Ground)
-LDAC = io("LDAC", Net, default=Net("LDAC"))
-RDY_BSY = io("RDY_BSY", Net, default=Net("RDY_BSY"))
-VOUTA = io("VOUTA", Net, default=Net("VOUTA"))
-VOUTB = io("VOUTB", Net, default=Net("VOUTB"))
-VOUTC = io("VOUTC", Net, default=Net("VOUTC"))
-VOUTD = io("VOUTD", Net, default=Net("VOUTD"))
+LDAC = io("LDAC", Net)
+RDY_BSY = io("RDY_BSY", Net)
+VOUTA = io("VOUTA", Net)
+VOUTB = io("VOUTB", Net)
+VOUTC = io("VOUTC", Net)
+VOUTD = io("VOUTD", Net)
+
+# Internal chip output nodes — pre-filter when output filters are enabled
+_VOUTA_CHIP = Net("VOUTA_CHIP") if add_output_filters else VOUTA
+_VOUTB_CHIP = Net("VOUTB_CHIP") if add_output_filters else VOUTB
+_VOUTC_CHIP = Net("VOUTC_CHIP") if add_output_filters else VOUTC
+_VOUTD_CHIP = Net("VOUTD_CHIP") if add_output_filters else VOUTD
 
 # 12-bit quad digital to analog converter, 2.048V internal reference, integrated EEPROM, I2C interface
 Component(
@@ -58,10 +64,10 @@ Component(
         "SDA": i2c.SDA,
         "~{LDAC}": LDAC,
         "RDY/~{BSY}": RDY_BSY,
-        "VOUTA": VOUTA,
-        "VOUTB": VOUTB,
-        "VOUTC": VOUTC,
-        "VOUTD": VOUTD,
+        "VOUTA": _VOUTA_CHIP,
+        "VOUTB": _VOUTB_CHIP,
+        "VOUTC": _VOUTC_CHIP,
+        "VOUTD": _VOUTD_CHIP,
         "VSS": VSS,
     },
 )
@@ -105,28 +111,20 @@ elif ldac_config == LDACConfig("PullDown"):
 # Optional Output Filters - For noise-sensitive applications
 if add_output_filters:
     # Channel A output filter
-    _VOUTA_FILTERED = Net("VOUTA_FILTERED")
-    Resistor(name="R_FILTER_A", value="100ohms", package="0402", P1=VOUTA, P2=_VOUTA_FILTERED)
-    Capacitor(name="C_FILTER_A", value="100pF", package="0402", P1=_VOUTA_FILTERED, P2=VSS)
-    VOUTA = _VOUTA_FILTERED
+    Resistor(name="R_FILTER_A", value="100ohms", package="0402", P1=_VOUTA_CHIP, P2=VOUTA)
+    Capacitor(name="C_FILTER_A", value="100pF", package="0402", P1=VOUTA, P2=VSS)
 
     # Channel B output filter
-    _VOUTB_FILTERED = Net("VOUTB_FILTERED")
-    Resistor(name="R_FILTER_B", value="100ohms", package="0402", P1=VOUTB, P2=_VOUTB_FILTERED)
-    Capacitor(name="C_FILTER_B", value="100pF", package="0402", P1=_VOUTB_FILTERED, P2=VSS)
-    VOUTB = _VOUTB_FILTERED
+    Resistor(name="R_FILTER_B", value="100ohms", package="0402", P1=_VOUTB_CHIP, P2=VOUTB)
+    Capacitor(name="C_FILTER_B", value="100pF", package="0402", P1=VOUTB, P2=VSS)
 
     # Channel C output filter
-    _VOUTC_FILTERED = Net("VOUTC_FILTERED")
-    Resistor(name="R_FILTER_C", value="100ohms", package="0402", P1=VOUTC, P2=_VOUTC_FILTERED)
-    Capacitor(name="C_FILTER_C", value="100pF", package="0402", P1=_VOUTC_FILTERED, P2=VSS)
-    VOUTC = _VOUTC_FILTERED
+    Resistor(name="R_FILTER_C", value="100ohms", package="0402", P1=_VOUTC_CHIP, P2=VOUTC)
+    Capacitor(name="C_FILTER_C", value="100pF", package="0402", P1=VOUTC, P2=VSS)
 
     # Channel D output filter
-    _VOUTD_FILTERED = Net("VOUTD_FILTERED")
-    Resistor(name="R_FILTER_D", value="100ohms", package="0402", P1=VOUTD, P2=_VOUTD_FILTERED)
-    Capacitor(name="C_FILTER_D", value="100pF", package="0402", P1=_VOUTD_FILTERED, P2=VSS)
-    VOUTD = _VOUTD_FILTERED
+    Resistor(name="R_FILTER_D", value="100ohms", package="0402", P1=_VOUTD_CHIP, P2=VOUTD)
+    Capacitor(name="C_FILTER_D", value="100pF", package="0402", P1=VOUTD, P2=VSS)
 
 # pcb:sch C_BULK.C x=766.0800 y=240.3000 rot=0
 # pcb:sch C_DEC.C x=664.4800 y=240.3000 rot=0
