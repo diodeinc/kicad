@@ -114,8 +114,6 @@ Component(
         "GND": GND,
         "AIN0": _AIN0_FILTERED,
         "AIN1": _AIN1_FILTERED,
-        "6": NotConnected(),
-        "7": NotConnected(),
         "VDD": VDD,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
