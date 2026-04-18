@@ -60,7 +60,9 @@ if power_mode == PowerMode("SingleSupply"):
     _V0 = Power("V0") if add_contrast_circuit else VSS
     _VLCD = Net("VLCD") if add_contrast_circuit else VSS
 else:
-    _V0 = VDD
+    # DualSupply: V0 is driven by VDD only when the contrast divider is populated,
+    # otherwise leave it failsafe to VSS so the pin isn't tied to the supply rail.
+    _V0 = VDD if add_contrast_circuit else VSS
     _VLCD = Net("VLCD") if add_contrast_circuit else VSS
 
 # Main display component - based on pinout table
