@@ -66,26 +66,26 @@ Capacitor(name="C_IN", value="100nF", package="0402", P1=VIN, P2=GND, dnp=not ad
 if add_output_cap:
     _ESR = Net("ESR") if esr != Esr("None") else VOUT
 
-    # ESR Capacitor - For applications requiring specific ESR for stability
-    if esr != Esr("None"):
-        # Section 9.3.4: Stability
-        # At a low output-capacitor value of 10 µF, an effective series resistance (ESR)
-        # of 20 mΩ to 100 mΩ is required for stability; whereas, at a higher value of
-        # 47 µF, an ESR of 5 mΩ to 100 mΩ is required.
+    # Per datasheet §9.3.4 (Stability): a 10µF cap needs ESR in [20mΩ, 100mΩ],
+    # while a 47µF cap needs ESR in [5mΩ, 100mΩ]. Pair the ESR resistor with
+    # the appropriate output capacitor value.
+    _esr_cap_table = {
+        Esr("5mohm"): ("5mohms 1%", "47uF"),
+        Esr("10mohm"): ("10mohms 1%", "47uF"),
+        Esr("20mohm"): ("20mohms 1%", "10uF"),
+        Esr("50mohm"): ("50mohms 1%", "10uF"),
+    }
 
-        esr_cap_table = {
-            Esr("5mohm"): "5mohms 1%",
-            Esr("10mohm"): "10mohms 1%",
-            Esr("20mohm"): "20mohms 1%",
-            Esr("50mohm"): "50mohms 1%",
-        }
-        _output_r = esr_cap_table.get(esr, "20mohm")
+    if esr != Esr("None"):
+        _output_r, _output_c = _esr_cap_table.get(esr, ("20mohms 1%", "10uF"))
 
         # ESR resistor in series with capacitor
         Resistor(name="R_ESR", value=_output_r, package="0402", P1=VOUT, P2=_ESR)
+    else:
+        _output_c = "47uF"
 
     # Primary output capacitor (ceramic with low ESR)
-    Capacitor(name="C_OUT", value="47uF", package="1206", P1=_ESR, P2=GND)
+    Capacitor(name="C_OUT", value=_output_c, package="1206", P1=_ESR, P2=GND)
 
 # Filter Capacitor - Required ≥1µF for stability
 Capacitor(name="C_FILT", value="1uF", package="0603", P1=_FILT, P2=GND, dnp=not add_filter_cap)
