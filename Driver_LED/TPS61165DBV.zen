@@ -96,9 +96,9 @@ if circuit_mode == CircuitMode("ExternalPWM"):
 # Internal nets
 _SW = Power("SW")
 _COMP = Net("COMP")
-# In Typical mode, LED_CATHODE ties directly to the FB pin for current sensing.
+# In Typical and SEPIC modes, LED_CATHODE ties directly to the FB pin for current sensing.
 # In ExternalPWM mode, FB is driven by a divider network from LED_CATHODE/PWM_IN.
-_FB = LED_CATHODE if circuit_mode == CircuitMode("Typical") else Net("FB")
+_FB = Net("FB") if circuit_mode == CircuitMode("ExternalPWM") else LED_CATHODE
 
 # Main component - High-Brightness White LED Driver
 Component(
