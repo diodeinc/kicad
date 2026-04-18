@@ -35,6 +35,7 @@ VDD = io("VDD", Power)
 AIN_P = io("AIN+", Net)
 AIN_N = io("AIN-", Net)
 PDRST_CTRL = io("PDRST", Net, optional=True)
+_PDRST_CTRL = PDRST_CTRL if PDRST_CTRL != None else Net("nPDRST")
 if use_external_ref:
     REFIN_P = io("REFIN+", Net)
     REFIN_N = io("REFIN-", Ground)
@@ -43,7 +44,7 @@ GND = io("GND", Ground)
 # Internal nets
 _VREF = REFIN_P if use_external_ref else VDD
 _VREF_N = REFIN_N if use_external_ref else GND
-_PDRST = PDRST_CTRL if power_on_delay != PowerOnDelay("0ms") else VDD
+_PDRST = _PDRST_CTRL if power_on_delay != PowerOnDelay("0ms") else VDD
 
 # Filtered analog inputs (if filtering is enabled)
 if add_input_filter:
