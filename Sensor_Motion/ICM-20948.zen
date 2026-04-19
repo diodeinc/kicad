@@ -22,7 +22,6 @@ Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-2
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,13 +48,13 @@ add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default=True)
 seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.71V to 3.6V"))
 GND = io("GND", Ground)
 
 
 if seperate_vdd_vddio:
     add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default=True)
-    VDDIO = io("VDDIO", Power, checks=voltage_within("1.71V to 3.6V"))
+    VDDIO = io("VDDIO", Power(voltage="1.71V to 3.6V"))
 else:
     add_vddio_bypass_cap = False
     VDDIO = VDD

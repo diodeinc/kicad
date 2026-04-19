@@ -14,7 +14,6 @@ Datasheet: https://www.diodes.com/assets/Datasheets/AP2112.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -73,7 +72,7 @@ add_power_good_led = config("add_power_good_led", bool, default=False, optional=
 add_test_points = config("add_test_points", bool, default=False, optional=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("2.5V to 6V"))
+VIN = io("VIN", Power(voltage="2.5V to 6V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

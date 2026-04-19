@@ -18,7 +18,6 @@ Datasheet: https://www.microchip.com/en-us/product/ATSAMD21E15
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -73,7 +72,7 @@ add_status_led = config("add_status_led", bool, default=True)
 add_spi_flash = config("add_spi_flash", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.62V to 3.63V"))
+VDD = io("VDD", Power(voltage="1.62V to 3.63V"))
 GND = io("GND", Ground)
 
 # USB IO (if enabled)

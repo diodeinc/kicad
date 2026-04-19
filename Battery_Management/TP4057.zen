@@ -24,7 +24,6 @@ Datasheet: https://datasheet.lcsc.com/lcsc/2304140030_TOPPOWER-Nanjing-Extension
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # No longer using Power interface
 
@@ -61,7 +60,7 @@ if add_output_capacitor:
 add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("4.5V to 9V"))
+VIN = io("VIN", Power(voltage="4.5V to 9V"))
 VBAT = io("VBAT", Power)
 GND = io("GND", Ground)
 

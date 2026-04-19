@@ -14,7 +14,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm317.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -60,7 +59,7 @@ add_protection_diodes = config("add_protection_diodes", bool, default=False)
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("1.25V to 37V"))
+VIN = io("VIN", Power(voltage="1.25V to 37V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

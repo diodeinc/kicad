@@ -13,7 +13,6 @@ Datasheet: https://content.u-blox.com/sites/default/files/NEO-LEA-M8T-FW3_DataSh
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -52,8 +51,8 @@ add_bulk_caps = config("add_bulk_caps", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO - Always create these power nets
-VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
-VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+VCC = io("VCC", Power(voltage="2.7V to 3.6V"))
+VBUS = io("VBUS", Power(voltage="4V to 5.5V"))
 GND = io("GND", Ground)
 
 # Interface IO - conditional based on configuration

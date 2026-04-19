@@ -13,7 +13,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f411ce.pdf
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
 
 # Dependencies
@@ -77,7 +76,7 @@ if add_usb:
 add_spi_flash = config("add_spi_flash", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.7V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.7V to 3.6V"))
 GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user

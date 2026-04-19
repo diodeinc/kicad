@@ -14,7 +14,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/dac7513.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -43,7 +42,7 @@ else:
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2.7V to 5.5V"))
+VDD = io("VDD", Power(voltage="2.7V to 5.5V"))
 GND = io("GND", Ground)
 
 # SPI interface - Note: This is SPI-compatible but uses SYNC instead of CS

@@ -15,7 +15,6 @@ Datasheet: https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,7 +44,7 @@ add_decoupling = config("add_decoupling", bool, default=True)
 enable_safeboot_pins = config("enable_safeboot_pins", bool, default=True)
 
 # External IO
-VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
+VCC = io("VCC", Power(voltage="2.7V to 3.6V"))
 _VCC_IO_REQ = io("VCC_IO", Power, optional=True)
 VCC_IO = _VCC_IO_REQ if _VCC_IO_REQ != None else VCC
 GND = io("GND", Ground)

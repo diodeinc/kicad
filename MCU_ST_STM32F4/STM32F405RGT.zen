@@ -27,7 +27,6 @@ load(
     "Ground",
     "NotConnected",
 )
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -90,7 +89,7 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+    VBUS = io("VBUS", Power(voltage="4V to 5.5V"))
     usb = io("USB", Usb2)
     USB_DM = usb.D.N
     USB_DP = usb.D.P

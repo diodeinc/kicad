@@ -21,7 +21,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7830.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance", "Voltage")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -65,7 +64,7 @@ if add_analog_filtering:
     filter_c_value = config("filter_c_value", Capacitance, default="10pF")
 
 # External power supply
-VDD = io("VDD", Power, checks=voltage_within("2.7V to 5V"))
+VDD = io("VDD", Power(voltage="2.7V to 5V"))
 GND = io("GND", Ground)
 
 # I2C interface

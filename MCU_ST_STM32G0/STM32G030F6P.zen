@@ -13,7 +13,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32g030c6.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Swd", "Usb2", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,7 +48,7 @@ add_gpio_headers = config("add_gpio_headers", bool, default=True, optional=True)
 
 # External IO
 GND = io("GND", Ground)
-VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
+VDD = io("VDD", Power(voltage="2V to 3.6V"))
 
 # SWD IO (if enabled)
 if add_swd_header:

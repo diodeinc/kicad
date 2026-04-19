@@ -25,7 +25,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/3
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -119,7 +118,7 @@ add_external_ideal_diode = config("add_external_ideal_diode", bool, default=True
 add_charge_led = config("add_charge_led", bool, default=True)
 
 # External IO
-VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+VBUS = io("VBUS", Power(voltage="4V to 5.5V"))
 VOUT = io("VOUT", Power)
 BAT = io("BAT", Power)
 GND = io("GND", Ground)

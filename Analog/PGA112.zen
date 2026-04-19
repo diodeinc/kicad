@@ -26,7 +26,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/pga112.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -58,12 +57,12 @@ add_spi_pullup = config("add_spi_pullup", bool, default=True)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-AVDD = io("AVDD", Power, checks=voltage_within("2.2V to 5.5V"))
+AVDD = io("AVDD", Power(voltage="2.2V to 5.5V"))
 GND = io("GND", Ground)
 
 # Digital supply - separate or tied to AVDD
 if split_supplies:
-    DVDD = io("DVDD", Power, checks=voltage_within("2.2V to 5.5V"))
+    DVDD = io("DVDD", Power(voltage="2.2V to 5.5V"))
 else:
     DVDD = AVDD
 

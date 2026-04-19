@@ -22,7 +22,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm5050-2.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -51,7 +50,7 @@ nfgd_control = config("nfgd_control", NFGDControl, default="VLOGIC")
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("6V to 75V"))
+VIN = io("VIN", Power(voltage="6V to 75V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

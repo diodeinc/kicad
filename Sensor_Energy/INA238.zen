@@ -16,7 +16,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina238.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -99,7 +98,7 @@ if add_bus_resistor:
     bus_series_resistor = config("bus_series_resistor", Resistance, default="10ohms")
 
 # External IO
-VS = io("VS", Power, checks=voltage_within("2.7V to 5.5V"))  # Power supply (2.7-5.5V)
+VS = io("VS", Power(voltage="2.7V to 5.5V"))  # Power supply (2.7-5.5V)
 GND = io("GND", Ground)
 
 # I2C interface

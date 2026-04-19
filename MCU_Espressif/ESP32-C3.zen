@@ -13,7 +13,6 @@ Datasheet: https://www.espressif.com/documentation/esp32-c3_datasheet_en.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "I2c", "Uart", "Usb2", "Jtag", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import TLV70033 module from validated parts
 TLV70033_SOT23_5 = Module("../Regulator_Linear/TLV70033_SOT23-5.zen")
@@ -93,7 +92,7 @@ if clock_source == ClockSource("Crystal"):
 add_low_speed_oscillator = config("add_low_speed_oscillator", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
+VDD = io("VDD", Power(voltage="2V to 3.6V"))
 GND = io("GND", Ground)
 
 # USB IO (if enabled)

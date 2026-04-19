@@ -18,7 +18,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/A
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -75,12 +74,12 @@ if add_output_filtering:
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2.7V to 5.5V"))
+VDD = io("VDD", Power(voltage="2.7V to 5.5V"))
 GND = io("GND", Ground)
 
 # VLOGIC supply for MSOP package
 if add_vlogic_supply:
-    VLOGIC = io("VLOGIC", Power, checks=voltage_within("2.7V to 5.5V"))
+    VLOGIC = io("VLOGIC", Power(voltage="2.7V to 5.5V"))
     _VLOGIC = VLOGIC
 else:
     _VLOGIC = VDD  # Use VDD for VLOGIC if not separate

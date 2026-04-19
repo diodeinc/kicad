@@ -23,7 +23,6 @@ Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/10/DS-000176-ICM-2
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -59,10 +58,10 @@ if use_interrupt:
 use_fsync = config("use_fsync", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.45V"))
+VDD = io("VDD", Power(voltage="1.71V to 3.45V"))
 # VDDIO - can be same as VDD or separate
 if separate_vddio:
-    VDDIO = io("VDDIO", Power, checks=voltage_within("1.71V to 3.45V"))
+    VDDIO = io("VDDIO", Power(voltage="1.71V to 3.45V"))
 else:
     VDDIO = VDD
 GND = io("GND", Ground)

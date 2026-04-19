@@ -15,7 +15,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f415rg.pdf
 
 load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -164,7 +163,7 @@ PD2 = io("PD2", Net)
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
+    VUSB = io("VUSB", Power(voltage="4V to 5.5V"))
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:

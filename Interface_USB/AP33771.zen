@@ -58,7 +58,7 @@ CC1 = io("CC1", Net)
 CC2 = io("CC2", Net)
 VBUS_IN = io("VBUS_IN", Power)
 VBUS_OUT = io("VBUS_OUT", Power)
-PWR_EN = io("PWR_EN", Power)
+PWR_EN = io("PWR_EN", Net)
 GND = io("GND", Ground)
 
 # Internal nets

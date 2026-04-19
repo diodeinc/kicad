@@ -13,7 +13,6 @@ Datasheet: https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -59,7 +58,7 @@ if add_backlight:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("3V to 3.3V"))
+VDD = io("VDD", Power(voltage="3V to 3.3V"))
 GND = io("GND", Ground)
 
 # SPI Interface

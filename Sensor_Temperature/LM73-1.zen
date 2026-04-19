@@ -13,7 +13,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm73.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -32,7 +31,7 @@ resolution = config("resolution", Resolution, default="11bit")
 
 # External IO
 i2c = io("I2C", I2c)
-VDD = io("VDD", Power, checks=voltage_within("1V to 2.7V"))
+VDD = io("VDD", Power(voltage="1V to 2.7V"))
 GND = io("GND", Ground)
 ALERT = io("ALERT", Net) if enable_alert else None
 
