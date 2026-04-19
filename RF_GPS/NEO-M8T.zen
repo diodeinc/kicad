@@ -13,7 +13,6 @@ Datasheet: https://content.u-blox.com/sites/default/files/NEO-LEA-M8T-FW3_DataSh
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -52,8 +51,8 @@ add_bulk_caps = config("add_bulk_caps", bool, default=True)
 add_decoupling_caps = config("add_decoupling_caps", bool, default=True)
 
 # External IO - Always create these power nets
-VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
-VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
+VCC = io("VCC", Power(voltage="2.7V to 3.6V"))
+VBUS = io("VBUS", Power(voltage="4V to 5.5V"))
 GND = io("GND", Ground)
 
 # Interface IO - conditional based on configuration
@@ -74,7 +73,7 @@ EXTINT1 = io("EXTINT1", Net)  # Second external interrupt (timing specific)
 LNA_EN = io("LNA_EN", Net)
 
 # Internal nets
-_VCC_RF = Net("VCC_RF")
+_VCC_RF = Power("VCC_RF")
 _RF_IN = Net("RF_IN")
 _D_SEL = Net("D_SEL")
 _SAFEBOOT_N = Net("SAFEBOOT_N")
@@ -87,7 +86,6 @@ else:
     _RESET_N = Net("RESET_N")
 
 # Reserved pins
-_RESERVED = Net("RESERVED")
 
 # Interface pins based on mode
 if interface_mode == InterfaceMode("UART_I2C"):
@@ -105,16 +103,15 @@ else:  # SPI mode
 # _V_BCKP connects to the NEO-M8T's V_BCKP pin
 if add_battery:
     # When battery is enabled, create a separate net for backup voltage
-    _V_BCKP = Net("V_BCKP")
+    _V_BCKP = Power("V_BCKP")
 else:
     # When battery is disabled, connect backup voltage to VCC
     _V_BCKP = VCC
 
 # Define initial USB data nets
 if add_usb:
-    # These will be replaced/connected in the USB circuit section
-    _USB_DM = Net("USB_DM")
-    _USB_DP = Net("USB_DP")
+    _USB_DM = usb.D.N
+    _USB_DP = usb.D.P
 else:
     _USB_DM = Net("USB_DM_NC")
     _USB_DP = Net("USB_DP_NC")
@@ -138,7 +135,6 @@ NEO_M8T = Component(
         "RF_IN": _RF_IN,  # Pin 11
         "LNA_EN": LNA_EN,  # Pin 14
         "EXTINT1": EXTINT1,  # Pin 15 - Second external interrupt
-        "RESERVED": _RESERVED,  # Pins 16, 17
         "SDA/~{SPI_CS}": _SDA if interface_mode == InterfaceMode("UART_I2C") else _SPI_CS_N,  # Pin 18
         "SCL/SPI_CLK": _SCL if interface_mode == InterfaceMode("UART_I2C") else _SPI_CLK,  # Pin 19
         "TXD/SPI_MISO": _TXD if interface_mode == InterfaceMode("UART_I2C") else _SPI_MISO,  # Pin 20
@@ -355,8 +351,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VCC
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VBUS),
-            VOUT=Power(NET=VCC),
+            VIN=Power(VBUS),
+            VOUT=Power(VCC),
             GND=GND,
             add_input_cap=add_decoupling_caps,
             add_output_cap=add_decoupling_caps,

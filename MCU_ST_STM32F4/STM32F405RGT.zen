@@ -27,7 +27,6 @@ load(
     "Ground",
     "NotConnected",
 )
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -90,14 +89,14 @@ GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
-    VBUS = io("VBUS", Power, checks=voltage_within("4V to 5.5V"))
-    usb = io("USB", Usb2, default=Usb2("USB"))
+    VBUS = io("VBUS", Power(voltage="4V to 5.5V"))
+    usb = io("USB", Usb2)
     USB_DM = usb.D.N
     USB_DP = usb.D.P
 
 # SWD IO (if enabled)
 if add_swd_header:
-    swd = io("SWD", Swd, default=Swd("SWD"))
+    swd = io("SWD", Swd)
     PA13 = swd.SWDIO
     PA14 = swd.SWCLK
 else:
@@ -105,10 +104,10 @@ else:
     PA14 = Net("PA14")
 
 # Internal nets
-_VDDA = Net("VDDA") if add_vdda_filter else VDD
-_VBAT = Net("VBAT") if add_vbat_battery else VDD
-_VCAP1 = Net("VCAP_1")
-_VCAP2 = Net("VCAP_2")
+_VDDA = Power("VDDA") if add_vdda_filter else VDD
+_VBAT = Power("VBAT") if add_vbat_battery else VDD
+_VCAP1 = Power("VCAP_1")
+_VCAP2 = Power("VCAP_2")
 _NRST = Net("NRST")
 _BOOT0 = Net("BOOT0")
 _BOOT1 = Net("BOOT1")

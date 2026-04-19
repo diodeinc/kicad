@@ -45,33 +45,35 @@ enable_interrupt = config("enable_interrupt", bool, default=True)
 VDD = io("VDD", Power)
 if separate_vddio:
     VDDIO = io("VDDIO", Power)
+    _VDDIO = VDDIO
 else:
-    VDDIO = io("VDDIO", Power, default=VDD)
+    VDDIO = io("VDDIO", Power, optional=True)
+    _VDDIO = VDDIO if VDDIO != None else VDD
 GND = io("GND", Ground)
 
 # Interface connections
 if interface_type == Interface("I2C"):
-    i2c = io("I2C", I2c, default=I2c("I2C"))
+    i2c = io("I2C", I2c)
     _SDA = i2c.SDA
     _SCL = i2c.SCL
     _CS = Net("CS_PULLUP")  # CS will be pulled high via resistor to disable SPI interface
 else:
-    spi = io("SPI", Spi, default=Spi("SPI"))
+    spi = io("SPI", Spi)
     _SDA = spi.MOSI
     _SCL = spi.CLK
     _CS = spi.CS
 
 # Optional interrupt
 if enable_interrupt:
-    INT = io("INT", Net, default=Net("INT"))
+    INT = io("INT", Net)
     _INT = INT
 else:
     _INT = NotConnected()
 
 # Optional auxiliary I2C interface
 if add_aux_i2c:
-    AUX_DA = io("AUX_DA", Net, default=Net("AUX_DA"))
-    AUX_CL = io("AUX_CL", Net, default=Net("AUX_CL"))
+    AUX_DA = io("AUX_DA", Net)
+    AUX_CL = io("AUX_CL", Net)
     _AUX_DA = AUX_DA
     _AUX_CL = AUX_CL
 else:
@@ -80,15 +82,16 @@ else:
     _AUX_CL = NotConnected()
 
 # Frame sync input (optional)
-FSYNC = io("FSYNC", Net, default=GND)
+FSYNC = io("FSYNC", Net, optional=True)
+_FSYNC = FSYNC if FSYNC != None else GND
 
 # Internal nets
-_AD0 = GND if interface_type == Interface("I2C") and i2c_address == I2cAddress("0x68") else VDDIO
+_AD0 = GND if interface_type == Interface("I2C") and i2c_address == I2cAddress("0x68") else _VDDIO
 _SDO = spi.MISO if interface_type == Interface("SPI") else _AD0
 _REGOUT = Net("REGOUT")
 
 # Reserved pins - connect as specified in datasheet
-_RESV_VDDIO = VDDIO  # Reserved, connect to VDDIO
+_RESV_VDDIO = _VDDIO  # Reserved, connect to VDDIO
 _RESV_GND = GND  # Reserved, connect to GND
 
 # InvenSense 9-Axis Motion Sensor, Accelerometer, Gyroscope, Magnetometer, I2C/SPI, 3x3mm
@@ -101,8 +104,8 @@ Component(
         "AD0/MISO": _SDO,  # ADO/SDO - I2C Address LSB / SPI Data Out
         "SCL/SCLK": _SCL,  # SCL/SCLK - I2C Clock / SPI Clock
         "~{CS}": _CS,  # nCS - Chip select (SPI mode only)
-        "FSYNC": FSYNC,  # FSYNC - Frame sync input
-        "VDDIO": VDDIO,  # VDDIO - Digital I/O supply voltage
+        "FSYNC": _FSYNC,  # FSYNC - Frame sync input
+        "VDDIO": _VDDIO,  # VDDIO - Digital I/O supply voltage
         "GND": GND,  # GND - Power supply ground
         "VDD": VDD,  # VDD - Power supply
         "INT": _INT,  # INT - Interrupt output
@@ -120,7 +123,7 @@ if add_decoupling:
     Capacitor(name="C_VDD", value="100nF", package="0402", P1=VDD, P2=GND)
 
     # VDDIO decoupling capacitor - per datasheet BOM: 10nF, 4V
-    Capacitor(name="C_VDDIO", value="10nF", package="0402", P1=VDDIO, P2=GND)
+    Capacitor(name="C_VDDIO", value="10nF", package="0402", P1=_VDDIO, P2=GND)
 
 # Regulator Filter Capacitor - Required on REGOUT pin per datasheet BOM: 100nF, 2V
 Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND, dnp=not add_regout_cap)
@@ -128,21 +131,21 @@ Capacitor(name="C_REGOUT", value="100nF", package="0402", P1=_REGOUT, P2=GND, dn
 # I2C Pull-up Resistors - Required for proper I2C operation
 if add_i2c_pullups and interface_type == Interface("I2C"):
     # Standard 4.7k pull-ups for I2C
-    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=_SDA, P2=VDDIO)
-    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=_SCL, P2=VDDIO)
+    Resistor(name="R_SDA", value="4.7kohms", package="0402", P1=_SDA, P2=_VDDIO)
+    Resistor(name="R_SCL", value="4.7kohms", package="0402", P1=_SCL, P2=_VDDIO)
 
 # Auxiliary I2C pull-ups - independent of main interface mode
 if add_aux_i2c and add_aux_i2c_pullups:
-    Resistor(name="R_AUX_DA", value="4.7kohms", package="0402", P1=_AUX_DA, P2=VDDIO)
-    Resistor(name="R_AUX_CL", value="4.7kohms", package="0402", P1=_AUX_CL, P2=VDDIO)
+    Resistor(name="R_AUX_DA", value="4.7kohms", package="0402", P1=_AUX_DA, P2=_VDDIO)
+    Resistor(name="R_AUX_CL", value="4.7kohms", package="0402", P1=_AUX_CL, P2=_VDDIO)
 
 # Interrupt pull-up resistor (optional but recommended)
-Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=VDDIO, dnp=not enable_interrupt)
+Resistor(name="R_INT", value="10kohms", package="0402", P1=INT, P2=_VDDIO, dnp=not enable_interrupt)
 
 # SPI interface pull-up for CS (when using I2C mode to disable SPI)
 if interface_type == Interface("I2C"):
     # Pull CS high to disable SPI interface when using I2C
-    Resistor(name="R_CS_PULLUP", value="10kohms", package="0402", P1=_CS, P2=VDDIO)
+    Resistor(name="R_CS_PULLUP", value="10kohms", package="0402", P1=_CS, P2=_VDDIO)
 
 # pcb:sch C_REGOUT.C x=715.2800 y=761.0000 rot=0
 # pcb:sch C_VDD.C x=-97.5200 y=646.7000 rot=0

@@ -13,7 +13,6 @@ Datasheet: https://www.lcd-module.de/eng/pdf/grafik/dogl128-6e.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -59,7 +58,7 @@ if add_backlight:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("3V to 3.3V"))
+VDD = io("VDD", Power(voltage="3V to 3.3V"))
 GND = io("GND", Ground)
 
 # SPI Interface
@@ -112,19 +111,19 @@ if add_backlight and backlight_config != BacklightConfig("External") and backlig
     if backlight_config == BacklightConfig("Series"):
         # Series connection of 3 LED segments
         _LED_A1 = VDD
-        _LED_K1 = Net("LED_K1")  # Intermediate connection to A2
+        _LED_K1 = Power("LED_K1")  # Intermediate connection to A2
         _LED_A2 = _LED_K1  # Connect K1 to A2
-        _LED_K2 = Net("LED_K2")  # Intermediate connection to A3
+        _LED_K2 = Power("LED_K2")  # Intermediate connection to A3
         _LED_A3 = _LED_K2  # Connect K2 to A3
-        _LED_K3 = Net("LED_K3")  # Final cathode to resistor
+        _LED_K3 = Power("LED_K3")  # Final cathode to resistor
     else:  # Parallel configuration
         # Parallel connection of 3 LED segments
         _LED_A1 = VDD
         _LED_A2 = VDD
         _LED_A3 = VDD
-        _LED_K1 = Net("LED_K1")
-        _LED_K2 = Net("LED_K2")
-        _LED_K3 = Net("LED_K3")
+        _LED_K1 = Power("LED_K1")
+        _LED_K2 = Power("LED_K2")
+        _LED_K3 = Power("LED_K3")
 else:
     # Not using internal backlight - assign NC nets
     _LED_A1 = NotConnected()
@@ -232,21 +231,17 @@ if add_backlight and backlight_config != BacklightConfig("External") and backlig
             Resistor(name="R_LED_EXT", value="10kohms", package="0603", P1=_LED_K3, P2=GND)
         else:
             # Calculate resistance for lower voltage LEDs
-            r_value = int((3.3 - 3 * vf_typical) / (backlight_current_ma / 1000.0))
-            if r_value < 10:  # Minimum 10 ohms for safety
-                r_value = 10
-            Resistor(name="R_LED", value=f"{r_value}ohms", package="0603", P1=_LED_K3, P2=GND)
+            _r_series = max(10, int((3.3 - 3 * vf_typical) / (backlight_current_ma / 1000.0)))
+            Resistor(name="R_LED", value=f"{_r_series}ohms", package="0603", P1=_LED_K3, P2=GND)
 
     else:  # Parallel configuration
         # Individual current limiting resistors
         # R = (VDD - Vf) / I
-        r_value = int((3.3 - vf_typical) / (backlight_current_ma / 1000.0 / 3))  # Divide current by 3
-        if r_value < 10:  # Minimum 10 ohms for safety
-            r_value = 10
+        _r_parallel = max(10, int((3.3 - vf_typical) / (backlight_current_ma / 1000.0 / 3)))  # Divide current by 3
 
-        Resistor(name="R_LED1", value=f"{r_value}ohms", package="0402", P1=_LED_K1, P2=GND)
-        Resistor(name="R_LED2", value=f"{r_value}ohms", package="0402", P1=_LED_K2, P2=GND)
-        Resistor(name="R_LED3", value=f"{r_value}ohms", package="0402", P1=_LED_K3, P2=GND)
+        Resistor(name="R_LED1", value=f"{_r_parallel}ohms", package="0402", P1=_LED_K1, P2=GND)
+        Resistor(name="R_LED2", value=f"{_r_parallel}ohms", package="0402", P1=_LED_K2, P2=GND)
+        Resistor(name="R_LED3", value=f"{_r_parallel}ohms", package="0402", P1=_LED_K3, P2=GND)
 
 # Test points
 if add_test_points:

@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/1502f.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,17 +33,22 @@ output_cap_value = config("output_cap_value", CapacitorValue, default="10uF")
 add_output_filter = config("add_output_filter", bool, default=False)
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 if shutdown_control == ShutdownControl("External"):
-    SHDN = io("SHDN", Net, default=Net("SHDN"))
+    SHDN = io("SHDN", Net)
 elif shutdown_control == ShutdownControl("Mosfet"):
-    SHDN_CTRL = io("SHDN_CTRL", Net, default=Net("SHDN_CTRL"))
+    SHDN_CTRL = io("SHDN_CTRL", Net)
 
 # Internal nets
 _C1_PLUS = Net("C1+")
-_C1_MINUS_SHDN = Net("C1-/SHDN")
+# C1- and SHDN share a pin: in External mode it tracks SHDN directly; in
+# Mosfet/None mode it stays on an internal net that C1 hangs from.
+if shutdown_control == ShutdownControl("External"):
+    _C1_MINUS_SHDN = SHDN
+else:
+    _C1_MINUS_SHDN = Net("C1-/SHDN")
 _C2 = Net("C2")
 _C3_PLUS = Net("C3+")
 _C3_MINUS = Net("C3-")
@@ -84,14 +89,9 @@ Capacitor(name="C2_CAP", value="10uF", package="0805", P1=_C2, P2=GND)
 
 # Shutdown Control
 # None: SHDN pin is left floating (device always enabled)
-# External: Direct connection to external control signal
+# External: Direct connection to external control signal (handled above)
 # Mosfet: N-channel MOSFET control for MCU compatibility
-if shutdown_control == ShutdownControl("External"):
-    # Direct connection for external shutdown control
-    # External circuit must provide proper pull-down (<0.2V) and Hi-Z states
-    _C1_MINUS_SHDN = SHDN
-
-elif shutdown_control == ShutdownControl("Mosfet"):
+if shutdown_control == ShutdownControl("Mosfet"):
     # N-channel MOSFET shutdown control with 100Ω series resistor
     # MCU drives gate to pull SHDN pin low when MOSFET is on
 

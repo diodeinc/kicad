@@ -18,7 +18,6 @@ Datasheet: https://www.microchip.com/en-us/product/ATSAMD21E15
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -73,7 +72,7 @@ add_status_led = config("add_status_led", bool, default=True)
 add_spi_flash = config("add_spi_flash", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.62V to 3.63V"))
+VDD = io("VDD", Power(voltage="1.62V to 3.63V"))
 GND = io("GND", Ground)
 
 # USB IO (if enabled)
@@ -138,8 +137,8 @@ else:
     PA31 = swd.SWDIO
 
 # Internal nets
-_VDDCORE = Net("VDDCORE")
-_VDDANA = Net("VDDANA") if add_analog_filtering else VDD
+_VDDCORE = Power("VDDCORE")
+_VDDANA = Power("VDDANA") if add_analog_filtering else VDD
 _RESET = Net("RESET")
 
 # Crystal oscillator nets
@@ -351,8 +350,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VDD),
+            VIN=Power(VUSB),
+            VOUT=Power(VDD),
             GND=GND,
             add_input_cap=add_decoupling,
             add_output_cap=add_decoupling,

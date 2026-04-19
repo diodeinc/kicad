@@ -54,7 +54,6 @@ else:
 
 # Internal nets
 _BYP = Net("BYP")
-_NC = NotConnected()
 _SENSE = VOUT if enable_sense_connection else Net("SENSE")
 
 # Main LT1962-3 component
@@ -66,7 +65,6 @@ Component(
         "IN": VIN,
         "~{SHDN}": SHDN if enable_control else VIN,
         "GND": GND,
-        "NC": _NC,
         "OUT": VOUT,
         "SENSE": _SENSE,
         "BYP": _BYP,

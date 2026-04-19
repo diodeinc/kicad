@@ -25,7 +25,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,13 +53,13 @@ if output_config == OutputConfiguration("Filtered"):
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("5.2V to 12.6V"))
+VIN = io("VIN", Power(voltage="5.2V to 12.6V"))
 GND = io("GND", Ground)
-VREF = io("VREF", Net, default=Net("VREF_5V0"))
+VREF = io("VREF", Power)
 
 # Internal nets
 if input_filter_config == InputFilterConfiguration("RC"):
-    _VIN_FILTERED = Net("VIN_FILTERED")
+    _VIN_FILTERED = Power("VIN_FILTERED")
 else:
     _VIN_FILTERED = VIN
 

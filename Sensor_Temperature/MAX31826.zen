@@ -26,7 +26,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 
 load("@stdlib/interfaces.zen", "OneWire", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -102,7 +101,7 @@ add_test_points = config("add_test_points", bool, default=True)
 passives_size = config("passives_size", PassiveSize, default="0603")
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("3V to 3.7V"))
+VDD = io("VDD", Power(voltage="3V to 3.7V"))
 GND = io("GND", Ground)
 
 # 1-Wire interface
@@ -168,7 +167,6 @@ Component(
     pins={
         "V_{DD}": _VDD_CHIP,  # Pin 1 - Power supply (GND in parasite mode)
         "DQ": _DQ,  # Pin 2 - 1-Wire data
-        "NC": NotConnected(),  # Pin 3 - No connection
         "GND": GND,  # Pin 4 - Ground
         "AD0": _AD0,  # Pin 5 - Address bit 0 (LSB)
         "AD1": _AD1,  # Pin 6 - Address bit 1

@@ -54,17 +54,17 @@ add_power_led = config("add_power_led", bool, default=True)
 
 
 # External IO
-CC1 = io("CC1", Net, default=Net("CC1"))
-CC2 = io("CC2", Net, default=Net("CC2"))
-VBUS_IN = io("VBUS_IN", Net, default=Net("VBUS_IN"))
-VBUS_OUT = io("VBUS_OUT", Net, default=Net("VBUS_OUT"))
-PWR_EN = io("PWR_EN", Net, default=Net("PWR_EN"))
+CC1 = io("CC1", Net)
+CC2 = io("CC2", Net)
+VBUS_IN = io("VBUS_IN", Power)
+VBUS_OUT = io("VBUS_OUT", Power)
+PWR_EN = io("PWR_EN", Net)
 GND = io("GND", Ground)
 
 # Internal nets
-_VCC = Net("VCC")
-_V5V = Net("V5V")
-_V3VD = Net("V3VD")
+_VCC = Power("VCC")
+_V5V = Power("V5V")
+_V3VD = Power("V3VD")
 _VSEL0 = Net("VSEL0")
 _VSEL1 = Net("VSEL1")
 _VSEL2 = Net("VSEL2")
@@ -74,8 +74,7 @@ _IFB = Net("IFB")
 _ISENP = VBUS_IN
 _GPIO1 = Net("GPIO1")
 _GPIO4 = Net("GPIO4")
-_NC = NotConnected()
-_VBUS = Net("VBUS")  # Internal VBUS net for chip
+_VBUS = Power("VBUS")  # Internal VBUS net for chip
 
 
 # Voltage selection configuration (VSEL2, VSEL1, VSEL0)
@@ -106,7 +105,6 @@ Component(
         "VSEL1": _VSEL1,
         "VSEL2": _VSEL2,
         "PSEL": _PSEL,
-        "NC": _NC,
         "VCC": _VCC,
         "GND": GND,
         "PWR_EN": PWR_EN,

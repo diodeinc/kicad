@@ -21,7 +21,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7042.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -55,8 +54,8 @@ if filter_configuration == FilterConfiguration("AntiAliasing"):
 add_spi_pullup = config("add_spi_pullup", bool, default=True)
 
 # External power supplies
-AVDD = io("AVDD", Power, checks=voltage_within("1.65V to 3.6V"))
-DVDD = io("DVDD", Power, checks=voltage_within("1.65V to 3.6V"))
+AVDD = io("AVDD", Power(voltage="1.65V to 3.6V"))
+DVDD = io("DVDD", Power(voltage="1.65V to 3.6V"))
 GND = io("GND", Ground)
 
 # Analog inputs

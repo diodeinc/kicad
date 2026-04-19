@@ -22,11 +22,10 @@ Datasheet: https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("4.5V to 5.5V"))
+VDD = io("VDD", Power(voltage="4.5V to 5.5V"))
 GND = io("GND", Ground)
 DIN = io("DIN", Net)
 DOUT = io("DOUT", Net)

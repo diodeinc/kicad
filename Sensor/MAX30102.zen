@@ -80,10 +80,10 @@ else:
     _INT = Net("INT")
 
 # Internal nets
-PGND = Net("PGND")
+# PGND is a power-ground node, optionally filtered from main GND via a ferrite bead.
+PGND = Power("PGND") if add_led_power_filtering else GND
 
 # Create NC (No Connect) net for unused pins
-NC_NET = NotConnected()
 
 # Heart Rate Sensor, 14-OLGA
 Component(
@@ -93,7 +93,6 @@ Component(
     pins={
         "SCL": i2c.SCL,  # Pin 2
         "SDA": i2c.SDA,  # Pin 3
-        "NC": NC_NET,  # Multiple NC pins
         "VDD": VDD,  # Pin 11
         "PGND": PGND,  # Pin 4
         "VLED+": _VLED_PLUS,  # Pins 9 & 10 (connected internally)
@@ -106,9 +105,6 @@ Component(
 # Using a ferrite bead for noise isolation
 if add_led_power_filtering:
     FerriteBead(name="FB_PGND", package="0603", P1=GND, P2=PGND)
-else:
-    # Direct connection if no filtering
-    PGND = GND
 
 # Power Supply Decoupling
 if add_power_decoupling:

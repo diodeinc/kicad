@@ -14,7 +14,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm4128.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,21 +33,18 @@ enable_control = config("enable_control", bool, default=True)
 add_enable_pullup = config("add_enable_pullup", bool, default=True)
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VREF = io("VREF", Net, default=Net("VREF"))
-EN_CTRL = io("EN", Net, default=Net("EN")) if enable_control else VIN
+VIN = io("VIN", Power)
+VREF = io("VREF", Power)
+EN_CTRL = io("EN", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
-
-# Internal nets
-_NC = NotConnected()
 
 # 2.5V ±0.2% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
 Component(
     name="LM4128",
     symbol=Symbol(library="@kicad-symbols/Reference_Voltage.kicad_sym", name="LM4128"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
-    pins={"VIN": VIN, "EN": EN_CTRL, "GND": GND, "NC": _NC, "VREF": VREF},
+    pins={"VIN": VIN, "EN": EN_CTRL, "GND": GND, "VREF": VREF},
 )
 
 # Input Capacitor - Required per datasheet, minimum 0.1µF

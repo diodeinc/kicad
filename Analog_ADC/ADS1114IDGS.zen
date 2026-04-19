@@ -22,7 +22,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads1114.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -70,7 +69,7 @@ if add_analog_filtering:
     filter_c_value = config("filter_c_value", Capacitance, default="100pF")
 
 # External power supply
-VDD = io("VDD", Power, checks=voltage_within("2V to 5.5V"))
+VDD = io("VDD", Power(voltage="2V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -114,8 +113,6 @@ Component(
         "GND": GND,
         "AIN0": _AIN0_FILTERED,
         "AIN1": _AIN1_FILTERED,
-        "6": NotConnected(),
-        "7": NotConnected(),
         "VDD": VDD,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,

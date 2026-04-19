@@ -17,7 +17,6 @@ Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/00001567B.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -54,22 +53,22 @@ if add_i2c_pullups:
 add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("3V to 5.5V"))
+VDD = io("VDD", Power(voltage="3V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface
-i2c = io("I2C", I2c, default=I2c("I2C"))
+i2c = io("I2C", I2c)
 
 # ALERT# output
-ALERT = io("ALERT", Net, default=Net("ALERT#"))
+ALERT = io("ALERT", Net)
 
 # Touch sensor inputs
-CS1 = io("CS1", Net, default=Net("CS1"))
-CS2 = io("CS2", Net, default=Net("CS2"))
-CS3 = io("CS3", Net, default=Net("CS3"))
-CS4 = io("CS4", Net, default=Net("CS4"))
-CS5 = io("CS5", Net, default=Net("CS5"))
-CS6 = io("CS6", Net, default=Net("CS6"))
+CS1 = io("CS1", Net)
+CS2 = io("CS2", Net)
+CS3 = io("CS3", Net)
+CS4 = io("CS4", Net)
+CS5 = io("CS5", Net)
+CS6 = io("CS6", Net)
 
 # Internal nets
 

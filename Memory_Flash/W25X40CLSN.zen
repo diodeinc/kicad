@@ -15,7 +15,6 @@ Datasheet: http://www.advanced-monolithic.com/pdf/ds1117.pdf
 """
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,13 +32,13 @@ if not enable_hold:
     reset_pullup = config("reset_pullup", bool, default=True)
 
 # External IO
-spi = io("spi", Spi, default=Spi("spi"))
-VCC = io("VCC", Power, checks=voltage_within("2.3V to 3.6V"))
+spi = io("spi", Spi)
+VCC = io("VCC", Power(voltage="2.3V to 3.6V"))
 GND = io("GND", Ground)
 
 # Additional IO based on configuration
 if write_protect_mode == WriteProtectMode("Hardware"):
-    WP_CTRL = io("WP", Net, default=Net("nWP"))
+    WP_CTRL = io("WP", Net)
     _WP = WP_CTRL
 elif write_protect_mode == WriteProtectMode("None"):
     _WP = VCC
@@ -47,7 +46,7 @@ else:  # Software mode
     _WP = Net("WP")
 
 if enable_hold:
-    HOLD_CTRL = io("HOLD", Net, default=Net("nHOLD"))
+    HOLD_CTRL = io("HOLD", Net)
     _HOLD = HOLD_CTRL
 else:
     _HOLD = Net("HOLD")

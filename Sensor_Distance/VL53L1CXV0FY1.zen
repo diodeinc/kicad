@@ -17,7 +17,6 @@ Datasheet: https://www.espressif.com/sites/default/files/documentation/vl53l1x_d
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -50,7 +49,7 @@ if add_i2c_pullups:
 passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2.6V to 3.5V"))
+VDD = io("VDD", Power(voltage="2.6V to 3.5V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -71,7 +70,6 @@ if reset_mode != ResetMode("None"):
 _AVDD = VDD
 _AVDDVCSEL = VDD
 _AVSSVCSEL = GND
-_DNC = Net("DNC")  # Do not connect
 
 # Internal nets for GPIO1 and XSHUT when not exposed
 _GPIO1 = GPIO1 if interrupt_mode != InterruptMode("None") else Net("GPIO1")
@@ -88,7 +86,6 @@ Component(
         "GND": GND,
         "XSHUT": _XSHUT,
         "GPIO1": _GPIO1,
-        "DNC": _DNC,
         "SDA": i2c.SDA,
         "SCL": i2c.SCL,
         "AVDD": _AVDD,
@@ -129,7 +126,6 @@ if add_i2c_pullups:
     Resistor(name="R_SCL", value=i2c_pullup_value, package=passives_size, P1=i2c.SCL, P2=VDD)
 
 # DNC (Do Not Connect) pin - must be left floating
-# No connection needed - the _DNC net remains unconnected
 
 # Test points for debugging (optional)
 add_test_points = config("add_test_points", bool, default=False, optional=True)

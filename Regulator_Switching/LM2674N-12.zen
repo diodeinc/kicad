@@ -12,7 +12,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2674.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,23 +33,22 @@ enable_control = config("enable_control", bool, default=True)
 inductor_value = config("inductor_value", InductorValue, default="100uH")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-ON_OFF = io("ON_OFF", Net, default=Net("ON/OFF")) if enable_control else VIN
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+ON_OFF = io("ON_OFF", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
 # Internal nets
 _VSW = Net("VSW")
 _CB = Net("CB")
 _FB = VOUT  # For fixed voltage version, FB connects directly to output
-_NC = NotConnected()
 
 # 12V, 500mA Step-Down Voltage Regulator, DIP-8
 Component(
     name="LM2674N-12",
     symbol=Symbol(library="@kicad-symbols/Regulator_Switching.kicad_sym", name="LM2674N-12"),
     footprint=File("@kicad-footprints/Package_DIP.pretty/DIP-8_W7.62mm.kicad_mod"),
-    pins={"VIN": VIN, "ON/~{OFF}": ON_OFF, "NC": _NC, "GND": GND, "FB": _FB, "CB": _CB, "VSW": _VSW},
+    pins={"VIN": VIN, "ON/~{OFF}": ON_OFF, "GND": GND, "FB": _FB, "CB": _CB, "VSW": _VSW},
 )
 
 # Boost Capacitor - Required for high-side driver

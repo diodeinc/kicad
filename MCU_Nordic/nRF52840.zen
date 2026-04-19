@@ -14,7 +14,6 @@ Datasheet: https://docs.nordicsemi.com/bundle/ps_nrf52840/page/nrf52840_ps.html
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Usb2", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Capacitance", "Inductance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -67,13 +66,13 @@ if add_antenna:
     antenna_series_resistor_value = config("antenna_series_resistor_value", Resistance, default="0ohms", optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.7V to 5.5V"))
+VDD = io("VDD", Power(voltage="1.7V to 5.5V"))
 GND = io("GND", Ground)
 
 # USB IO (if enabled)
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net)
+    VUSB = io("VUSB", Power)
 
 # SWD IO (if enabled)
 if add_swd_header:
@@ -115,8 +114,8 @@ else:
     _RESET = Net("P0_18_RESET")
 
 # DCDC pins (always using DCDC mode)
-_DCC = Net("DCC")
-_DCCH = Net("DCCH")
+_DCC = Power("DCC")
+_DCCH = Power("DCCH")
 
 # Antenna net
 if add_antenna:
@@ -320,8 +319,7 @@ Inductor(name="L_DCDC", value="10uH", package="1210", P1=_DCC, P2=_L_DCDC_INT)
 Inductor(name="L_DEC4", value="15nH", package="0402", P1=_L_DCDC_INT, P2=_DEC4)
 
 
-# VSS_PA connection
-_VSS_PA = GND
+# VSS_PA redundantly re-tied to GND is handled up top already.
 
 # Additional VDD decoupling
 if add_decoupling_caps:
@@ -425,8 +423,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VDD),
+            VIN=Power(VUSB),
+            VOUT=Power(VDD),
             GND=GND,
             add_input_cap=True,
             add_output_cap=True,
@@ -452,8 +450,7 @@ if add_swd_header:
 if add_antenna:
     # Internal nets for antenna connection
     _ANT_PORT1 = _ANT  # Port 1 - near the chip
-    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and capacitors
-    _ANT_PORT2 = Net("ANT_PORT2")  # Port 2 - near the antenna
+    _ANT_MATCH = Net("ANT_MATCH")  # Junction between L2 and C12 (port 2 of the π-match)
     _ANT_FEED = Net("ANT_FEED")  # Connection to antenna after series resistor
 
     # Pi-network matching circuit
@@ -466,11 +463,8 @@ if add_antenna:
     # Port 2 side - Shunt capacitor C12
     Capacitor(name="C_ANT_PORT2", value=antenna_c12_value, package="0402", P1=_ANT_MATCH, P2=GND)
 
-    # Connection from matching network to antenna
-    _ANT_PORT2 = _ANT_MATCH
-
     # Series resistor to antenna (0ohms default for tuning/debugging)
-    Resistor(name="R_ANT", value=antenna_series_resistor_value, package="0402", P1=_ANT_PORT2, P2=_ANT_FEED)
+    Resistor(name="R_ANT", value=antenna_series_resistor_value, package="0402", P1=_ANT_MATCH, P2=_ANT_FEED)
 
     # Antenna component (2-pin chip antenna)
     # FEED: Antenna feed, PCB_Trace: Ground connection

@@ -25,7 +25,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7866.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,7 +47,7 @@ if add_decoupling_caps:
     bulk_cap_value = config("bulk_cap_value", Capacitance, default="10uF")
 
 # External power supply
-VDD = io("VDD", Power, checks=voltage_within("1.2V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.2V to 3.6V"))
 GND = io("GND", Ground)
 
 # SPI interface - using subset of standard SPI

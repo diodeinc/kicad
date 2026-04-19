@@ -13,7 +13,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/lm2672.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -48,7 +47,7 @@ optimize_for_size = config("optimize_for_size", bool, default=False)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("15V to 40V"))
+VIN = io("VIN", Power(voltage="15V to 40V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
@@ -73,7 +72,7 @@ _SS = Net("SS")  # Soft-start
 
 # Set up internal VIN net (will be connected through fuse if protection is enabled)
 if add_input_protection:
-    _VIN_INT = Net("VIN_FUSED")  # Internal VIN after fuse
+    _VIN_INT = Power("VIN_FUSED")  # Internal VIN after fuse
 else:
     _VIN_INT = VIN  # Direct connection when no protection
 

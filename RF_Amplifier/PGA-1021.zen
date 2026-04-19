@@ -68,22 +68,20 @@ if add_input_termination:
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, default=Power("VDD"))
+VDD = io("VDD", Power)
 GND = io("GND", Ground)
 RFIN = io("RFIN", Net)
 RFOUT = io("RFOUT", Net)
 
 # Internal nets
-_VDD_FILT = Net("VDD_FILT")  # Filtered power supply
+_VDD_FILT = Power("VDD_FILT") if add_ferrite_bead else VDD  # Filtered power supply
 _RFIN_INT = Net("RFIN_INT")  # Internal RF input after DC blocking
-_RFOUT_INT = Net("RFOUT_INT")  # Internal RF output before DC blocking
+_RFOUT_INT = RFOUT  # Chip-side RF output; C_OUT DC-blocks onto the external RFOUT io
 _BIAS_NODE = Net("BIAS_NODE")  # Bias injection point
 
 # Power supply filtering
 if add_ferrite_bead:
     FerriteBead(name="FB1", package="0805", P1=VDD, P2=_VDD_FILT)
-else:
-    _VDD_FILT = VDD
 
 # Bulk capacitor - use 0.1uF as per datasheet
 Capacitor(name="C_BULK", value="100nF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)
@@ -168,8 +166,7 @@ if add_output_protection:
         pins={"A1": _RFOUT_INT, "A2": GND},
     )
 
-# Connect output
-_RFOUT_INT = RFOUT
+# Output is the external RFOUT io directly; no further alias needed.
 
 # Test points
 if add_test_points:

@@ -13,7 +13,7 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm4125.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
 
 # Dependencies
@@ -25,19 +25,16 @@ add_output_cap = config("add_output_cap", bool, default=True)
 output_cap_value = config("output_cap_value", Capacitance, default="22nF")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
-
-# Internal nets
-_NC = NotConnected()
 
 # 2.5V ±0.5% Precision Micropower Low Dropout Voltage Reference, SOT-23-5
 Component(
     name="LM4125IM5_2V5",
     symbol=Symbol(library="@kicad-symbols/Reference_Voltage.kicad_sym", name="LM4125IM5-2.5"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
-    pins={"Vin": VIN, "GND": GND, "NC": _NC, "Vout": VOUT},
+    pins={"Vin": VIN, "GND": GND, "Vout": VOUT},
 )
 
 # Output Capacitor - Required minimum 22nF ceramic for stability

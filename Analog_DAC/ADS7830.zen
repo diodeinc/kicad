@@ -21,7 +21,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ads7830.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance", "Voltage")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Import modules
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -65,24 +64,24 @@ if add_analog_filtering:
     filter_c_value = config("filter_c_value", Capacitance, default="10pF")
 
 # External power supply
-VDD = io("VDD", Power, checks=voltage_within("2.7V to 5V"))
+VDD = io("VDD", Power(voltage="2.7V to 5V"))
 GND = io("GND", Ground)
 
 # I2C interface
 i2c = io("I2C", I2c)
 
 # Analog inputs
-CH0 = io("CH0", Net, default=Net("CH0"))
-CH1 = io("CH1", Net, default=Net("CH1"))
-CH2 = io("CH2", Net, default=Net("CH2"))
-CH3 = io("CH3", Net, default=Net("CH3"))
-CH4 = io("CH4", Net, default=Net("CH4"))
-CH5 = io("CH5", Net, default=Net("CH5"))
-CH6 = io("CH6", Net, default=Net("CH6"))
-CH7 = io("CH7", Net, default=Net("CH7"))
+CH0 = io("CH0", Net)
+CH1 = io("CH1", Net)
+CH2 = io("CH2", Net)
+CH3 = io("CH3", Net)
+CH4 = io("CH4", Net)
+CH5 = io("CH5", Net)
+CH6 = io("CH6", Net)
+CH7 = io("CH7", Net)
 
 # Common input for single-ended mode
-COM = io("COM", Net, default=Net("COM"))
+COM = io("COM", Net)
 
 # External reference input (if used)
 if reference_mode == ReferenceMode("External"):
@@ -114,11 +113,11 @@ _A1_NET = VDD if a1_state else GND
 _A0_NET = VDD if a0_state else GND
 
 # Reference pin connection
-_REF_NET = Net("REF")
 if reference_mode == ReferenceMode("External"):
-    _REF_CONNECT = REF_EXT
     _REF_NET = REF_EXT
+    _REF_CONNECT = REF_EXT
 else:
+    _REF_NET = Net("REF")
     _REF_CONNECT = _REF_NET
 
 # Main component

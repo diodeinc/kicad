@@ -122,9 +122,9 @@ if channel_config == ChannelConfig("Both") or channel_config == ChannelConfig("C
         xorh2_r_top, xorh2_r_bottom = get_xorh_resistors(xorh2_config.value)
 
 # External IO
-i2c_in = io("I2C_IN", I2c, default=I2c("I2C_IN"))
-i2c_out1 = io("I2C_OUT1", I2c, default=I2c("I2C_OUT1")) if channel_config != ChannelConfig("Channel2Only") else None
-i2c_out2 = io("I2C_OUT2", I2c, default=I2c("I2C_OUT2")) if channel_config != ChannelConfig("Channel1Only") else None
+i2c_in = io("I2C_IN", I2c)
+i2c_out1 = io("I2C_OUT1", I2c) if channel_config != ChannelConfig("Channel2Only") else None
+i2c_out2 = io("I2C_OUT2", I2c) if channel_config != ChannelConfig("Channel1Only") else None
 
 VCC = io("VCC", Power)
 GND = io("GND", Ground)
@@ -132,17 +132,17 @@ GND = io("GND", Ground)
 # ENABLE pins - Fixed logic to avoid conflicts
 if channel_config == ChannelConfig("Channel2Only"):
     ENABLE1 = VCC  # Channel 1 not used, always enabled
-    ENABLE2 = io("ENABLE2", Net, default=Net("ENABLE2")) if enable_control else VCC
+    ENABLE2 = io("ENABLE2", Net) if enable_control else VCC
 elif channel_config == ChannelConfig("Channel1Only"):
-    ENABLE1 = io("ENABLE1", Net, default=Net("ENABLE1")) if enable_control else VCC
+    ENABLE1 = io("ENABLE1", Net) if enable_control else VCC
     ENABLE2 = VCC  # Channel 2 not used, always enabled
 else:  # Both channels
-    ENABLE1 = io("ENABLE1", Net, default=Net("ENABLE1")) if enable_control else VCC
-    ENABLE2 = io("ENABLE2", Net, default=Net("ENABLE2")) if enable_control else VCC
+    ENABLE1 = io("ENABLE1", Net) if enable_control else VCC
+    ENABLE2 = io("ENABLE2", Net) if enable_control else VCC
 
 # READY pins
-READY1 = io("READY1", Net, default=Net("READY1")) if channel_config != ChannelConfig("Channel2Only") else NotConnected()
-READY2 = io("READY2", Net, default=Net("READY2")) if channel_config != ChannelConfig("Channel1Only") else NotConnected()
+READY1 = io("READY1", Net) if channel_config != ChannelConfig("Channel2Only") else NotConnected()
+READY2 = io("READY2", Net) if channel_config != ChannelConfig("Channel1Only") else NotConnected()
 
 # Internal nets for XOR configuration - handle Open/Short cases
 # Channel 1 nets

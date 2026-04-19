@@ -15,7 +15,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/pga113.pdf
 
 load("@stdlib/interfaces.zen", "Spi", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -47,12 +46,12 @@ add_spi_pullup = config("add_spi_pullup", bool, default=True)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-AVDD = io("AVDD", Power, default=Power("AVDD"), checks=voltage_within("2.2V to 5.5V"))
+AVDD = io("AVDD", Power(voltage="2.2V to 5.5V"))
 GND = io("GND", Ground)
 
 # Digital supply - separate or tied to AVDD
 if split_supplies:
-    DVDD = io("DVDD", Power, default=Power("DVDD"), checks=voltage_within("2.2V to 5.5V"))
+    DVDD = io("DVDD", Power(voltage="2.2V to 5.5V"))
 else:
     DVDD = AVDD
 
@@ -62,10 +61,6 @@ spi = io("SPI", Spi)
 # VREF input/output based on configuration
 if vref_config == VrefConfiguration("External"):
     VREF = io("VREF", Net)
-elif vref_config == VrefConfiguration("MidSupply"):
-    VREF = io("VREF", Net)  # Will be generated internally
-else:  # Ground
-    VREF = GND
 
 # Analog inputs
 CH0 = io("CH0", Net)
@@ -74,25 +69,30 @@ CH1 = io("CH1", Net)
 # Analog output
 VOUT = io("VOUT", Net)
 
-# Internal nets
-_AVDD = Net("_AVDD")  # Filtered analog supply
-_DVDD = Net("_DVDD")  # Filtered digital supply
-_VREF = Net("_VREF")  # Internal VREF net
-_VOUT_INT = Net("_VOUT_INT")  # Internal output before series resistor
-_DIO = Net("_DIO")  # SPI data I/O
-
-# Power filtering
+# Internal nets — filtered supplies and derived references
 if add_ferrite_beads:
-    # Analog supply filtering
-    FerriteBead(name="FB_AVDD", package="0603", P1=AVDD, P2=_AVDD)
-    # Digital supply filtering (if separate)
-    if split_supplies:
-        FerriteBead(name="FB_DVDD", package="0603", P1=DVDD, P2=_DVDD)
-    else:
-        _DVDD = _AVDD
+    _AVDD = Net("_AVDD")
+    _DVDD = Net("_DVDD") if split_supplies else _AVDD
 else:
     _AVDD = AVDD
     _DVDD = DVDD
+
+# VREF internal node: external io, mid-supply node, or ground
+if vref_config == VrefConfiguration("External"):
+    _VREF = VREF
+elif vref_config == VrefConfiguration("MidSupply"):
+    _VREF = Net("_VREF")
+else:  # Ground
+    _VREF = GND
+
+_VOUT_INT = Net("_VOUT_INT") if add_output_series_resistor else VOUT
+_DIO = spi.MOSI  # PGA113 uses a bidirectional DIO pin; driven by MOSI on writes
+
+# Power filtering
+if add_ferrite_beads:
+    FerriteBead(name="FB_AVDD", package="0603", P1=AVDD, P2=_AVDD)
+    if split_supplies:
+        FerriteBead(name="FB_DVDD", package="0603", P1=DVDD, P2=_DVDD)
 
 # Bulk capacitors
 if add_bulk_cap:
@@ -111,11 +111,6 @@ if vref_config == VrefConfiguration("MidSupply"):
     Resistor(name="R_VREF1", value="10kohms", package="0402", P1=_AVDD, P2=_VREF)
     Resistor(name="R_VREF2", value="10kohms", package="0402", P1=_VREF, P2=GND)
     Capacitor(name="C_VREF", value="1uF", voltage="10V", package="0603", P1=_VREF, P2=GND)
-    VREF = _VREF
-elif vref_config == VrefConfiguration("External"):
-    _VREF = VREF
-else:  # Ground
-    _VREF = GND
 
 # Main component
 Component(
@@ -139,13 +134,6 @@ Component(
 # Output circuit
 if add_output_series_resistor:
     Resistor(name="R_OUT", value=output_series_resistor_value, package="0402", P1=_VOUT_INT, P2=VOUT)
-else:
-    VOUT = _VOUT_INT
-
-# SPI interface configuration
-_DIO = spi.MOSI  # For write operations
-# Note: PGA113 uses DIO pin for both input and output
-# The actual bidirectional behavior is handled by the IC
 
 # SPI pull-up resistor on CS
 Resistor(name="R_CS_PU", value="10kohms", package="0402", P1=spi.CS, P2=_DVDD, dnp=not add_spi_pullup)

@@ -21,7 +21,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/A
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -72,9 +71,9 @@ if use_int1 or use_int2:
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VS = io("VS", Power, checks=voltage_within("2V to 3.6V"))
+VS = io("VS", Power(voltage="2V to 3.6V"))
 if separate_vddio:
-    VDD_IO = io("VDD_IO", Power, checks=voltage_within("2V to 3.6V"))
+    VDD_IO = io("VDD_IO", Power(voltage="2V to 3.6V"))
 else:
     VDD_IO = io("VDD_IO", Net, default=VS)
 GND = io("GND", Ground)
@@ -127,7 +126,6 @@ else:
 # Reserved pins - per datasheet requirements
 _RES1 = _VS  # Reserved pin 3 - connect to VS or leave open (we connect to VS)
 _RES2 = GND  # Reserved pin 11 - connect to GND or leave open (we connect to GND)
-_NC = NotConnected()  # Not internally connected
 
 # 3-Axis MEMS Accelerometer, 2/4/8/16g range, I2C/SPI, LGA-14
 Component(
@@ -142,7 +140,6 @@ Component(
         "~{CS}": _CS,
         "INT1": INT1,
         "INT2": INT2,
-        "NC": _NC,
         "SDO/ADDR": _SDO_ADDR,
         "SDA/SDI/SDIO": _SDA_SDI_SDIO,
         "SCL/SCLK": _SCL_SCLK,

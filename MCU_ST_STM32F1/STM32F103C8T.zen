@@ -12,7 +12,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f103c8.pdf
 
 load("@stdlib/interfaces.zen", "Swd", "I2c", "Spi", "Uart", "Can", "Usb2", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -75,7 +74,7 @@ if add_usb:
     power_from_usb = config("power_from_usb", bool, default=True, optional=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2V to 3.6V"))
+VDD = io("VDD", Power(voltage="2V to 3.6V"))
 GND = io("GND", Ground)
 
 # GPIO IO - Expose all available GPIO pins to the user
@@ -128,7 +127,7 @@ else:
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Net)
+    VUSB = io("VUSB", Power)
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
@@ -172,9 +171,13 @@ else:
     _NRST = Net("NRST")  # Internal net for reset circuit
 
 # Internal nets
-_VDDA = io("_VDDA", Power)
-_VSSA = io("_VSSA", Ground)
-_VBAT = Net("VBAT")
+if add_analog_decoupling:
+    _VDDA = io("_VDDA", Power)
+    _VSSA = io("_VSSA", Ground)
+else:
+    _VDDA = VDD
+    _VSSA = GND
+_VBAT = Power("VBAT") if add_vbatt_ferrite_bead else VDD
 _BOOT0 = Net("BOOT0")
 
 # STMicroelectronics Arm Cortex-M3 MCU, 64KB flash, 20KB RAM, 72 MHz, 2.0-3.6V, 37 GPIO, LQFP48
@@ -248,20 +251,12 @@ if add_analog_decoupling:
     Capacitor(name="C_VDDA", value="100nF", package="0402", P1=_VDDA, P2=_VSSA)
     Capacitor(name="C_VDDA2", value="1uF", package="0402", P1=_VDDA, P2=_VSSA)
 
-else:
-    # If analog decoupling is disabled, always tie directly
-    _VDDA = VDD
-    _VSSA = GND
-
 # VBAT Connection
 if add_vbatt_ferrite_bead:
     # Connect to VDD through ferrite bead for noise filtering
     FerriteBead(name="FB_VBAT", package="0402", P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
     Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_VBAT, P2=GND)
-else:
-    # Direct connection to VDD
-    _VBAT = VDD
 
 
 # Reset Configuration

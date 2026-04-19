@@ -13,7 +13,6 @@ Datasheet: https://www.diodes.com/assets/Datasheets/AP7381.pdf
 """
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -33,7 +32,7 @@ add_test_points = config("add_test_points", bool, default=True)
 passive_size = config("passive_size", PackageSize, default="0603")
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("8V to 40V"))
+VIN = io("VIN", Power(voltage="8V to 40V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 

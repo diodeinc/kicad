@@ -56,13 +56,13 @@ add_output_protection = config("add_output_protection", bool, default=True)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, default=Power("VDD"))
+VDD = io("VDD", Power)
 GND = io("GND", Ground)
 RFIN = io("RFIN", Net)
 RFOUT = io("RFOUT", Net)
 
 # Internal nets
-_VDD_FILT = Net("VDD_FILT")  # Filtered power supply
+_VDD_FILT = Power("VDD_FILT") if add_ferrite_bead else VDD  # Filtered power supply
 _RFIN_INT = Net("RFIN_INT")  # Internal RF input after DC blocking
 _BIAS_NODE = Net("BIAS_NODE")  # Bias injection point
 _RFIN_MATCHED = Net("RFIN_MATCHED")  # Input after matching network
@@ -71,8 +71,6 @@ _RFOUT_MATCHED = Net("RFOUT_MATCHED")  # Output before matching network
 # Power supply filtering
 if add_ferrite_bead:
     FerriteBead(name="FB1", package="0805", P1=VDD, P2=_VDD_FILT)
-else:
-    _VDD_FILT = VDD
 
 # Bulk capacitor
 Capacitor(name="C_BULK", value="0.1uF", voltage="10V", package="0805", P1=_VDD_FILT, P2=GND, dnp=not add_bulk_cap)

@@ -16,7 +16,6 @@ Datasheet: https://ftdichip.com/wp-content/uploads/2020/08/DS_FT232R.pdf
 """
 
 load("@stdlib/interfaces.zen", "Usb2", "Uart", "Usart", "Rs232", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -37,15 +36,6 @@ communication_mode = config("communication_mode", CommunicationMode, default="UA
 
 usb = io("USB", Usb2)
 
-_TXD = Net("_TXD")
-_RXD = Net("_RXD")
-_RTS = Net("_RTS")
-_CTS = Net("_CTS")
-_DTR = Net("_DTR")
-_DSR = Net("_DSR")
-_DCD = Net("_DCD")
-_RI = Net("_RI")
-
 if communication_mode == CommunicationMode("RS232"):
     rs232 = io("rs232", Rs232)
     _TXD = rs232.TX
@@ -56,34 +46,41 @@ if communication_mode == CommunicationMode("RS232"):
     _DSR = rs232.DSR
     _DCD = rs232.DCD
     _RI = rs232.RI
-
 elif communication_mode == CommunicationMode("USART"):
     usart = io("usart", Usart)
     _TXD = usart.TX
     _RXD = usart.RX
     _RTS = usart.RTS
     _CTS = usart.CTS
-
+    _DTR = Net("_DTR")
+    _DSR = Net("_DSR")
+    _DCD = Net("_DCD")
+    _RI = Net("_RI")
 elif communication_mode == CommunicationMode("UART"):
     uart = io("uart", Uart)
     _TXD = uart.TX
     _RXD = uart.RX
+    _RTS = Net("_RTS")
+    _CTS = Net("_CTS")
+    _DTR = Net("_DTR")
+    _DSR = Net("_DSR")
+    _DCD = Net("_DCD")
+    _RI = Net("_RI")
 
 NRESET = io("NRESET", Net) if power_config == PowerConfig("BusPowered") else Net("RESET")
 
-VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
-VOUT_3V3 = Net("VOUT_3V3")
+VUSB = io("VUSB", Power(voltage="4V to 5.5V"))
+VOUT_3V3 = Power("VOUT_3V3")
 GND = io("GND", Ground)
 
 # VCC configuration
 if power_config == PowerConfig("BusPowered"):
-    VCC = Net("VCC")
+    VCC = Power("VCC")
     FerriteBead(name="FB1", mpn="MI0805K400R-10", package="0805", P1=VUSB, P2=VCC)
 else:
     VCC = io("VCC", Power)
 
 # VCCIO configuration
-_VCCIO_SUPPLY = Net("_VCCIO_SUPPLY")
 if vccio_level == VccioLevel("VCC"):
     _VCCIO_SUPPLY = VCC
 elif vccio_level == VccioLevel("VOUT_3V3"):

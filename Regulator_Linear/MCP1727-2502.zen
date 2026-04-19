@@ -16,7 +16,6 @@ Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/20002200D.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -43,7 +42,7 @@ if add_power_good_delay:
     power_good_delay_cap = config("power_good_delay_cap", Capacitance, default="1000pF")
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("2.3V to 6V"))
+VIN = io("VIN", Power(voltage="2.3V to 6V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
@@ -62,10 +61,9 @@ else:
     _PWRGD = Net("PWRGD_INT")
 
 # Internal nets
-_SENSE = Net("SENSE")
 _CDELAY = Net("CDELAY")
 
-# Connect SENSE to VOUT for fixed voltage operation (required for proper regulation)
+# SENSE is tied to VOUT for fixed-voltage operation (required for proper regulation).
 _SENSE = VOUT
 
 # 1.5A, Low Voltage, Low Quiescent Current LDO Regulator, 2.3-6V Input, Fixed 2.5V Output, 330mV Dropout, SOIC-8

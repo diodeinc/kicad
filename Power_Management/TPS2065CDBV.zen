@@ -27,7 +27,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tps2065c.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Capacitor = Module("@stdlib/generics/Capacitor.zen")
@@ -60,7 +59,7 @@ add_input_tvs = config("add_input_tvs", bool, default=True)
 add_output_tvs = config("add_output_tvs", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("4.5V to 5.5V"))
+VIN = io("VIN", Power(voltage="4.5V to 5.5V"))
 VOUT = io("VOUT", Power)
 GND = io("GND", Ground)
 
@@ -169,7 +168,6 @@ elif enable_config == PinConfig("PullDown"):
 
 # Optional input TVS diode for ESD protection
 if add_input_tvs:
-    Diode = Module("@stdlib/generics/Diode.zen")
     Diode(
         name="D_TVS_IN",
         variant="Zener",  # TVS diodes are similar to Zener

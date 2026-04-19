@@ -22,7 +22,6 @@ Datasheet: https://invensense.tdk.com/wp-content/uploads/2016/06/DS-000189-ICM-2
 
 load("@stdlib/interfaces.zen", "I2c", "Spi", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -49,13 +48,13 @@ add_vdd_bypass_cap = config("add_vdd_bypass_cap", bool, default=True)
 seperate_vdd_vddio = config("seperate_vdd_vddio", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.71V to 3.6V"))
 GND = io("GND", Ground)
 
 
 if seperate_vdd_vddio:
     add_vddio_bypass_cap = config("add_vddio_bypass_cap", bool, default=True)
-    VDDIO = io("VDDIO", Power, checks=voltage_within("1.71V to 3.6V"))
+    VDDIO = io("VDDIO", Power(voltage="1.71V to 3.6V"))
 else:
     add_vddio_bypass_cap = False
     VDDIO = VDD
@@ -93,11 +92,6 @@ if use_aux_i2c:
 
 # Internal nets
 _REGOUT = Net("REGOUT")
-_NC = NotConnected()
-_RESV_19 = Net("RESV_19")
-_RESV_20 = Net("RESV_20")
-_ADO_SDO = Net("ADO_SDO")
-_CS = Net("CS")
 
 # Interface Mode Configuration
 if interface_mode == InterfaceMode("I2C"):
@@ -143,18 +137,12 @@ if use_fsync:
 else:
     _FSYNC_PIN = GND  # Connect to GND if unused per datasheet
 
-# Reserved pins
-# Pin 19 (RESV) - Do not connect per datasheet
-# Pin 20 (RESV) - Connect to GND per datasheet# Connect RESV pin 20 to GND as per datasheet
-_RESV_20 = GND
-
 # ICM-20948 Component
 Component(
     name="ICM-20948",
     symbol=Symbol(library="@kicad-symbols/Sensor_Motion.kicad_sym", name="ICM-20948"),
     footprint=File("@kicad-footprints/Sensor_Motion.pretty/InvenSense_QFN-24_3x3mm_P0.4mm.kicad_mod"),
     pins={
-        "NC": _NC,
         "AUX_CL": _AUX_CL,
         "VDDIO": VDDIO,
         "SDO/AD0": _ADO_SDO,
@@ -163,7 +151,6 @@ Component(
         "INT1": _INT1_PIN,
         "VDD": VDD,
         "GND": GND,
-        "RESV": _RESV_20,  # Pin 20 - Connect to GND
         "AUX_DA": _AUX_DA,
         "~{CS}": _CS,
         "SCL/SCLK": _SCL_SCLK,

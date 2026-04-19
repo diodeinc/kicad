@@ -12,7 +12,7 @@ Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/ADP7142.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -29,9 +29,9 @@ if add_soft_start:
     soft_start_time = config("soft_start_time", str, default="10ms")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-EN_CTRL = io("EN", Net, default=Net("EN")) if enable_control else VIN
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+EN_CTRL = io("EN", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
 # Internal nets

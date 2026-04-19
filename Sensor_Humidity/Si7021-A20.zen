@@ -15,7 +15,6 @@ Datasheet: https://www.silabs.com/documents/public/data-sheets/Si7021-A20.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -42,7 +41,7 @@ add_test_points = config("add_test_points", bool, default=True, optional=True)
 passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.9V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.9V to 3.6V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -53,7 +52,6 @@ _SCL = i2c.SCL
 _SDA = i2c.SDA
 
 # DNC pins - Do Not Connect pins can be floating or tied to VDD (NOT GND)
-_DNC = Net("DNC")
 
 
 # Digital Humidity and Temperature Sensor, ±3%RH, ±0.4°C, I2C, 1.9-3.6V, DFN-6
@@ -64,7 +62,6 @@ Component(
     pins={
         "SDA": _SDA,  # Pin 1
         "GND": GND,  # Pin 2
-        "NC": _DNC,  # Pins 3,4 - DNC (Do Not Connect) - can be floating or tied to VDD
         "VDD": VDD,  # Pin 5
         "SCL": _SCL,  # Pin 6
         "PAD": GND,  # TGND Paddle - internally connected to GND, main thermal input

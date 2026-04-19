@@ -18,7 +18,6 @@ Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -125,7 +124,7 @@ add_led_header = config("add_led_header", bool, default=True)
 add_test_points = config("add_test_points", bool, default=False)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2.3V to 5.5V"))
+VDD = io("VDD", Power(voltage="2.3V to 5.5V"))
 VSS = io("VSS", Ground)
 
 # I2C interface
@@ -178,18 +177,8 @@ if expose_address_pins:
     _A4 = A4
     _A5 = A5
 else:
-    # Internal nets for address pins (will be assigned in address configuration)
-    pass
-
-# No internal LED nets needed - direct connection
-
-# Address configuration
-if not expose_address_pins:
-    # Set address pins based on configuration
-    # The PCA9685 base address is 0x40, with A0-A5 pins adding to this base
-    # A0=1 adds 0x01, A1=1 adds 0x02, A2=1 adds 0x04, A3=1 adds 0x08, A4=1 adds 0x10, A5=1 adds 0x20
-    # Map address enum to integer value
-    address_map = {
+    # Hard-strap address pins based on `address` config (base 0x40; A0..A5 set bits).
+    _address_map = {
         I2cAddress("0x40"): 0x40,
         I2cAddress("0x41"): 0x41,
         I2cAddress("0x42"): 0x42,
@@ -255,17 +244,15 @@ if not expose_address_pins:
         I2cAddress("0x7E"): 0x7E,
         I2cAddress("0x7F"): 0x7F,
     }
+    _addr_val = _address_map[address] & 0x3F
+    _A0 = VDD if _addr_val & 0x01 else VSS
+    _A1 = VDD if _addr_val & 0x02 else VSS
+    _A2 = VDD if _addr_val & 0x04 else VSS
+    _A3 = VDD if _addr_val & 0x08 else VSS
+    _A4 = VDD if _addr_val & 0x10 else VSS
+    _A5 = VDD if _addr_val & 0x20 else VSS
 
-    # Extract address bits from address value
-    addr_val = address_map[address] & 0x3F  # Get lower 6 bits
-
-    # Connect each address pin to VDD or VSS using conditional net assignment
-    _A0 = VDD if addr_val & 0x01 else VSS
-    _A1 = VDD if addr_val & 0x02 else VSS
-    _A2 = VDD if addr_val & 0x04 else VSS
-    _A3 = VDD if addr_val & 0x08 else VSS
-    _A4 = VDD if addr_val & 0x10 else VSS
-    _A5 = VDD if addr_val & 0x20 else VSS
+# No internal LED nets needed - direct connection
 
 # External clock handling
 if clock_source == ClockSource("External"):

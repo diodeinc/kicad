@@ -17,7 +17,6 @@ Datasheet: https://www.ti.com/lit/ds/sbos893c/sbos893c.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -95,7 +94,7 @@ address_map = {
 a1_conn, a0_conn = address_map[i2c_address]
 
 # External IO
-VS = io("VS", Power, checks=voltage_within("2.7V to 5.5V"))  # Power supply (2.7-5.5V)
+VS = io("VS", Power(voltage="2.7V to 5.5V"))  # Power supply (2.7-5.5V)
 GND = io("GND", Ground)
 i2c = io("I2C", I2c)  # I2C communication interface
 
@@ -151,7 +150,6 @@ Component(
         "VBUS": _VBUS_FILT,
         "VS": VS,
         "GND": GND,
-        "NC": NotConnected(),  # No connect
         "ALERT": ALERT,
         "SCL": i2c.SCL,
         "SDA": i2c.SDA,

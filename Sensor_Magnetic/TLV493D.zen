@@ -37,7 +37,7 @@ i2c_speed = config("i2c_speed", I2cSpeed, default="400kHz")
 # External IO
 VDD = io("VDD", Power)
 GND = io("GND", Ground)
-i2c = io("I2C", I2c, default=I2c())
+i2c = io("I2C", I2c)
 
 # Optional interrupt output
 if enable_interrupt:

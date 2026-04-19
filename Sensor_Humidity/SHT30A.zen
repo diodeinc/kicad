@@ -14,7 +14,6 @@ Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/D
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground", "NotConnected")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -56,7 +55,7 @@ add_test_points = config("add_test_points", bool, default=True, optional=True)
 passives_size = config("passives_size", str, default="0402")
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("2.15V to 5.5V"))
+VDD = io("VDD", Power(voltage="2.15V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface

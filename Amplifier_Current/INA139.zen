@@ -14,7 +14,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/ina139.pdf
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -61,7 +60,7 @@ gain_map = {
 load_resistor_value = gain_map[gain_setting]
 
 # External IO
-V_PLUS = io("V+", Power, checks=voltage_within("2.7V to 40V"))  # Power supply (2.7-40V)
+V_PLUS = io("V+", Power(voltage="2.7V to 40V"))  # Power supply (2.7-40V)
 GND = io("GND", Ground)
 
 # Current sensing inputs
@@ -74,7 +73,6 @@ OUT = io("OUT", Net)  # Current output (converted to voltage by RL)
 # Internal nets
 _IN_P_FILT = Net("IN_PLUS_FILT") if add_input_filtering else IN_P
 _IN_N_FILT = Net("IN_MINUS_FILT") if add_input_filtering else IN_N
-_OUT_INT = Net("OUT_INT")  # Internal output net before load resistor
 
 # Main component
 Component(
@@ -82,7 +80,7 @@ Component(
     symbol=Symbol(library="@kicad-symbols/Amplifier_Current.kicad_sym", name="INA139"),
     footprint=File("@kicad-footprints/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod"),
     pins={
-        "1": _OUT_INT,  # Output current
+        "1": OUT,  # Output current
         "GND": GND,  # Ground
         "+": _IN_P_FILT,  # VIN+ input
         "-": _IN_N_FILT,  # VIN- input
@@ -112,10 +110,7 @@ if add_input_filtering:
 
 # Load resistor to convert output current to voltage
 # Gain = RL * gm where gm = 1000µA/V
-Resistor(name="R_LOAD", value=load_resistor_value, package="0603", P1=_OUT_INT, P2=GND)
-
-# Connect internal output to external output
-OUT = _OUT_INT
+Resistor(name="R_LOAD", value=load_resistor_value, package="0603", P1=OUT, P2=GND)
 
 # Output filtering (optional)
 if add_output_filtering:

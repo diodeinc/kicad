@@ -92,8 +92,11 @@ else:
 # ADC input (conditionally exposed)
 if expose_adc_input:
     ADC_IN = io("ADC_IN", Net)
+    # When a filter is added, the chip pin sees the filtered node, not the external io directly.
+    _ADC_PIN = Net("ADC_FILTERED") if add_adc_filter else ADC_IN
 else:
     ADC_IN = Net("ADC_IN_NC")
+    _ADC_PIN = ADC_IN
 
 # Internal nets
 _VS = VS
@@ -115,7 +118,7 @@ Component(
     symbol=Symbol(library="@kicad-symbols/Sensor_Motion.kicad_sym", name="ADXL363"),
     footprint=File("@kicad-footprints/Sensor_Motion.pretty/Analog_LGA-16_3.25x3mm_P0.5mm_LayoutBorder3x5y.kicad_mod"),
     pins={
-        "ADC_IN": ADC_IN,
+        "ADC_IN": _ADC_PIN,
         "MOSI": _MOSI,
         "MISO": _MISO,
         "SCLK": _SCLK,
@@ -155,15 +158,9 @@ if add_interrupt_pullups:
 
 # ADC input filter (if enabled)
 if expose_adc_input and add_adc_filter:
-    # RC low-pass filter for ADC input
-    _ADC_FILTERED = Net("ADC_FILTERED")
-
-    Resistor(name="R_ADC", value="1kohms", package="0402", P1=ADC_IN, P2=_ADC_FILTERED)
-
-    Capacitor(name="C_ADC", value="100nF", voltage="6.3V", package="0402", P1=_ADC_FILTERED, P2=GND)
-
-    # Connect filtered signal to chip
-    ADC_IN = _ADC_FILTERED
+    # RC low-pass filter on the ADC input before the chip pin.
+    Resistor(name="R_ADC", value="1kohms", package="0402", P1=ADC_IN, P2=_ADC_PIN)
+    Capacitor(name="C_ADC", value="100nF", voltage="6.3V", package="0402", P1=_ADC_PIN, P2=GND)
 
 # CS pull-up resistor (ensures SPI mode when not actively driven)
 Resistor(name="R_CS", value="100kohms", package="0402", P1=_CS, P2=_VDD_IO)

@@ -33,7 +33,6 @@ Datasheet: https://www.ti.com/lit/ds/symlink/tca9535.pdf
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -81,7 +80,7 @@ if add_unused_io_resistors or unused_port_handling == UnusedPortHandling("PullUp
 add_test_points = config("add_test_points", bool, default=True, optional=True)
 
 # External IO
-VCC = io("VCC", Power, checks=voltage_within("1.65V to 5.5V"))
+VCC = io("VCC", Power(voltage="1.65V to 5.5V"))
 GND = io("GND", Ground)
 
 # I2C interface
@@ -94,25 +93,19 @@ else:
     INT = Net("INT_NC")  # Not connected internally
 
 # GPIO ports - conditionally exposed based on port configuration
-# Create internal nets for all GPIO pins
-_gpio_p0 = [Net(f"P0{i}") for i in range(8)]
-_gpio_p1 = [Net(f"P1{i}") for i in range(8)]
-
-# Expose active ports as external IOs
+# Create internal nets for unused pins only; exposed pins use external IOs.
 if port_config == PortConfig("Port0Only") or port_config == PortConfig("BothPorts"):
-    gpio_p0 = [io(f"P0{i}", Net, default=_gpio_p0[i]) for i in range(8)]
-    # Connect internal nets to external IOs
-    for i in range(8):
-        _gpio_p0[i] = gpio_p0[i]
+    gpio_p0 = [io(f"P0{i}", Net) for i in range(8)]
+    _gpio_p0 = gpio_p0
 else:
+    _gpio_p0 = [Net(f"P0{i}") for i in range(8)]
     gpio_p0 = _gpio_p0  # Port 0 not exposed, use internal nets
 
 if port_config == PortConfig("Port1Only") or port_config == PortConfig("BothPorts"):
-    gpio_p1 = [io(f"P1{i}", Net, default=_gpio_p1[i]) for i in range(8)]
-    # Connect internal nets to external IOs
-    for i in range(8):
-        _gpio_p1[i] = gpio_p1[i]
+    gpio_p1 = [io(f"P1{i}", Net) for i in range(8)]
+    _gpio_p1 = gpio_p1
 else:
+    _gpio_p1 = [Net(f"P1{i}") for i in range(8)]
     gpio_p1 = _gpio_p1  # Port 1 not exposed, use internal nets
 
 # Address configuration nets

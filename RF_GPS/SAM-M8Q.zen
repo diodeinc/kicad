@@ -15,7 +15,6 @@ Datasheet: https://content.u-blox.com/sites/default/files/SAM-M8Q_DataSheet_UBX-
 """
 
 load("@stdlib/interfaces.zen", "I2c", "Uart", "Power", "Ground", "NotConnected")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,8 +44,9 @@ add_decoupling = config("add_decoupling", bool, default=True)
 enable_safeboot_pins = config("enable_safeboot_pins", bool, default=True)
 
 # External IO
-VCC = io("VCC", Power, checks=voltage_within("2.7V to 3.6V"))
-VCC_IO = io("VCC_IO", Net, default=VCC)
+VCC = io("VCC", Power(voltage="2.7V to 3.6V"))
+_VCC_IO_REQ = io("VCC_IO", Power, optional=True)
+VCC_IO = _VCC_IO_REQ if _VCC_IO_REQ != None else VCC
 GND = io("GND", Ground)
 
 # Interface IO
@@ -61,21 +61,21 @@ TIMEPULSE = io("TIMEPULSE", Net, optional=True)
 EXTINT = io("EXTINT", Net, optional=True)
 
 # Internal nets
-_V_BCKP = io("V_BCKP", Net) if add_backup_battery else VCC_IO
+_V_BCKP = io("V_BCKP", Power) if add_backup_battery else VCC_IO
 _RESET_N = Net("RESET_N")
 _SAFEBOOT_N = Net("SAFEBOOT_N")
-_SDA = Net("SDA")
-_SCL = Net("SCL")
-_TXD = Net("TXD")
-_RXD = Net("RXD")
 
 # Connect interface nets based on configuration
 if interface_mode == InterfaceMode("UART"):
     _TXD = uart.TX
     _RXD = uart.RX
+    _SDA = Net("SDA")
+    _SCL = Net("SCL")
 elif interface_mode == InterfaceMode("I2C"):
     _SDA = i2c.SDA
     _SCL = i2c.SCL
+    _TXD = Net("TXD")
+    _RXD = Net("RXD")
 else:  # Both
     _TXD = uart.TX
     _RXD = uart.RX
@@ -109,9 +109,6 @@ if add_backup_battery:
     Resistor(name="R_BACKUP", value="10ohms", package="0603", P1=VCC_IO, P2=_V_BCKP)
     # Backup capacitor
     Capacitor(name="C_BACKUP", value="1uF", voltage="6.3V", package="0603", P1=_V_BCKP, P2=GND)
-else:
-    # Connect V_BCKP directly to VCC_IO
-    _V_BCKP = VCC_IO
 
 # Pulse LED on TIMEPULSE
 if add_pulse_led and TIMEPULSE:

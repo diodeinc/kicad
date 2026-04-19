@@ -13,9 +13,8 @@ Reviewer: Nasheed Ur Rehman
 Datasheet: https://www.ti.com/lit/ds/symlink/lm20.pdf
 """
 
-load("@stdlib/interfaces.zen", "Power", "Ground", "NotConnected")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Voltage")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -39,13 +38,12 @@ connect_die_ground = config("connect_die_ground", bool, default=True)
 supply_voltage = config("supply_voltage", Voltage, default="3.3V")  # Supply voltage (2.4V to 5.5V)
 
 # External IO
-VCC = io("VCC", Power, checks=voltage_within("2.4V to 5.5V"))  # Power supply input (2.4V to 5.5V)
+VCC = io("VCC", Power(voltage="2.4V to 5.5V"))  # Power supply input (2.4V to 5.5V)
 GND = io("GND", Ground)
 VOUT = io("VOUT", Net)  # Temperature sensor analog output
 
 # Internal nets
 _VOUT_FILTERED = Net("VOUT_FILTERED") if add_output_filtering else VOUT
-_NC = NotConnected()  # Not connected pin
 
 # LM20 Temperature Sensor Component
 Component(
@@ -56,7 +54,6 @@ Component(
         "V+": VCC,
         "GND": GND,
         "GND/DIE": GND if connect_die_ground else Net("DIE_GND"),
-        "NC": _NC,
         "VO": _VOUT_FILTERED if add_output_filtering else VOUT,
     },
 )

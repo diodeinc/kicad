@@ -14,7 +14,7 @@ Reviewer: @DiodeComputers/davide-asnaghi
 Datasheet: https://www.ti.com/lit/ds/symlink/lm2576.pdf
 """
 
-load("@stdlib/interfaces.zen", "Ground")
+load("@stdlib/interfaces.zen", "Power", "Ground")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -34,9 +34,9 @@ enable_control = config("enable_control", bool, default=True)
 inductor_value = config("inductor_value", InductorValue, default="100uH")
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-ON_OFF = io("ON_OFF", Net, default=Net("ON/OFF")) if enable_control else GND
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+ON_OFF = io("ON_OFF", Net) if enable_control else GND
 GND = io("GND", Ground)
 
 # Internal nets

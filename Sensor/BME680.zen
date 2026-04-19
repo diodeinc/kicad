@@ -22,7 +22,6 @@ Datasheet: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datash
 
 load("@stdlib/interfaces.zen", "I2c", "Power", "Spi", "Ground")
 load("@stdlib/units.zen", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -45,12 +44,12 @@ add_power_decoupling = config("add_power_decoupling", bool, default=True)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VDD = io("VDD", Power, checks=voltage_within("1.71V to 3.6V"))
+VDD = io("VDD", Power(voltage="1.71V to 3.6V"))
 GND = io("GND", Ground)
 
 # VDDIO - can be same as VDD or separate
 if add_vddio_separation:
-    VDDIO = io("VDDIO", Power, checks=voltage_within("1.71V to 3.6V"))
+    VDDIO = io("VDDIO", Power(voltage="1.71V to 3.6V"))
 else:
     VDDIO = VDD
 

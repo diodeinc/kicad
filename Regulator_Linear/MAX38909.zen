@@ -27,7 +27,6 @@ Datasheet: https://www.analog.com/media/en/technical-documentation/data-sheets/M
 
 load("@stdlib/interfaces.zen", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 
 # Dependencies
 Resistor = Module("@stdlib/generics/Resistor.zen")
@@ -66,8 +65,8 @@ add_output_bulk_cap = config("add_output_bulk_cap", bool, default=True)
 add_test_points = config("add_test_points", bool, default=True)
 
 # External IO
-VIN = io("VIN", Power, checks=voltage_within("0.9V to 5.5V"))
-VBIAS = io("VBIAS", Net)
+VIN = io("VIN", Power(voltage="0.9V to 5.5V"))
+VBIAS = io("VBIAS", Power)
 GND = io("GND", Ground)
 VOUT = io("VOUT", Power)
 

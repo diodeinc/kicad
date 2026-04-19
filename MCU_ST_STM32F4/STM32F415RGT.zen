@@ -15,7 +15,6 @@ Datasheet: https://www.st.com/resource/en/datasheet/stm32f415rg.pdf
 
 load("@stdlib/interfaces.zen", "Usb2", "Swd", "I2c", "I2s", "Spi", "Uart", "Can", "Sdio", "Power", "Ground")
 load("@stdlib/units.zen", "Capacitance", "Resistance")
-load("@stdlib/checks.zen", "voltage_within")
 AP2112K_3_3 = Module("../Regulator_Linear/AP2112K-3.3.zen")
 
 # Dependencies
@@ -164,7 +163,7 @@ PD2 = io("PD2", Net)
 # USB IO (if enabled) - PA11 and PA12
 if add_usb:
     usb = io("USB", Usb2)
-    VUSB = io("VUSB", Power, checks=voltage_within("4V to 5.5V"))
+    VUSB = io("VUSB", Power(voltage="4V to 5.5V"))
     PA11 = usb.D.N
     PA12 = usb.D.P
 else:
@@ -215,11 +214,15 @@ else:
     _BOOT0 = Net("BOOT0")  # Internal net for boot circuit
 
 # Internal nets
-_VDDA = Net("VDDA") if add_analog_decoupling else VDD
-_VSSA = io("_VSSA", Ground)
-_VBAT = Net("VBAT") if add_vbat_ferrite_bead else VDD
-_VCAP1 = Net("VCAP1")
-_VCAP2 = Net("VCAP2")
+if add_analog_decoupling:
+    _VDDA = Power("VDDA")
+    _VSSA = io("_VSSA", Ground)
+else:
+    _VDDA = VDD
+    _VSSA = GND
+_VBAT = Power("VBAT") if add_vbat_ferrite_bead else VDD
+_VCAP1 = Power("VCAP1")
+_VCAP2 = Power("VCAP2")
 
 # STMicroelectronics Arm Cortex-M4 MCU, 1024 KB flash, 192 KB RAM, 168 MHz, crypto, 1.8-3.6 V, 51 GPIO, LQFP64
 Component(
@@ -314,10 +317,6 @@ if add_analog_decoupling:
     NetTie(name="NT_VSSA", P1=GND, P2=_VSSA)
     Capacitor(name="C_VDDA", value="100nF", package="0402", P1=_VDDA, P2=_VSSA)
     Capacitor(name="C_VDDA2", value="1uF", package="0402", P1=_VDDA, P2=_VSSA)
-else:
-    # If analog decoupling is disabled, always tie directly
-    _VDDA = VDD
-    _VSSA = GND
 
 # VBAT Connection
 if add_vbat_ferrite_bead:
@@ -325,9 +324,6 @@ if add_vbat_ferrite_bead:
     FerriteBead(name="FB_VBAT", package="0402", P1=VDD, P2=_VBAT)
     # VBAT filtering capacitor
     Capacitor(name="C_VBAT", value="100nF", package="0402", P1=_VBAT, P2=GND)
-else:
-    # Direct connection to VDD
-    _VBAT = VDD
 
 # Reset Configuration
 if reset_configuration == ResetConfiguration("Pullup"):
@@ -571,8 +567,8 @@ if add_usb:
         # 3.3V LDO regulator from USB 5V to VDD
         AP2112K_3_3(
             name="U_USB_REG",
-            VIN=Power(NET=VUSB),
-            VOUT=Power(NET=VDD),
+            VIN=Power(VUSB),
+            VOUT=Power(VDD),
             GND=GND,
             add_input_cap=add_power_decoupling,
             add_output_cap=add_power_decoupling,

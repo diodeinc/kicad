@@ -31,9 +31,9 @@ rise_time = config("rise_time", RiseTime, default="10ms")  # Supply rise time fo
 use_force_sense = config("use_force_sense", bool, default=False)
 
 # External IO
-VIN = io("VIN", Net, default=Net("VIN"))
-VOUT = io("VOUT", Net, default=Net("VOUT"))
-EN_CTRL = io("ENABLE", Net, default=Net("ENABLE")) if enable_control else VIN
+VIN = io("VIN", Power)
+VOUT = io("VOUT", Power)
+EN_CTRL = io("ENABLE", Net) if enable_control else VIN
 GND = io("GND", Ground)
 
 # Internal nets
