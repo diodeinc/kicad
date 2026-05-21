@@ -71,6 +71,7 @@ Component(
     name="W25Q128JVE",
     symbol=Symbol(library="@kicad-symbols/Memory_Flash.kicad_sym", name="W25Q128JVE"),
     footprint=File("@kicad-footprints/Package_SON.pretty/WSON-8-1EP_8x6mm_P1.27mm_EP3.4x4.3mm.kicad_mod"),
+    part=Part(mpn="W25Q128JVEIQ", manufacturer="Winbond Electronics"),
     pins={
         "~{CS}": _CS,
         "CLK": _CLK,
